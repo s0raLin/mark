@@ -1,5 +1,6 @@
 import { cn } from "@/src/utils/cn";
 import { motion } from "motion/react";
+import { memo } from "react";
 
 interface OutlineItemProps {
   label: string;
@@ -7,7 +8,8 @@ interface OutlineItemProps {
   sub?: boolean;
   onClick?: () => void;
 }
-export function OutlineItem({ label, active, sub, onClick }: OutlineItemProps) {
+
+function OutlineItemComponent({ label, active, sub, onClick }: OutlineItemProps) {
   return (
     <button
       onClick={onClick}
@@ -30,3 +32,12 @@ export function OutlineItem({ label, active, sub, onClick }: OutlineItemProps) {
     </button>
   );
 }
+
+// 使用 memo 优化，防止父组件状态更新时不必要的重新渲染
+export const OutlineItem = memo(OutlineItemComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.label === nextProps.label &&
+    prevProps.active === nextProps.active &&
+    prevProps.sub === nextProps.sub
+  );
+});

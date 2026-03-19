@@ -33,8 +33,10 @@
   box-shadow: 0 10px 25px -5px rgba(255, 143, 171, 0.1), 0 8px 10px -6px rgba(255, 143, 171, 0.1);
 }
 
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: #f8f9fa;
@@ -45,6 +47,53 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #ffafcc;
+}
+
+/* CodeMirror scrollbar styling */
+.cm-scroller {
+  overflow: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+.cm-scroller::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.cm-scroller::-webkit-scrollbar-track {
+  background: #f8f9fa;
+  border-radius: 10px;
+}
+.cm-scroller::-webkit-scrollbar-thumb {
+  background: #ffc2d1;
+  border-radius: 10px;
+}
+.cm-scroller::-webkit-scrollbar-thumb:hover {
+  background: #ffafcc;
+}
+
+/* CodeMirror 性能优化 */
+.cm-editor {
+  height: 100%;
+  contain: strict;
+}
+.cm-scroller {
+  contain: layout style paint;
+}
+.cm-content {
+  caret-color: #ff8fab;
+}
+.cm-activeLine {
+  background-color: rgba(255, 143, 171, 0.05) !important;
+}
+.cm-activeLineGutter {
+  background-color: rgba(255, 143, 171, 0.1) !important;
+}
+
+/* Preview area scroll optimization */
+.preview-scroll {
+  contain: layout style paint;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
 }
 
 .markdown-body h1 { @apply text-4xl font-extrabold mb-8 text-slate-800 border-b-4 border-primary/20 pb-4 inline-block; }

@@ -28,9 +28,10 @@ import { vscodeDark } from "@uiw/codemirror-theme-vscode";
 import { dracula } from "@uiw/codemirror-theme-dracula";
 import { nord } from "@uiw/codemirror-theme-nord";
 import { sublime } from "@uiw/codemirror-theme-sublime";
-import { EditorView } from "@codemirror/view";
+import { EditorView, scrollPastEnd } from "@codemirror/view";
 import { cn } from "@/src/utils/cn";
 import { OutlineItem } from "./OutlineItem";
+import Toolbar from "@/src/components/MainContent/Toolbar/Toolbar";
 
 interface MainContentProps {
   toolbarRef?: React.RefObject<ReactCodeMirrorRef>;
@@ -63,6 +64,7 @@ export default function MainContent({
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [activeOutlineId, setActiveOutlineId] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+  const headingElementsRef = useRef<Map<string, HTMLElement>>(new Map());
 
   const headings = useMemo(() => {
     const lines = markdown.split("\n");
@@ -95,64 +97,52 @@ export default function MainContent({
     return result;
   }, [markdown]);
 
+  // 使用 IntersectionObserver 优化滚动同步，避免频繁 DOM 查询
   useEffect(() => {
-    let ticking = false;
+    const preview = previewRef.current;
+    if (!preview || headings.length === 0) return;
 
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          if (!previewRef.current) {
-            ticking = false;
-            return;
-          }
+    // 收集所有 heading 元素
+    headingElementsRef.current.clear();
+    headings.forEach((heading) => {
+      const el = document.getElementById(heading.id);
+      if (el) {
+        headingElementsRef.current.set(heading.id, el);
+      }
+    });
 
-          const container = previewRef.current;
-          // Threshold for when a heading is considered "active"
-          // We use a value that feels natural (about 1/4 down the viewport)
-          const threshold = Math.min(150, container.clientHeight / 4);
-          const scrollPosition = container.scrollTop + threshold;
+    const observerOptions = {
+      root: preview,
+      rootMargin: '-60px 0px -60% 0px',
+      threshold: 0,
+    };
 
-          // Check if we're near the bottom of the document
-          // If so, the last heading should be active
-          const isAtBottom =
-            container.scrollHeight - container.scrollTop <=
-            container.clientHeight + 50;
-
-          if (isAtBottom && headings.length > 0) {
-            setActiveOutlineId(headings[headings.length - 1].id);
-            ticking = false;
-            return;
-          }
-
-          let currentId = null;
-          // Find the last heading that has passed the threshold
-          for (const heading of headings) {
-            const el = document.getElementById(heading.id);
-            if (el) {
-              if (el.offsetTop <= scrollPosition) {
-                currentId = heading.id;
-              } else {
-                break;
-              }
-            }
-          }
-
-          setActiveOutlineId(currentId);
-          ticking = false;
-        });
-        ticking = true;
+    const observerCallback: IntersectionObserverCallback = (entries) => {
+      // 找到第一个可见的 heading
+      let activeId: string | null = null;
+      
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          activeId = entry.target.id;
+          break;
+        }
+      }
+      
+      if (activeId) {
+        setActiveOutlineId(activeId);
       }
     };
 
-    const currentPreview = previewRef.current;
-    if (currentPreview) {
-      currentPreview.addEventListener("scroll", handleScroll, {
-        passive: true,
-      });
-      // Initial check to sync state
-      handleScroll();
-    }
-    return () => currentPreview?.removeEventListener("scroll", handleScroll);
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    // 观察所有 heading 元素
+    headingElementsRef.current.forEach((el) => {
+      observer.observe(el);
+    });
+
+    return () => {
+      observer.disconnect();
+    };
   }, [headings]);
 
   const scrollToSection = (id: string) => {
@@ -217,22 +207,6 @@ export default function MainContent({
       default:
         return oneDark;
     }
-  };
-
-  const applyMarkdown = (prefix: string, suffix: string = "") => {
-    if (!editorRef.current?.view) return;
-    const view = editorRef.current.view;
-    const { from, to } = view.state.selection.main;
-
-    const selectedText = view.state.doc.sliceString(from, to);
-    const replacement = prefix + selectedText + suffix;
-
-    view.dispatch({
-      changes: { from, to, insert: replacement },
-      selection: { anchor: from + prefix.length, head: to + prefix.length },
-    });
-
-    view.focus();
   };
 
   // Markdown Linter for common errors
@@ -327,6 +301,52 @@ export default function MainContent({
     };
   };
 
+  // 使用 useMemo 缓存 extensions 数组，避免每次渲染都重新创建
+  const editorExtensions = useMemo(() => [
+    scrollPastEnd(),
+    markdownLang({
+      base: markdownLanguage,
+      codeLanguages: languages,
+    }),
+    markdownLinter,
+    autocompletion({ override: [markdownCompletions] }),
+    EditorView.lineWrapping,
+    EditorView.theme({
+      "&": {
+        height: "100%",
+        backgroundColor: "transparent !important",
+      },
+      ".cm-scroller": {
+        overflow: "auto",
+        maxHeight: "calc(100vh - 180px)",
+        padding: "48px 12px 48px 12px",
+      },
+      ".cm-content": {
+        fontFamily: "'JetBrains Mono', monospace",
+      },
+      ".cm-gutters": {
+        backgroundColor: "transparent !important",
+        border: "none !important",
+      },
+    }),
+  ], [editorTheme]);
+
+  const applyMarkdown = (prefix: string, suffix: string = "") => {
+    if (!editorRef.current?.view) return;
+    const view = editorRef.current.view;
+    const { from, to } = view.state.selection.main;
+
+    const selectedText = view.state.doc.sliceString(from, to);
+    const replacement = prefix + selectedText + suffix;
+
+    view.dispatch({
+      changes: { from, to, insert: replacement },
+      selection: { anchor: from + prefix.length, head: to + prefix.length },
+    });
+
+    view.focus();
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -418,9 +438,13 @@ export default function MainContent({
       {/* Editor Pane */}
       {(viewMode === "split" || viewMode === "editor") && (
         <section className="flex-1 border-r border-border-soft flex flex-col relative bg-white overflow-hidden">
-          <div className="absolute top-6 left-8 text-[11px] font-extrabold text-primary/60 uppercase tracking-widest z-10 pointer-events-none bg-primary/5 px-2 py-0.5 rounded-md">
-            Markdown Editor
+          {/* Toolbar - 侧边栏右边，小地图左边，编辑区顶部 */}
+          <div className="h-14 border-b border-border-soft bg-white/50 flex items-center justify-center px-4 gap-1 shrink-0">
+            <Toolbar editorRef={toolbarRef} />
           </div>
+          {/* <div className="absolute top-6 left-8 text-[11px] font-extrabold text-primary/60 uppercase tracking-widest z-10 pointer-events-none bg-primary/5 px-2 py-0.5 rounded-md">
+            Markdown Editor
+          </div> */}
           <div className="flex-1 overflow-hidden flex flex-col">
             <CodeMirror
               ref={editorRef}
@@ -428,32 +452,7 @@ export default function MainContent({
               height="100%"
               className="flex-1 text-sm font-mono"
               theme={getThemeExtension(editorTheme)}
-              extensions={[
-                markdownLang({
-                  base: markdownLanguage,
-                  codeLanguages: languages,
-                }),
-                markdownLinter,
-                autocompletion({ override: [markdownCompletions] }),
-                EditorView.lineWrapping,
-                EditorView.theme({
-                  "&": {
-                    height: "100%",
-                    backgroundColor: "transparent !important",
-                  },
-                  ".cm-scroller": {
-                    overflow: "auto",
-                    padding: "48px 12px 48px 12px",
-                  },
-                  ".cm-content": {
-                    fontFamily: "'JetBrains Mono', monospace",
-                  },
-                  ".cm-gutters": {
-                    backgroundColor: "transparent !important",
-                    border: "none !important",
-                  },
-                }),
-              ]}
+              extensions={editorExtensions}
               onChange={(value) => setMarkdown(value)}
               basicSetup={{
                 lineNumbers: true,
@@ -490,13 +489,13 @@ export default function MainContent({
         <section
           ref={previewRef}
           className={cn(
-            "flex-1 overflow-y-auto relative transition-colors duration-500",
+            "flex-1 overflow-y-auto relative transition-colors duration-500 preview-scroll",
             previewTheme,
           )}
         >
-          <div className="absolute top-6 left-8 text-[11px] font-extrabold text-secondary uppercase tracking-widest pointer-events-none bg-secondary/10 px-2 py-0.5 rounded-md z-10">
+          {/* <div className="absolute top-6 left-8 text-[11px] font-extrabold text-secondary uppercase tracking-widest pointer-events-none bg-secondary/10 px-2 py-0.5 rounded-md z-10">
             Live Preview
-          </div>
+          </div> */}
           <div className="p-16 max-w-none markdown-body">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
@@ -507,7 +506,10 @@ export default function MainContent({
                     .toLowerCase()
                     .replace(/[^\w\s-]/g, "")
                     .replace(/\s+/g, "-");
-                  if (!id) id = `h1-${Math.random().toString(36).substr(2, 9)}`;
+                  // Generate stable fallback ID using text length as fallback
+                  if (!id || id.length < 3) {
+                    id = `heading-${Math.abs(text.split('').reduce((a, c) => a + c.charCodeAt(0), 0))}`;
+                  }
                   return <h1 id={id} {...props}>{children}</h1>;
                 },
                 h2: ({ node, children, ...props }) => {
@@ -516,7 +518,9 @@ export default function MainContent({
                     .toLowerCase()
                     .replace(/[^\w\s-]/g, "")
                     .replace(/\s+/g, "-");
-                  if (!id) id = `h2-${Math.random().toString(36).substr(2, 9)}`;
+                  if (!id || id.length < 3) {
+                    id = `heading-${Math.abs(text.split('').reduce((a, c) => a + c.charCodeAt(0), 0))}`;
+                  }
                   return <h2 id={id} {...props}>{children}</h2>;
                 },
                 h3: ({ node, children, ...props }) => {
@@ -525,7 +529,9 @@ export default function MainContent({
                     .toLowerCase()
                     .replace(/[^\w\s-]/g, "")
                     .replace(/\s+/g, "-");
-                  if (!id) id = `h3-${Math.random().toString(36).substr(2, 9)}`;
+                  if (!id || id.length < 3) {
+                    id = `heading-${Math.abs(text.split('').reduce((a, c) => a + c.charCodeAt(0), 0))}`;
+                  }
                   return <h3 id={id} {...props}>{children}</h3>;
                 },
                 h4: ({ node, children, ...props }) => {
@@ -534,7 +540,9 @@ export default function MainContent({
                     .toLowerCase()
                     .replace(/[^\w\s-]/g, "")
                     .replace(/\s+/g, "-");
-                  if (!id) id = `h4-${Math.random().toString(36).substr(2, 9)}`;
+                  if (!id || id.length < 3) {
+                    id = `heading-${Math.abs(text.split('').reduce((a, c) => a + c.charCodeAt(0), 0))}`;
+                  }
                   return <h4 id={id} {...props}>{children}</h4>;
                 },
                 h5: ({ node, children, ...props }) => {
@@ -543,7 +551,9 @@ export default function MainContent({
                     .toLowerCase()
                     .replace(/[^\w\s-]/g, "")
                     .replace(/\s+/g, "-");
-                  if (!id) id = `h5-${Math.random().toString(36).substr(2, 9)}`;
+                  if (!id || id.length < 3) {
+                    id = `heading-${Math.abs(text.split('').reduce((a, c) => a + c.charCodeAt(0), 0))}`;
+                  }
                   return <h5 id={id} {...props}>{children}</h5>;
                 },
                 h6: ({ node, children, ...props }) => {
@@ -552,7 +562,9 @@ export default function MainContent({
                     .toLowerCase()
                     .replace(/[^\w\s-]/g, "")
                     .replace(/\s+/g, "-");
-                  if (!id) id = `h6-${Math.random().toString(36).substr(2, 9)}`;
+                  if (!id || id.length < 3) {
+                    id = `heading-${Math.abs(text.split('').reduce((a, c) => a + c.charCodeAt(0), 0))}`;
+                  }
                   return <h6 id={id} {...props}>{children}</h6>;
                 },
                 code({ node, inline, className, children, ...props }: any) {

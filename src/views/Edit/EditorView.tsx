@@ -1,7 +1,7 @@
 import Footer from "@/src/components/Footer";
 import Header from "@/src/components/Header";
 import MainContent from "@/src/components/MainContent/MainContent";
-import Toolbar from "@/src/components/Toolbar/Toolbar";
+import Toolbar from "@/src/components/MainContent/Toolbar/Toolbar";
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import Modal from "@/src/components/Modals/Modal";
 import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
@@ -137,11 +137,6 @@ export default function EditorView() {
           onExport={handleExport}
         />
       </header>
-
-      {/* Toolbar */}
-      <div className="h-14 border-b border-border-soft bg-white/50 flex items-center justify-center px-4 gap-1 shrink-0">
-        <Toolbar editorRef={toolbarRef} />
-      </div>
 
       <div className="flex-1 flex overflow-hidden">
         <aside className="w-80 h-full flex flex-col border-r border-rose-100 bg-white/90 backdrop-blur-xl shrink-0">
