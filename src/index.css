@@ -1,0 +1,93 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+@theme {
+  --font-display: "Quicksand", sans-serif;
+  --color-primary: #ff8fab;
+  --color-secondary: #a2d2ff;
+  --color-accent: #ffafcc;
+  --color-background-light: #fdfdfd;
+  --color-soft-bg: #f8f9fa;
+  --color-border-soft: #f1f3f5;
+  --radius-DEFAULT: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+}
+
+@layer base {
+  body {
+    @apply font-display bg-background-light text-slate-700;
+  }
+}
+
+.cute-glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.shadow-cute {
+  box-shadow: 0 10px 25px -5px rgba(255, 143, 171, 0.1), 0 8px 10px -6px rgba(255, 143, 171, 0.1);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f8f9fa;
+}
+::-webkit-scrollbar-thumb {
+  background: #ffc2d1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ffafcc;
+}
+
+.markdown-body h1 { @apply text-4xl font-extrabold mb-8 text-slate-800 border-b-4 border-primary/20 pb-4 inline-block; }
+.markdown-body h2 { @apply text-2xl font-bold mt-12 mb-6 text-slate-800 flex items-center gap-2; }
+.markdown-body h2::before { content: ""; @apply w-2 h-8 bg-secondary rounded-full inline-block mr-2; }
+.markdown-body h3 { @apply text-xl font-bold mt-12 mb-4 text-slate-800; }
+.markdown-body p { @apply text-slate-600 text-xl leading-relaxed mb-4; }
+.markdown-body ul { @apply list-none pl-0 space-y-4 text-slate-600 mb-6; }
+.markdown-body li { @apply flex items-start gap-3; }
+.markdown-body ul li::before { content: "check_circle"; @apply font-['Material_Symbols_Outlined'] text-primary text-xl; }
+.markdown-body ol { @apply list-none pl-0 mt-12 space-y-4 text-slate-600; counter-reset: step-counter; }
+.markdown-body ol li { @apply flex items-center gap-4; counter-increment: step-counter; }
+.markdown-body ol li::before { content: counter(step-counter); @apply w-8 h-8 rounded-full bg-secondary/20 text-secondary flex items-center justify-center font-bold text-sm shrink-0; }
+.markdown-body em { @apply text-primary font-bold not-italic; }
+.markdown-body blockquote { @apply text-slate-400 mb-4 italic px-4 border-l-4 border-slate-100; }
+
+/* Classic Heart Theme */
+.theme-heart-classic { background-color: #fffafb !important; }
+.theme-heart-classic .markdown-body h1 { color: #ff4d6d !important; border-color: #ffb3c1 !important; font-family: 'Playfair Display', serif !important; }
+.theme-heart-classic .markdown-body h2 { color: #ff758f !important; }
+.theme-heart-classic .markdown-body h2::before { background-color: #ffb3c1 !important; }
+.theme-heart-classic .markdown-body p { color: #5c5c5c !important; }
+.theme-heart-classic .markdown-body blockquote { border-color: #ffccd5 !important; background-color: #fff0f3 !important; color: #ff8fa3 !important; }
+
+/* Midnight Pulse Theme */
+.theme-heart-midnight { background-color: #1a1a1a !important; }
+.theme-heart-midnight .markdown-body h1 { color: #ff002b !important; border-color: #800015 !important; font-family: 'Playfair Display', serif !important; text-shadow: 0 0 10px rgba(255, 0, 43, 0.3) !important; }
+.theme-heart-midnight .markdown-body h2 { color: #ff4d6d !important; }
+.theme-heart-midnight .markdown-body h2::before { background-color: #800015 !important; }
+.theme-heart-midnight .markdown-body p { color: #b0b0b0 !important; }
+.theme-heart-midnight .markdown-body blockquote { border-color: #800015 !important; background-color: #2a0005 !important; color: #ff758f !important; }
+
+/* Golden Love Theme */
+.theme-heart-golden { background-color: #fdf6e3 !important; }
+.theme-heart-golden .markdown-body h1 { color: #b58900 !important; border-color: #eee8d5 !important; font-family: 'Playfair Display', serif !important; }
+.theme-heart-golden .markdown-body h2 { color: #cb4b16 !important; }
+.theme-heart-golden .markdown-body h2::before { background-color: #eee8d5 !important; }
+.theme-heart-golden .markdown-body p { color: #657b83 !important; }
+.theme-heart-golden .markdown-body blockquote { border-color: #eee8d5 !important; background-color: #fdf6e3 !important; color: #93a1a1 !important; }
+
+/* Organic Pulse Theme */
+.theme-heart-organic { background-color: #f0f4f0 !important; }
+.theme-heart-organic .markdown-body h1 { color: #6c5ce7 !important; border-color: #a29bfe !important; font-family: 'Playfair Display', serif !important; }
+.theme-heart-organic .markdown-body h2 { color: #00b894 !important; }
+.theme-heart-organic .markdown-body h2::before { background-color: #55efc4 !important; }
+.theme-heart-organic .markdown-body p { color: #636e72 !important; }
+.theme-heart-organic .markdown-body blockquote { border-color: #fab1a0 !important; background-color: #fff2f0 !important; color: #e17055 !important; }
