@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/src/utils/cn";
 import { CheckCircle2 } from "lucide-react";
 
@@ -9,7 +10,7 @@ interface PreviewThemeCard {
   onClick?: () => void;
 }
 
-export function PreviewThemeCard({
+export const PreviewThemeCard = memo(function PreviewThemeCard({
   title,
   subtitle,
   colors,
@@ -44,4 +45,4 @@ export function PreviewThemeCard({
       {active && <CheckCircle2 className="w-5 h-5 text-primary" />}
     </div>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Edit3,
   Layout,
@@ -45,12 +45,15 @@ export function SettingsModal({
 }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState("general");
 
-  const tabs = [
-    { id: "general", label: "General", icon: <Layout className="w-4 h-4" /> },
-    { id: "editor", label: "Editor", icon: <Palette className="w-4 h-4" /> },
-    { id: "export", label: "Export", icon: <Download className="w-4 h-4" /> },
-    { id: "account", label: "Account", icon: <Smile className="w-4 h-4" /> },
-  ];
+  const tabs = useMemo(
+    () => [
+      { id: "general", label: "General", icon: <Layout className="w-4 h-4" /> },
+      { id: "editor", label: "Editor", icon: <Palette className="w-4 h-4" /> },
+      { id: "export", label: "Export", icon: <Download className="w-4 h-4" /> },
+      { id: "account", label: "Account", icon: <Smile className="w-4 h-4" /> },
+    ],
+    []
+  );
 
   return (
     <motion.div

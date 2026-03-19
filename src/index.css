@@ -1,14 +1,15 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import "tailwindcss";
 
-@theme {
-  --font-display: "Quicksand", sans-serif;
+/* Tailwind CSS v4 theme variables - these generate utility classes */
+@theme inline {
   --color-primary: #ff8fab;
   --color-secondary: #a2d2ff;
   --color-accent: #ffafcc;
   --color-background-light: #fdfdfd;
   --color-soft-bg: #f8f9fa;
   --color-border-soft: #f1f3f5;
+  --font-display: "Quicksand", sans-serif;
   --radius-DEFAULT: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
@@ -59,6 +60,48 @@
 .markdown-body ol li::before { content: counter(step-counter); @apply w-8 h-8 rounded-full bg-secondary/20 text-secondary flex items-center justify-center font-bold text-sm shrink-0; }
 .markdown-body em { @apply text-primary font-bold not-italic; }
 .markdown-body blockquote { @apply text-slate-400 mb-4 italic px-4 border-l-4 border-slate-100; }
+
+/* Bold & Italic & Strikethrough */
+.markdown-body strong { @apply font-bold text-slate-800; }
+.markdown-body strong::before { content: none; }
+.markdown-body strong::after { content: none; }
+.markdown-body del { @apply line-through text-slate-400 decoration-slate-300; }
+.markdown-body del::before { content: none; }
+.markdown-body del::after { content: none; }
+
+/* Links */
+.markdown-body a { @apply text-primary underline decoration-primary/30 decoration-2 underline-offset-2 hover:decoration-primary transition-all; }
+.markdown-body a::before { content: none; }
+.markdown-body a::after { content: none; }
+
+/* Images */
+.markdown-body img { @apply rounded-xl shadow-lg my-6 max-w-full; }
+.markdown-body img::before { content: none; }
+.markdown-body img::after { content: none; }
+
+/* Tables */
+.markdown-body table { @apply w-full border-collapse my-6; }
+.markdown-body table::before { content: none; }
+.markdown-body table::after { content: none; }
+.markdown-body thead tr { @apply bg-primary/10; }
+.markdown-body th { @apply px-4 py-3 text-left font-bold text-slate-700 border-b-2 border-primary/20; }
+.markdown-body td { @apply px-4 py-3 border-b border-slate-100; }
+.markdown-body tbody tr:hover { @apply bg-pink-50/30; }
+
+/* Task List (Checklist) */
+.markdown-body input[type="checkbox"] { @apply w-5 h-5 rounded border-2 border-slate-300 text-primary focus:ring-primary focus:ring-offset-2 cursor-pointer; }
+.markdown-body ul.contains-task-list { @apply space-y-2; }
+.markdown-body li.task-list-item { @apply flex items-start gap-3; }
+.markdown-body li.task-list-item::before { content: none; }
+.markdown-body li.task-list-item input { @apply mt-1; }
+
+/* Horizontal Rule */
+.markdown-body hr { @apply my-8 border-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent; }
+
+/* Code */
+.markdown-body code { @apply bg-slate-100 text-primary px-2 py-1 rounded-lg font-mono text-sm; }
+.markdown-body pre { @apply p-0 my-0; }
+.markdown-body pre code { @apply bg-transparent text-primary p-0; }
 
 /* Classic Heart Theme */
 .theme-heart-classic { background-color: #fffafb !important; }

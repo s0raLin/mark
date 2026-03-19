@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/src/utils/cn";
 
 interface ThemeOptionProps {
@@ -6,7 +7,11 @@ interface ThemeOptionProps {
   active: boolean;
   onClick: () => void;
 }
-export function ThemeOption({ label, active, onClick }: ThemeOptionProps) {
+export const ThemeOption = memo(function ThemeOption({
+  label,
+  active,
+  onClick,
+}: ThemeOptionProps) {
   return (
     <button
       onClick={onClick}
@@ -20,4 +25,4 @@ export function ThemeOption({ label, active, onClick }: ThemeOptionProps) {
       {label}
     </button>
   );
-}
+});

@@ -1,10 +1,14 @@
+import { memo } from "react";
 import { cn } from "@/src/utils/cn";
 
 interface AccentCircleProps {
   color: string;
   active?: boolean;
 }
-export function AccentCircle({ color, active }: AccentCircleProps) {
+export const AccentCircle = memo(function AccentCircle({
+  color,
+  active,
+}: AccentCircleProps) {
   return (
     <div
       className={cn(
@@ -14,4 +18,4 @@ export function AccentCircle({ color, active }: AccentCircleProps) {
       style={{ backgroundColor: color }}
     />
   );
-}
+});

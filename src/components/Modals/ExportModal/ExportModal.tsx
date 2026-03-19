@@ -38,11 +38,14 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: https:;">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
     <title>StudioMark Export</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * { box-sizing: border-box; }
         body {
             font-family: 'Quicksand', sans-serif;
             line-height: 1.6;
@@ -54,13 +57,20 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
         }
         h1 { color: #1e293b; border-bottom: 2px solid #ff8fab; padding-bottom: 10px; }
         h2 { color: #1e293b; margin-top: 30px; }
-        code { background-color: #f1f5f9; padding: 2px 4px; rounded: 4px; font-family: monospace; }
+        h3 { color: #1e293b; margin-top: 24px; }
+        code { background-color: #f1f5f9; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
         pre { background-color: #f1f5f9; padding: 15px; border-radius: 8px; overflow-x: auto; }
-        blockquote { border-left: 4px solid #ff8fab; padding-left: 15px; color: #64748b; font-style: italic; }
+        pre code { background: none; padding: 0; }
+        blockquote { border-left: 4px solid #ff8fab; padding-left: 15px; color: #64748b; font-style: italic; margin: 16px 0; }
         img { max-width: 100%; border-radius: 8px; }
         table { border-collapse: collapse; width: 100%; margin: 20px 0; }
         th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
         th { background-color: #f8fafc; }
+        ul, ol { padding-left: 24px; }
+        li { margin: 8px 0; }
+        a { color: #ff8fab; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        hr { border: none; border-top: 2px solid #f1f5f9; margin: 24px 0; }
     </style>
 </head>
 <body>

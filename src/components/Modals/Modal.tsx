@@ -7,26 +7,41 @@ import { SearchModal } from "./SearchModal/SearchModal";
 import { useState } from "react";
 import { INITIAL_MARKDOWN } from "@/src/constants";
 import { SparkleDust } from "../../components/Modals/SparkleDust/SparkleDust";
+interface ModalProps {
+  editorTheme: string,
+  previewTheme: string,
+  isExportModalOpen: boolean;
+  isSaveAsModalOpen: boolean;
+  isSettingsModalOpen: boolean;
+  isSearchModalOpen: boolean;
+  setEditorTheme: React.Dispatch<React.SetStateAction<string>>,
+  setPreviewTheme: React.Dispatch<React.SetStateAction<string>>,
+  setIsExportModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsSaveAsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsSettingsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsSearchModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  markdown: string;
+  particlesOn: boolean;
+  setParticlesOn: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-export default function Modal() {
-  const [markdown, setMarkdown] = useState(() => {
-    const saved = localStorage.getItem("studiomark_content");
-    return saved || INITIAL_MARKDOWN;
-  });
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isSaveAsModalOpen, setIsSaveAsModalOpen] = useState(false);
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-
-  const [particlesOn, setParticlesOn] = useState(false);
-  const [editorTheme, setEditorTheme] = useState(() => {
-    return localStorage.getItem("studiomark_editor_theme") || "oneDark";
-  });
-  const [previewTheme, setPreviewTheme] = useState(() => {
-    return (
-      localStorage.getItem("studiomark_preview_theme") || "theme-heart-classic"
-    );
-  });
+export default function Modal({
+  editorTheme,
+  previewTheme,
+  isExportModalOpen,
+  isSaveAsModalOpen,
+  isSettingsModalOpen,
+  isSearchModalOpen,
+  setEditorTheme,
+  setPreviewTheme,
+  setIsExportModalOpen,
+  setIsSaveAsModalOpen,
+  setIsSettingsModalOpen,
+  setIsSearchModalOpen,
+  markdown,
+  particlesOn,
+  setParticlesOn,
+}: ModalProps) {
   const [fontChoice, setFontChoice] = useState(() => {
     return localStorage.getItem("studiomark_font_choice") || "Quicksand";
   });
