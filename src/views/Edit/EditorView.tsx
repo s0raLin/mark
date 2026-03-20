@@ -131,7 +131,19 @@ export default function EditorView() {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-background-light font-display text-slate-700">
+    <div className="h-screen flex flex-col overflow-hidden bg-background-light font-display text-slate-700 relative">
+      {/* Background image layer — controlled by SettingEditor */}
+      <div
+        id="editor-bg-layer"
+        className="absolute inset-0 pointer-events-none z-0"
+        style={(() => {
+          const saved = localStorage.getItem("studiomark_bg_image");
+          const blur = localStorage.getItem("studiomark_blur_amount") || "12";
+          return saved
+            ? { backgroundImage: `url(${saved})`, backgroundSize: "cover", backgroundPosition: "center", filter: `blur(${blur}px)` }
+            : {};
+        })()}
+      />
       {/* Header */}
       <header className="h-20 flex items-center justify-between px-8 border-b border-border-soft cute-glass z-50 shrink-0">
         <Header
@@ -194,6 +206,8 @@ export default function EditorView() {
         markdown={markdown}
         particlesOn={particlesOn}
         setParticlesOn={setParticlesOn}
+        fontChoice={fontChoice}
+        setFontChoice={setFontChoice}
       />
     </div>
   );

@@ -3,7 +3,7 @@
 
 @reference "tailwindcss";
 /* Tailwind CSS v4 theme variables - these generate utility classes */
-@theme inline {
+@theme {
   --color-primary: #ff8fab;
   --color-secondary: #a2d2ff;
   --color-accent: #ffafcc;
@@ -210,7 +210,8 @@
   @apply text-xl font-bold mt-12 mb-4 text-slate-800;
 }
 .markdown-body p {
-  @apply text-slate-600 text-xl leading-relaxed mb-4;
+  font-size: var(--markdown-font-size, 1.25rem);
+  @apply text-slate-600 leading-relaxed mb-4;
 }
 .markdown-body em {
   @apply text-primary font-bold not-italic;
@@ -443,4 +444,59 @@
 }
 .theme-heart-organic .markdown-body blockquote::before {
   color: #00b894 !important;
+}
+
+/* ── Pretty Slider ── */
+.pretty-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    var(--color-primary) 0%,
+    var(--color-primary) var(--slider-pct, 50%),
+    #fce7f3 var(--slider-pct, 50%),
+    #fce7f3 100%
+  );
+  outline: none;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.pretty-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid var(--color-primary);
+  box-shadow: 0 2px 8px -2px rgba(255, 143, 171, 0.5);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.pretty-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid var(--color-primary);
+  box-shadow: 0 2px 8px -2px rgba(255, 143, 171, 0.5);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.pretty-slider:hover::-webkit-slider-thumb,
+.pretty-slider:focus::-webkit-slider-thumb {
+  transform: scale(1.2);
+  box-shadow: 0 4px 14px -2px rgba(255, 143, 171, 0.6);
+}
+
+.pretty-slider:hover::-moz-range-thumb,
+.pretty-slider:focus::-moz-range-thumb {
+  transform: scale(1.2);
+  box-shadow: 0 4px 14px -2px rgba(255, 143, 171, 0.6);
 }

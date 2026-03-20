@@ -31,6 +31,31 @@ async function startServer() {
 
   const upload = multer({ storage });
 
+  // Ensure fonts directory exists
+  const fontsDir = path.join(process.cwd(), "public", "fonts");
+  if (!fs.existsSync(fontsDir)) {
+    fs.mkdirSync(fontsDir, { recursive: true });
+  }
+
+  const fontStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, fontsDir);
+    },
+    filename: (req, file, cb) => {
+      // Preserve original name so @font-face src is predictable
+      const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+      cb(null, safeName);
+    },
+  });
+  const uploadFont = multer({
+    storage: fontStorage,
+    fileFilter: (req, file, cb) => {
+      const allowed = [".ttf", ".woff", ".woff2", ".otf"];
+      const ext = path.extname(file.originalname).toLowerCase();
+      cb(null, allowed.includes(ext));
+    },
+  });
+
   // API routes
   app.post("/api/upload", upload.single("image"), (req, res) => {
     if (!req.file) {
@@ -39,6 +64,22 @@ async function startServer() {
     const imageUrl = `/uploads/${req.file.filename}`;
     res.json({ url: imageUrl });
   });
+
+  app.post("/api/upload-font", uploadFont.single("font"), (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: "No font file uploaded" });
+    }
+    const fontUrl = `/fonts/${req.file.filename}`;
+    // Derive a font-family name from the filename (strip extension)
+    const fontFamily = path.basename(req.file.originalname, path.extname(req.file.originalname))
+      .replace(/[_-]+/g, " ")
+      .trim();
+    res.json({ url: fontUrl, fontFamily });
+  });
+
+  // Serve static uploads and fonts
+  app.use("/uploads", express.static(uploadsDir));
+  app.use("/fonts", express.static(fontsDir));
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

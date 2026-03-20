@@ -2,12 +2,13 @@ import { memo } from "react";
 import { cn } from "@/src/utils/cn";
 import { CheckCircle2 } from "lucide-react";
 
-interface PreviewThemeCard {
+interface PreviewThemeCardProps {
   title: string;
   subtitle: string;
   colors: string[];
   active?: boolean;
   onClick?: () => void;
+  isDark?: boolean;
 }
 
 export const PreviewThemeCard = memo(function PreviewThemeCard({
@@ -16,33 +17,49 @@ export const PreviewThemeCard = memo(function PreviewThemeCard({
   colors,
   active,
   onClick,
-}: PreviewThemeCard) {
+  isDark,
+}: PreviewThemeCardProps) {
+  const bgColor = colors[0];
+  const titleColor = isDark ? "#e2e8f0" : "#1e293b";
+  const subtitleColor = isDark ? "#94a3b8" : "#94a3b8";
+
   return (
     <div
       onClick={onClick}
       className={cn(
-        "p-4 rounded-2xl border-2 transition-all cursor-pointer group flex items-center gap-4",
+        "p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4",
         active
-          ? "border-primary bg-pink-50/50 shadow-sm"
-          : "border-slate-100 bg-white hover:border-primary/30",
+          ? "border-primary shadow-md shadow-primary/20 scale-[1.01]"
+          : "border-slate-200 hover:border-primary/40",
       )}
+      style={{ backgroundColor: bgColor }}
     >
-      <div className="flex -space-x-2">
+      <div className="flex -space-x-2 shrink-0">
         {colors.map((color, i) => (
           <div
             key={i}
-            className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
-            style={{ backgroundColor: color }}
+            className="w-8 h-8 rounded-full border-2 shadow-sm"
+            style={{
+              backgroundColor: color,
+              borderColor: isDark ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.9)",
+            }}
           />
         ))}
       </div>
-      <div className="flex-1">
-        <p className="font-bold text-slate-800 text-sm">{title}</p>
-        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-sm" style={{ color: titleColor }}>
+          {title}
+        </p>
+        <p
+          className="text-[10px] font-bold uppercase tracking-widest mt-0.5"
+          style={{ color: subtitleColor }}
+        >
           {subtitle}
         </p>
       </div>
-      {active && <CheckCircle2 className="w-5 h-5 text-primary" />}
+      {active && (
+        <CheckCircle2 className="w-5 h-5 shrink-0 text-primary" />
+      )}
     </div>
   );
 });

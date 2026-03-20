@@ -4,8 +4,6 @@ import { ExportModal } from "./ExportModal/ExportModal";
 import { SaveAsModal } from "./SaveAsModal/SaveAsModal";
 import { SettingsModal } from "./SettingsModal/SettingsModal";
 import { SearchModal } from "./SearchModal/SearchModal";
-import { useState } from "react";
-import { INITIAL_MARKDOWN } from "@/src/constants";
 import { SparkleDust } from "../../components/Modals/SparkleDust/SparkleDust";
 interface ModalProps {
   editorTheme: string,
@@ -23,6 +21,8 @@ interface ModalProps {
   markdown: string;
   particlesOn: boolean;
   setParticlesOn: React.Dispatch<React.SetStateAction<boolean>>;
+  fontChoice: string;
+  setFontChoice: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export default function Modal({
@@ -41,10 +41,9 @@ export default function Modal({
   markdown,
   particlesOn,
   setParticlesOn,
+  fontChoice,
+  setFontChoice,
 }: ModalProps) {
-  const [fontChoice, setFontChoice] = useState(() => {
-    return localStorage.getItem("studiomark_font_choice") || "Quicksand";
-  });
   return (
     <div>
       <AnimatePresence>

@@ -130,7 +130,7 @@ export default function Header({
 
       {/* Right side - controls */}
       <div className="flex items-center gap-4">
-        <button
+        {/* <button
           onClick={onParticlesToggle}
           className={cn(
             "h-10 flex items-center gap-2 px-4 rounded-xl bg-white hover:bg-slate-50 transition-all border border-slate-200 text-xs font-bold shadow-sm",
@@ -144,7 +144,7 @@ export default function Header({
             )}
           />
           Particles {particlesOn ? "On" : "Off"}
-        </button>
+        </button> */}
 
         <div className="h-10 flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
           <button
