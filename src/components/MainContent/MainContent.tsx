@@ -9,11 +9,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
-import {
-  Download,
-  CheckCircle2,
-  Settings2,
-} from "lucide-react";
+import { Download, CheckCircle2, Settings2 } from "lucide-react";
 import CodeMirror, { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import {
   markdown as markdownLang,
@@ -30,8 +26,8 @@ import { nord } from "@uiw/codemirror-theme-nord";
 import { sublime } from "@uiw/codemirror-theme-sublime";
 import { EditorView, scrollPastEnd } from "@codemirror/view";
 import { cn } from "@/src/utils/cn";
-import { OutlineItem } from "./OutlineItem";
 import Toolbar from "@/src/components/MainContent/Toolbar/Toolbar";
+import Outline from "./Outline/Outline";
 
 interface MainContentProps {
   toolbarRef?: React.RefObject<ReactCodeMirrorRef>;
@@ -44,6 +40,12 @@ interface MainContentProps {
   setPreviewTheme: React.Dispatch<React.SetStateAction<string>>;
   fontChoice: string;
   setFontChoice: React.Dispatch<React.SetStateAction<string>>;
+}
+
+interface Heading {
+    text: string;
+    level: number;
+    id: string;
 }
 
 export default function MainContent({
@@ -64,98 +66,141 @@ export default function MainContent({
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [activeOutlineId, setActiveOutlineId] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
-  const headingElementsRef = useRef<Map<string, HTMLElement>>(new Map());
 
-  const headings = useMemo(() => {
+  // heading 元素 ref 映射：key = headings 数组里的 id，value = DOM 元素
+  // 在 ReactMarkdown 渲染时直接注册，彻底避免 id 不一致问题
+  const headingRefsMap = useRef<Map<string, HTMLElement>>(new Map());
+
+  // markdown 变化时清空映射，等待重新注册
+  useEffect(() => {
+    headingRefsMap.current.clear();
+  }, [markdown]);
+
+  // headings 数组：从 markdown 文本解析，用于 Outline 显示
+  const headings: Heading[] = useMemo(() => {
     const lines = markdown.split("\n");
-    const result: { text: string; level: number; id: string }[] = [];
-    const idCounts: Record<string, number> = {};
-    
+    const result: Heading[] = [];
+    const counts: Record<string, number> = {};
+
+    const makeId = (raw: string) => {
+      // 去掉 inline markdown 符号后生成 slug
+      let id = raw
+        .replace(/[*_`~\[\]]/g, "")
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      if (!id) id = `heading-${raw.length}`;
+      const base = id;
+      if (counts[base] === undefined) {
+        counts[base] = 0;
+      } else {
+        counts[base]++;
+        id = `${base}-${counts[base]}`;
+      }
+      return id;
+    };
+
     lines.forEach((line) => {
       const match = line.match(/^(#{1,6})\s+(.+)$/);
       if (match) {
         const level = match[1].length;
-        const text = match[2].trim();
-        let id = text
-          .toLowerCase()
-          .replace(/[^\w\s-]/g, "")
-          .replace(/\s+/g, "-");
-        
-        // Handle empty or duplicate IDs
-        if (!id) {
-          id = `heading-${result.length}`;
-        } else if (idCounts[id] !== undefined) {
-          idCounts[id]++;
-          id = `${id}-${idCounts[id]}`;
-        } else {
-          idCounts[id] = 0;
-        }
-        
-        result.push({ text, level, id });
+        const raw = match[2].trim();
+        result.push({ text: raw, level, id: makeId(raw) });
       }
     });
+
     return result;
   }, [markdown]);
 
-  // 使用 IntersectionObserver 优化滚动同步，避免频繁 DOM 查询
+  // 注册 heading DOM 元素到 ref 映射的回调
+  const registerHeadingRef = (id: string) => (el: HTMLElement | null) => {
+    if (el) {
+      headingRefsMap.current.set(id, el);
+    }
+  };
+
+  // scroll 事件同步高亮
   useEffect(() => {
     const preview = previewRef.current;
     if (!preview || headings.length === 0) return;
 
-    // 收集所有 heading 元素
-    headingElementsRef.current.clear();
-    headings.forEach((heading) => {
-      const el = document.getElementById(heading.id);
-      if (el) {
-        headingElementsRef.current.set(heading.id, el);
-      }
-    });
+    const syncActive = () => {
+      const scrollTop = preview.scrollTop;
+      let activeId = headings[0].id;
 
-    const observerOptions = {
-      root: preview,
-      rootMargin: '-60px 0px -60% 0px',
-      threshold: 0,
-    };
-
-    const observerCallback: IntersectionObserverCallback = (entries) => {
-      // 找到第一个可见的 heading
-      let activeId: string | null = null;
-      
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          activeId = entry.target.id;
-          break;
+      for (const heading of headings) {
+        const el = headingRefsMap.current.get(heading.id);
+        if (!el) continue;
+        // el.offsetTop 是相对于 preview 内部 padding div 的，需要加上 padding div 的 offsetTop
+        // 用 el 相对于 preview 容器的实际偏移
+        let offsetTop = 0;
+        let node: HTMLElement | null = el;
+        while (node && node !== preview) {
+          offsetTop += node.offsetTop;
+          node = node.offsetParent as HTMLElement | null;
+        }
+        if (offsetTop <= scrollTop + 100) {
+          activeId = heading.id;
         }
       }
-      
-      if (activeId) {
-        setActiveOutlineId(activeId);
-      }
+      setActiveOutlineId(activeId);
     };
 
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-
-    // 观察所有 heading 元素
-    headingElementsRef.current.forEach((el) => {
-      observer.observe(el);
-    });
+    // 等 DOM 渲染完再初始化
+    const raf = requestAnimationFrame(syncActive);
+    preview.addEventListener("scroll", syncActive, { passive: true });
 
     return () => {
-      observer.disconnect();
+      cancelAnimationFrame(raf);
+      preview.removeEventListener("scroll", syncActive);
     };
-  }, [headings]);
+  }, [headings, viewMode]);
 
   const scrollToSection = (id: string) => {
-    if (!id) return;
-    const element = document.getElementById(id);
-    if (element && previewRef.current) {
-      setActiveOutlineId(id);
-      previewRef.current.scrollTo({
-        top: element.offsetTop - 60,
-        behavior: "smooth",
-      });
+    if (!id || !previewRef.current) return;
+    setActiveOutlineId(id);
+
+    const el = headingRefsMap.current.get(id);
+    if (!el) return;
+
+    // 计算 el 相对于 preview 容器的 offsetTop
+    let offsetTop = 0;
+    let node: HTMLElement | null = el;
+    while (node && node !== previewRef.current) {
+      offsetTop += node.offsetTop;
+      node = node.offsetParent as HTMLElement | null;
     }
+
+    previewRef.current.scrollTo({ top: offsetTop - 80, behavior: "smooth" });
   };
+
+  // checkbox 状态持久化
+  // key = "studiomark_checks_<markdown长度>" + 索引，markdown 变化时重新加载
+  const CHECKS_KEY = `studiomark_checks_${markdown.length}_${markdown.slice(0, 40).replace(/\s/g, "")}`;
+  const [checkStates, setCheckStates] = useState<Record<number, boolean>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(CHECKS_KEY) ?? "{}");
+    } catch {
+      return {};
+    }
+  });
+
+  // markdown 变化时重新从 localStorage 加载对应的 checkbox 状态
+  useEffect(() => {
+    try {
+      setCheckStates(JSON.parse(localStorage.getItem(CHECKS_KEY) ?? "{}"));
+    } catch {
+      setCheckStates({});
+    }
+  }, [CHECKS_KEY]);
+
+  const checkIndexRef = useRef(0);
+  checkIndexRef.current = 0; // 每次 render 重置
+
+  const renderHeadingIndexRef = useRef(0);
+  renderHeadingIndexRef.current = 0; // 每次 render 重置
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
 
@@ -302,34 +347,37 @@ export default function MainContent({
   };
 
   // 使用 useMemo 缓存 extensions 数组，避免每次渲染都重新创建
-  const editorExtensions = useMemo(() => [
-    scrollPastEnd(),
-    markdownLang({
-      base: markdownLanguage,
-      codeLanguages: languages,
-    }),
-    markdownLinter,
-    autocompletion({ override: [markdownCompletions] }),
-    EditorView.lineWrapping,
-    EditorView.theme({
-      "&": {
-        height: "100%",
-        backgroundColor: "transparent !important",
-      },
-      ".cm-scroller": {
-        overflow: "auto",
-        maxHeight: "calc(100vh - 180px)",
-        padding: "48px 12px 48px 12px",
-      },
-      ".cm-content": {
-        fontFamily: "'JetBrains Mono', monospace",
-      },
-      ".cm-gutters": {
-        backgroundColor: "transparent !important",
-        border: "none !important",
-      },
-    }),
-  ], [editorTheme]);
+  const editorExtensions = useMemo(
+    () => [
+      scrollPastEnd(),
+      markdownLang({
+        base: markdownLanguage,
+        codeLanguages: languages,
+      }),
+      markdownLinter,
+      autocompletion({ override: [markdownCompletions] }),
+      EditorView.lineWrapping,
+      EditorView.theme({
+        "&": {
+          height: "100%",
+          backgroundColor: "transparent !important",
+        },
+        ".cm-scroller": {
+          overflow: "auto",
+          maxHeight: "calc(100vh - 180px)",
+          padding: "48px 12px 48px 12px",
+        },
+        ".cm-content": {
+          fontFamily: "'JetBrains Mono', monospace",
+        },
+        ".cm-gutters": {
+          backgroundColor: "transparent !important",
+          border: "none !important",
+        },
+      }),
+    ],
+    [editorTheme],
+  );
 
   const applyMarkdown = (prefix: string, suffix: string = "") => {
     if (!editorRef.current?.view) return;
@@ -440,7 +488,7 @@ export default function MainContent({
         <section className="flex-1 border-r border-border-soft flex flex-col relative bg-white overflow-hidden">
           {/* Toolbar - 侧边栏右边，小地图左边，编辑区顶部 */}
           <div className="h-14 border-b border-border-soft bg-white/50 flex items-center justify-center px-4 gap-1 shrink-0">
-            <Toolbar editorRef={toolbarRef} />
+            <Toolbar editorRef={editorRef} />
           </div>
           {/* <div className="absolute top-6 left-8 text-[11px] font-extrabold text-primary/60 uppercase tracking-widest z-10 pointer-events-none bg-primary/5 px-2 py-0.5 rounded-md">
             Markdown Editor
@@ -501,71 +549,52 @@ export default function MainContent({
               remarkPlugins={[remarkGfm]}
               components={{
                 h1: ({ node, children, ...props }) => {
-                  const text = String(children).trim();
-                  let id = text
-                    .toLowerCase()
-                    .replace(/[^\w\s-]/g, "")
-                    .replace(/\s+/g, "-");
-                  // Generate stable fallback ID using text length as fallback
-                  if (!id || id.length < 3) {
-                    id = `heading-${Math.abs(text.split('').reduce((a, c) => a + c.charCodeAt(0), 0))}`;
-                  }
-                  return <h1 id={id} {...props}>{children}</h1>;
+                  const heading = headings[renderHeadingIndexRef.current++];
+                  const id = heading?.id ?? "";
+                  return <h1 ref={registerHeadingRef(id)} id={id} {...props}>{children}</h1>;
                 },
                 h2: ({ node, children, ...props }) => {
-                  const text = String(children).trim();
-                  let id = text
-                    .toLowerCase()
-                    .replace(/[^\w\s-]/g, "")
-                    .replace(/\s+/g, "-");
-                  if (!id || id.length < 3) {
-                    id = `heading-${Math.abs(text.split('').reduce((a, c) => a + c.charCodeAt(0), 0))}`;
-                  }
-                  return <h2 id={id} {...props}>{children}</h2>;
+                  const heading = headings[renderHeadingIndexRef.current++];
+                  const id = heading?.id ?? "";
+                  return <h2 ref={registerHeadingRef(id)} id={id} {...props}>{children}</h2>;
                 },
                 h3: ({ node, children, ...props }) => {
-                  const text = String(children).trim();
-                  let id = text
-                    .toLowerCase()
-                    .replace(/[^\w\s-]/g, "")
-                    .replace(/\s+/g, "-");
-                  if (!id || id.length < 3) {
-                    id = `heading-${Math.abs(text.split('').reduce((a, c) => a + c.charCodeAt(0), 0))}`;
-                  }
-                  return <h3 id={id} {...props}>{children}</h3>;
+                  const heading = headings[renderHeadingIndexRef.current++];
+                  const id = heading?.id ?? "";
+                  return <h3 ref={registerHeadingRef(id)} id={id} {...props}>{children}</h3>;
                 },
                 h4: ({ node, children, ...props }) => {
-                  const text = String(children).trim();
-                  let id = text
-                    .toLowerCase()
-                    .replace(/[^\w\s-]/g, "")
-                    .replace(/\s+/g, "-");
-                  if (!id || id.length < 3) {
-                    id = `heading-${Math.abs(text.split('').reduce((a, c) => a + c.charCodeAt(0), 0))}`;
-                  }
-                  return <h4 id={id} {...props}>{children}</h4>;
+                  const heading = headings[renderHeadingIndexRef.current++];
+                  const id = heading?.id ?? "";
+                  return <h4 ref={registerHeadingRef(id)} id={id} {...props}>{children}</h4>;
                 },
                 h5: ({ node, children, ...props }) => {
-                  const text = String(children).trim();
-                  let id = text
-                    .toLowerCase()
-                    .replace(/[^\w\s-]/g, "")
-                    .replace(/\s+/g, "-");
-                  if (!id || id.length < 3) {
-                    id = `heading-${Math.abs(text.split('').reduce((a, c) => a + c.charCodeAt(0), 0))}`;
-                  }
-                  return <h5 id={id} {...props}>{children}</h5>;
+                  const heading = headings[renderHeadingIndexRef.current++];
+                  const id = heading?.id ?? "";
+                  return <h5 ref={registerHeadingRef(id)} id={id} {...props}>{children}</h5>;
                 },
                 h6: ({ node, children, ...props }) => {
-                  const text = String(children).trim();
-                  let id = text
-                    .toLowerCase()
-                    .replace(/[^\w\s-]/g, "")
-                    .replace(/\s+/g, "-");
-                  if (!id || id.length < 3) {
-                    id = `heading-${Math.abs(text.split('').reduce((a, c) => a + c.charCodeAt(0), 0))}`;
+                  const heading = headings[renderHeadingIndexRef.current++];
+                  const id = heading?.id ?? "";
+                  return <h6 ref={registerHeadingRef(id)} id={id} {...props}>{children}</h6>;
+                },
+                input({ node, checked, disabled, ...props }: any) {
+                  if (props.type === "checkbox") {
+                    const idx = checkIndexRef.current++;
+                    const isChecked = checkStates[idx] ?? checked ?? false;
+                    return (
+                      <input
+                        {...props}
+                        checked={isChecked}
+                        onChange={(e) => {
+                          const next = { ...checkStates, [idx]: e.target.checked };
+                          setCheckStates(next);
+                          localStorage.setItem(CHECKS_KEY, JSON.stringify(next));
+                        }}
+                      />
+                    );
                   }
-                  return <h6 id={id} {...props}>{children}</h6>;
+                  return <input {...props} />;
                 },
                 code({ node, inline, className, children, ...props }: any) {
                   const match = /language-(\w+)/.exec(className || "");
@@ -647,53 +676,12 @@ export default function MainContent({
       )}
 
       {/* Outline Sidebar */}
-      <aside className="w-56 border-l border-border-soft bg-white hidden lg:flex flex-col shrink-0">
-        <div className="p-6 border-b border-border-soft flex items-center justify-between">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
-            Outline
-          </span>
-          <Settings2 className="w-4 h-4 text-slate-300 cursor-pointer hover:text-primary transition-colors" />
-        </div>
-        <div className="flex-1 overflow-y-auto py-6">
-          <nav className="space-y-1 pl-2">
-            {headings.length > 0 ? (
-              headings.map((heading) => (
-                <OutlineItem
-                  key={heading.id}
-                  label={heading.text}
-                  active={activeOutlineId === heading.id}
-                  sub={heading.level > 1}
-                  onClick={() => scrollToSection(heading.id)}
-                />
-              ))
-            ) : (
-              <div className="px-4 py-8 text-center">
-                <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">
-                  No headings found
-                </p>
-              </div>
-            )}
-          </nav>
-        </div>
-        <div className="p-6 border-t border-border-soft">
-          <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 mb-4">
-            <span className="bg-slate-100 px-2 py-0.5 rounded">
-              {markdown.split(/\s+/).filter(Boolean).length} Words
-            </span>
-            <span className="bg-slate-100 px-2 py-0.5 rounded">
-              {markdown.length} Chars
-            </span>
-          </div>
-          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-primary to-accent shadow-[0_0_8px_rgba(255,143,171,0.3)] transition-all duration-500"
-              style={{
-                width: `${Math.min((markdown.length / 2000) * 100, 100)}%`,
-              }}
-            ></div>
-          </div>
-        </div>
-      </aside>
+      <Outline
+        headings={headings}
+        activeOutlineId={activeOutlineId}
+        scrollToSection={scrollToSection}
+        markdown={markdown}
+      />
     </div>
   );
 }

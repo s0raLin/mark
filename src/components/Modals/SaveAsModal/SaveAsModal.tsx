@@ -39,9 +39,9 @@ export function SaveAsModal({ markdown, onClose }: SaveAsModalProps) {
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 20 }}
-        className="bg-background-light w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col"
+        className="bg-white/70 backdrop-blur-xl w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-white/50 flex flex-col"
       >
-        <header className="flex items-center justify-between border-b-4 border-border-soft px-6 py-5 bg-white">
+        <header className="flex items-center justify-between border-b border-dashed border-pink-100 px-6 py-5 shrink-0">
           <div className="flex items-center gap-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20 text-primary shadow-sm">
               <FileText className="w-5 h-5" />
@@ -83,7 +83,7 @@ export function SaveAsModal({ markdown, onClose }: SaveAsModalProps) {
             </div>
           </div>
 
-          <div className="bg-pink-50/50 p-4 rounded-2xl border-2 border-dashed border-primary/20">
+          <div className="bg-pink-50 p-4 rounded-2xl border-2 border-dashed border-primary/20">
             <div className="flex items-center gap-3 text-primary">
               <AlertCircle className="w-4 h-4" />
               <p className="text-[11px] font-bold uppercase tracking-wider">
@@ -97,7 +97,7 @@ export function SaveAsModal({ markdown, onClose }: SaveAsModalProps) {
           </div>
         </div>
 
-        <div className="p-6 bg-white border-t-4 border-border-soft flex gap-3">
+        <div className="p-6 bg-white border-t border-dashed border-pink-100 flex gap-3">
           <button
             onClick={onClose}
             className="flex-1 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-all"

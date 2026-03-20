@@ -1,17 +1,14 @@
-import React from "react";
 import { cn } from "../utils/cn";
-import { useState } from "react";
 import { Zap } from "lucide-react";
-import { INITIAL_MARKDOWN } from "../constants";
 
-export default function Footer() {
-  const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [markdown] = useState(() => {
-    const saved = localStorage.getItem("studiomark_content");
-    return saved || INITIAL_MARKDOWN;
-  });
-  
+interface FooterProps {
+  isSaving: boolean;
+  lastSaved: Date;
+  markdown: string;
+}
+export default function Footer({ isSaving, lastSaved, markdown }: FooterProps) {
+
+
   // Calculate line and column from markdown
   const getLineColumn = () => {
     const lines = markdown.split("\n");
@@ -40,7 +37,9 @@ export default function Footer() {
                 : "Synced to Cloud"}
           </span>
         </div>
-        <span className="text-slate-300">Line {line}, Column {column}</span>
+        <span className="text-slate-300">
+          Line {line}, Column {column}
+        </span>
       </div>
       {/* Right side - file info */}
       <div className="flex items-center gap-6">

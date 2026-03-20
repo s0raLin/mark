@@ -7,6 +7,7 @@ import Modal from "@/src/components/Modals/Modal";
 import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { INITIAL_MARKDOWN } from "@/src/constants";
 import Sidebar from "@/src/components/Sidebar/Sidebar";
+import { useFileSystem } from "@/src/hooks/useFileSystem";
 
 export default function EditorView() {
   const toolbarRef = useRef<ReactCodeMirrorRef>(null);
@@ -16,11 +17,18 @@ export default function EditorView() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isSaveAsModalOpen, setIsSaveAsModalOpen] = useState(false);
 
-  // State managed at EditorView level
   const [markdown, setMarkdown] = useState(() => {
+    // Load content of the active file from fs, fallback to legacy key
+    try {
+      const activeId = localStorage.getItem("studiomark_fs_active") || "default";
+      const contents = JSON.parse(localStorage.getItem("studiomark_fs_contents") || "{}");
+      if (contents[activeId]) return contents[activeId];
+    } catch {}
     const saved = localStorage.getItem("studiomark_content");
     return saved || INITIAL_MARKDOWN;
   });
+
+  const fs = useFileSystem(markdown, setMarkdown);
 
   const [viewMode, setViewMode] = useState<"split" | "editor" | "preview">(
     "split",
@@ -82,8 +90,8 @@ export default function EditorView() {
 
   // Handlers
   const handleNewSparkle = useCallback(() => {
-    setMarkdown("# New Sparkle\n\nStart writing here...");
-  }, []);
+    fs.createFile("New_Sparkle");
+  }, [fs]);
 
   const handleSave = useCallback(() => {
     localStorage.setItem("studiomark_content", markdown);
@@ -108,7 +116,7 @@ export default function EditorView() {
     (mode: "split" | "editor" | "preview") => {
       setViewMode(mode);
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -143,6 +151,7 @@ export default function EditorView() {
           <Sidebar
             setIsSettingsModalOpen={setIsSettingsModalOpen}
             setIsSearchModalOpen={setIsSearchModalOpen}
+            fs={fs}
           />
         </aside>
 

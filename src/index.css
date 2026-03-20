@@ -1,6 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap");
 @import "tailwindcss";
 
+@reference "tailwindcss";
 /* Tailwind CSS v4 theme variables - these generate utility classes */
 @theme inline {
   --color-primary: #ff8fab;
@@ -16,9 +17,106 @@
   --radius-full: 9999px;
 }
 
+/* 优化后的列表样式 */
+/* 优化后的列表样式 */
+/* --- 优化后的统一列表与复选框样式 --- */
 @layer base {
-  body {
-    @apply font-display bg-background-light text-slate-700;
+  /* ── 所有列表项的共同基础 ── */
+  .markdown-body ul,
+  .markdown-body ol,
+  .markdown-body ul.contains-task-list {
+    @apply list-none pl-0 space-y-5 text-slate-700 leading-relaxed mb-10;
+  }
+
+  .markdown-body li {
+    @apply flex items-start gap-4 relative;
+    min-height: 1.5rem; /* 保证高度够放 20px 的前缀 */
+    line-height: 1.5; /* ≈24px 行高 */
+  }
+
+  /* 所有列表都共用这个「前缀占位」尺寸 */
+  .markdown-body li::before,
+  .markdown-body li.task-list-item input[type="checkbox"] {
+    @apply shrink-0 flex items-center justify-center;
+    width: 1.5rem; /* 20px */
+    height: 1.5rem;
+    margin-top: 0.125rem; /* 微调垂直居中（视字体而定，可调 0~0.25rem）*/
+  }
+
+  /* ── 普通无序列表 ── */
+  .markdown-body ul:not(.contains-task-list) li::before {
+    content: "check_circle";
+    font-family: "Material Symbols Outlined";
+    @apply text-primary text-2xl;
+    background: rgba(255, 143, 171, 0.12);
+    border-radius: 50%;
+  }
+
+  /* ── 有序列表 ── */
+  .markdown-body ol {
+    counter-reset: step-counter;
+  }
+  .markdown-body ol li::before {
+    content: counter(step-counter);
+    counter-increment: step-counter;
+
+    @apply bg-secondary/15 text-secondary font-semibold;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    font-size: 1rem;
+    line-height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── 任务列表（核心修复） ── */
+  .markdown-body li.task-list-item {
+    @apply flex items-start gap-4;
+  }
+
+  .markdown-body li.task-list-item::before {
+    content: none; /* 彻底移除伪元素 */
+  }
+
+  .markdown-body li.task-list-item input[type="checkbox"] {
+    /* 尺寸与上面 li::before 完全一致 */
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: 0 !important;
+    padding: 0;
+
+    /* 未选中状态 ── 更现代、更清晰 */
+    @apply appearance-none cursor-pointer transition-all duration-200;
+    background: white;
+    border: 2.5px solid #ffafcc; /* 主色浅版 */
+    border-radius: 0.6rem; /* 稍微圆一点更好看 */
+    box-shadow:
+      inset 0 1px 3px rgba(0, 0, 0, 0.06),
+      0 2px 6px -2px rgba(255, 143, 171, 0.25);
+  }
+
+  .markdown-body li.task-list-item input[type="checkbox"]:hover {
+    border-color: #ff8fab;
+    background: rgba(255, 143, 171, 0.08);
+    box-shadow: 0 3px 10px -3px rgba(255, 143, 171, 0.3);
+  }
+
+  .markdown-body li.task-list-item input[type="checkbox"]:checked {
+    @apply border-primary bg-primary;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 6L9 17L4 12' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-size: 70%;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: 0 4px 14px -2px rgba(255, 143, 171, 0.45);
+    transform: scale(1.04); /* 轻微放大更有反馈 */
+  }
+
+  .markdown-body li.task-list-item input[type="checkbox"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 143, 171, 0.3);
   }
 }
 
@@ -30,7 +128,9 @@
 }
 
 .shadow-cute {
-  box-shadow: 0 10px 25px -5px rgba(255, 143, 171, 0.1), 0 8px 10px -6px rgba(255, 143, 171, 0.1);
+  box-shadow:
+    0 10px 25px -5px rgba(255, 143, 171, 0.1),
+    0 8px 10px -6px rgba(255, 143, 171, 0.1);
 }
 
 /* Scrollbar styling */
@@ -96,90 +196,251 @@
   scrollbar-gutter: stable;
 }
 
-.markdown-body h1 { @apply text-4xl font-extrabold mb-8 text-slate-800 border-b-4 border-primary/20 pb-4 inline-block; }
-.markdown-body h2 { @apply text-2xl font-bold mt-12 mb-6 text-slate-800 flex items-center gap-2; }
-.markdown-body h2::before { content: ""; @apply w-2 h-8 bg-secondary rounded-full inline-block mr-2; }
-.markdown-body h3 { @apply text-xl font-bold mt-12 mb-4 text-slate-800; }
-.markdown-body p { @apply text-slate-600 text-xl leading-relaxed mb-4; }
-.markdown-body ul { @apply list-none pl-0 space-y-4 text-slate-600 mb-6; }
-.markdown-body li { @apply flex items-start gap-3; }
-.markdown-body ul li::before { content: "check_circle"; @apply font-['Material_Symbols_Outlined'] text-primary text-xl; }
-.markdown-body ol { @apply list-none pl-0 mt-12 space-y-4 text-slate-600; counter-reset: step-counter; }
-.markdown-body ol li { @apply flex items-center gap-4; counter-increment: step-counter; }
-.markdown-body ol li::before { content: counter(step-counter); @apply w-8 h-8 rounded-full bg-secondary/20 text-secondary flex items-center justify-center font-bold text-sm shrink-0; }
-.markdown-body em { @apply text-primary font-bold not-italic; }
-.markdown-body blockquote { @apply text-slate-400 mb-4 italic px-4 border-l-4 border-slate-100; }
+.markdown-body h1 {
+  @apply text-4xl font-extrabold mb-8 text-slate-800 border-b-4 border-primary/20 pb-4 inline-block;
+}
+.markdown-body h2 {
+  @apply text-2xl font-bold mt-12 mb-6 text-slate-800 flex items-center gap-2;
+}
+.markdown-body h2::before {
+  content: "";
+  @apply w-2 h-8 bg-secondary rounded-full inline-block mr-2;
+}
+.markdown-body h3 {
+  @apply text-xl font-bold mt-12 mb-4 text-slate-800;
+}
+.markdown-body p {
+  @apply text-slate-600 text-xl leading-relaxed mb-4;
+}
+.markdown-body em {
+  @apply text-primary font-bold not-italic;
+}
+/* Blockquote */
+.markdown-body blockquote {
+  @apply my-6 not-italic text-slate-600;
+  position: relative;
+  padding: 1.25rem 1.5rem 1.25rem 1.75rem;
+  background: linear-gradient(135deg, rgba(255,143,171,0.12) 0%, rgba(162,210,255,0.12) 100%);
+  border-left: 5px solid #ff8fab;
+  border-radius: 0 1rem 1rem 0;
+  box-shadow: 0 2px 16px -4px rgba(255, 143, 171, 0.2);
+}
+.markdown-body blockquote::before {
+  content: "\201C";
+  position: absolute;
+  top: -0.25rem;
+  left: 0.75rem;
+  font-size: 3rem;
+  line-height: 1;
+  color: #ff8fab;
+  font-family: "Playfair Display", serif;
+  opacity: 0.7;
+}
+.markdown-body blockquote p {
+  @apply mb-0 text-base leading-relaxed;
+}
 
 /* Bold & Italic & Strikethrough */
-.markdown-body strong { @apply font-bold text-slate-800; }
-.markdown-body strong::before { content: none; }
-.markdown-body strong::after { content: none; }
-.markdown-body del { @apply line-through text-slate-400 decoration-slate-300; }
-.markdown-body del::before { content: none; }
-.markdown-body del::after { content: none; }
+.markdown-body strong {
+  @apply font-bold text-slate-800;
+}
+.markdown-body strong::before {
+  content: none;
+}
+.markdown-body strong::after {
+  content: none;
+}
+.markdown-body del {
+  @apply line-through text-slate-400 decoration-slate-300;
+}
+.markdown-body del::before {
+  content: none;
+}
+.markdown-body del::after {
+  content: none;
+}
 
 /* Links */
-.markdown-body a { @apply text-primary underline decoration-primary/30 decoration-2 underline-offset-2 hover:decoration-primary transition-all; }
-.markdown-body a::before { content: none; }
-.markdown-body a::after { content: none; }
+.markdown-body a {
+  @apply text-primary underline decoration-primary/30 decoration-2 underline-offset-2 hover:decoration-primary transition-all;
+}
+.markdown-body a::before {
+  content: none;
+}
+.markdown-body a::after {
+  content: none;
+}
 
 /* Images */
-.markdown-body img { @apply rounded-xl shadow-lg my-6 max-w-full; }
-.markdown-body img::before { content: none; }
-.markdown-body img::after { content: none; }
+.markdown-body img {
+  @apply rounded-xl shadow-lg my-6 max-w-full;
+}
+.markdown-body img::before {
+  content: none;
+}
+.markdown-body img::after {
+  content: none;
+}
 
 /* Tables */
-.markdown-body table { @apply w-full border-collapse my-6; }
-.markdown-body table::before { content: none; }
-.markdown-body table::after { content: none; }
-.markdown-body thead tr { @apply bg-primary/10; }
-.markdown-body th { @apply px-4 py-3 text-left font-bold text-slate-700 border-b-2 border-primary/20; }
-.markdown-body td { @apply px-4 py-3 border-b border-slate-100; }
-.markdown-body tbody tr:hover { @apply bg-pink-50/30; }
-
-/* Task List (Checklist) */
-.markdown-body input[type="checkbox"] { @apply w-5 h-5 rounded border-2 border-slate-300 text-primary focus:ring-primary focus:ring-offset-2 cursor-pointer; }
-.markdown-body ul.contains-task-list { @apply space-y-2; }
-.markdown-body li.task-list-item { @apply flex items-start gap-3; }
-.markdown-body li.task-list-item::before { content: none; }
-.markdown-body li.task-list-item input { @apply mt-1; }
+.markdown-body table {
+  @apply w-full my-8 text-sm;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 2px 16px -4px rgba(255, 143, 171, 0.2);
+}
+.markdown-body table::before,
+.markdown-body table::after {
+  content: none;
+}
+.markdown-body thead tr {
+  background: linear-gradient(90deg, rgba(255,143,171,0.22) 0%, rgba(162,210,255,0.22) 100%);
+}
+.markdown-body th {
+  @apply px-5 py-3 text-left font-bold text-slate-800;
+  border-bottom: 2px solid rgba(255, 100, 140, 0.35);
+  letter-spacing: 0.02em;
+}
+.markdown-body td {
+  @apply px-5 py-3 text-slate-700;
+  border-bottom: 1px solid #e8d0d8;
+}
+.markdown-body tbody tr:last-child td {
+  border-bottom: none;
+}
+.markdown-body tbody tr:hover td {
+  background: rgba(255, 143, 171, 0.1);
+}
+.markdown-body tbody tr:nth-child(even) td {
+  background: rgba(162, 210, 255, 0.09);
+}
+.markdown-body tbody tr:nth-child(even):hover td {
+  background: rgba(255, 143, 171, 0.1);
+}
 
 /* Horizontal Rule */
-.markdown-body hr { @apply my-8 border-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent; }
+.markdown-body hr {
+  @apply my-8 border-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent;
+}
 
 /* Code */
-.markdown-body code { @apply bg-slate-100 text-primary px-2 py-1 rounded-lg font-mono text-sm; }
-.markdown-body pre { @apply p-0 my-0; }
-.markdown-body pre code { @apply bg-transparent text-primary p-0; }
+.markdown-body code {
+  @apply bg-slate-100 text-primary px-2 py-1 rounded-lg font-mono text-sm;
+}
+.markdown-body pre {
+  @apply p-0 my-0;
+}
+.markdown-body pre code {
+  @apply bg-transparent text-primary p-0;
+}
 
 /* Classic Heart Theme */
-.theme-heart-classic { background-color: #fffafb !important; }
-.theme-heart-classic .markdown-body h1 { color: #ff4d6d !important; border-color: #ffb3c1 !important; font-family: 'Playfair Display', serif !important; }
-.theme-heart-classic .markdown-body h2 { color: #ff758f !important; }
-.theme-heart-classic .markdown-body h2::before { background-color: #ffb3c1 !important; }
-.theme-heart-classic .markdown-body p { color: #5c5c5c !important; }
-.theme-heart-classic .markdown-body blockquote { border-color: #ffccd5 !important; background-color: #fff0f3 !important; color: #ff8fa3 !important; }
+.theme-heart-classic {
+  background-color: #fffafb !important;
+}
+.theme-heart-classic .markdown-body h1 {
+  color: #ff4d6d !important;
+  border-color: #ffb3c1 !important;
+  font-family: "Playfair Display", serif !important;
+}
+.theme-heart-classic .markdown-body h2 {
+  color: #ff758f !important;
+}
+.theme-heart-classic .markdown-body h2::before {
+  background-color: #ffb3c1 !important;
+}
+.theme-heart-classic .markdown-body p {
+  color: #5c5c5c !important;
+}
+.theme-heart-classic .markdown-body blockquote {
+  border-color: #ffb3c1 !important;
+  background: linear-gradient(135deg, rgba(255,179,193,0.1) 0%, rgba(255,240,243,0.5) 100%) !important;
+  color: #c0687e !important;
+}
+.theme-heart-classic .markdown-body blockquote::before {
+  color: #ffb3c1 !important;
+}
 
 /* Midnight Pulse Theme */
-.theme-heart-midnight { background-color: #1a1a1a !important; }
-.theme-heart-midnight .markdown-body h1 { color: #ff002b !important; border-color: #800015 !important; font-family: 'Playfair Display', serif !important; text-shadow: 0 0 10px rgba(255, 0, 43, 0.3) !important; }
-.theme-heart-midnight .markdown-body h2 { color: #ff4d6d !important; }
-.theme-heart-midnight .markdown-body h2::before { background-color: #800015 !important; }
-.theme-heart-midnight .markdown-body p { color: #b0b0b0 !important; }
-.theme-heart-midnight .markdown-body blockquote { border-color: #800015 !important; background-color: #2a0005 !important; color: #ff758f !important; }
+.theme-heart-midnight {
+  background-color: #1a1a1a !important;
+}
+.theme-heart-midnight .markdown-body h1 {
+  color: #ff002b !important;
+  border-color: #800015 !important;
+  font-family: "Playfair Display", serif !important;
+  text-shadow: 0 0 10px rgba(255, 0, 43, 0.3) !important;
+}
+.theme-heart-midnight .markdown-body h2 {
+  color: #ff4d6d !important;
+}
+.theme-heart-midnight .markdown-body h2::before {
+  background-color: #800015 !important;
+}
+.theme-heart-midnight .markdown-body p {
+  color: #b0b0b0 !important;
+}
+.theme-heart-midnight .markdown-body blockquote {
+  border-color: #800015 !important;
+  background: linear-gradient(135deg, rgba(128,0,21,0.15) 0%, rgba(42,0,5,0.4) 100%) !important;
+  color: #ff758f !important;
+}
+.theme-heart-midnight .markdown-body blockquote::before {
+  color: #ff4d6d !important;
+}
 
 /* Golden Love Theme */
-.theme-heart-golden { background-color: #fdf6e3 !important; }
-.theme-heart-golden .markdown-body h1 { color: #b58900 !important; border-color: #eee8d5 !important; font-family: 'Playfair Display', serif !important; }
-.theme-heart-golden .markdown-body h2 { color: #cb4b16 !important; }
-.theme-heart-golden .markdown-body h2::before { background-color: #eee8d5 !important; }
-.theme-heart-golden .markdown-body p { color: #657b83 !important; }
-.theme-heart-golden .markdown-body blockquote { border-color: #eee8d5 !important; background-color: #fdf6e3 !important; color: #93a1a1 !important; }
+.theme-heart-golden {
+  background-color: #fdf6e3 !important;
+}
+.theme-heart-golden .markdown-body h1 {
+  color: #b58900 !important;
+  border-color: #eee8d5 !important;
+  font-family: "Playfair Display", serif !important;
+}
+.theme-heart-golden .markdown-body h2 {
+  color: #cb4b16 !important;
+}
+.theme-heart-golden .markdown-body h2::before {
+  background-color: #eee8d5 !important;
+}
+.theme-heart-golden .markdown-body p {
+  color: #657b83 !important;
+}
+.theme-heart-golden .markdown-body blockquote {
+  border-color: #cb4b16 !important;
+  background: linear-gradient(135deg, rgba(203,75,22,0.07) 0%, rgba(253,246,227,0.6) 100%) !important;
+  color: #657b83 !important;
+}
+.theme-heart-golden .markdown-body blockquote::before {
+  color: #cb4b16 !important;
+}
 
 /* Organic Pulse Theme */
-.theme-heart-organic { background-color: #f0f4f0 !important; }
-.theme-heart-organic .markdown-body h1 { color: #6c5ce7 !important; border-color: #a29bfe !important; font-family: 'Playfair Display', serif !important; }
-.theme-heart-organic .markdown-body h2 { color: #00b894 !important; }
-.theme-heart-organic .markdown-body h2::before { background-color: #55efc4 !important; }
-.theme-heart-organic .markdown-body p { color: #636e72 !important; }
-.theme-heart-organic .markdown-body blockquote { border-color: #fab1a0 !important; background-color: #fff2f0 !important; color: #e17055 !important; }
+.theme-heart-organic {
+  background-color: #f0f4f0 !important;
+}
+.theme-heart-organic .markdown-body h1 {
+  color: #6c5ce7 !important;
+  border-color: #a29bfe !important;
+  font-family: "Playfair Display", serif !important;
+}
+.theme-heart-organic .markdown-body h2 {
+  color: #00b894 !important;
+}
+.theme-heart-organic .markdown-body h2::before {
+  background-color: #55efc4 !important;
+}
+.theme-heart-organic .markdown-body p {
+  color: #636e72 !important;
+}
+.theme-heart-organic .markdown-body blockquote {
+  border-color: #00b894 !important;
+  background: linear-gradient(135deg, rgba(0,184,148,0.07) 0%, rgba(240,244,240,0.6) 100%) !important;
+  color: #636e72 !important;
+}
+.theme-heart-organic .markdown-body blockquote::before {
+  color: #00b894 !important;
+}

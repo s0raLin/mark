@@ -26,12 +26,15 @@ export default function Toolbar({ editorRef }: ToolbarProps) {
   
   const applyMarkdown = (prefix: string, suffix: string = '') => {
     if (!editorRef.current?.view) return;
+    // 获取编辑器视图
     const view = editorRef.current.view;
+    // 获取选区
     const { from, to } = view.state.selection.main;
     
     const selectedText = view.state.doc.sliceString(from, to);
     const replacement = prefix + selectedText + suffix;
     
+    // 插入/替换文本
     view.dispatch({
       changes: { from, to, insert: replacement },
       selection: { anchor: from + prefix.length, head: to + prefix.length }

@@ -72,23 +72,23 @@ export function SearchModal({ onClose }: SearchModalProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[110] flex items-start justify-center bg-slate-900/40 backdrop-blur-md pt-[15vh] px-4"
+      className="fixed inset-0 z-[110] flex items-start justify-center bg-slate-900/20 backdrop-blur-sm pt-[15vh] px-4"
       onClick={onClose}
     >
       <motion.div
         initial={{ scale: 0.95, y: -20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: -20 }}
-        className="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border border-white/50 flex flex-col"
+        className="bg-white/70 backdrop-blur-xl w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border border-white/50 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 flex items-center gap-4 border-b border-rose-50">
-          <Search className="w-6 h-6 text-rose-300" />
+        <div className="p-6 flex items-center gap-4 border-b border-rose-100">
+          <Search className="w-6 h-6 text-slate-400" />
           <input
             ref={inputRef}
             type="text"
             placeholder="Search notes, files, or commands..."
-            className="flex-1 bg-transparent border-none outline-none text-lg font-medium placeholder:text-rose-200"
+            className="flex-1 bg-transparent border-none outline-none text-lg font-medium text-slate-700 placeholder:text-slate-400"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -98,7 +98,7 @@ export function SearchModal({ onClose }: SearchModalProps) {
         </div>
 
         {/* Filters */}
-        <div className="px-6 py-3 bg-slate-50/50 border-b border-rose-50 flex flex-wrap gap-6 items-center">
+        <div className="px-6 py-3 bg-white/30 border-b border-rose-100 flex flex-wrap gap-6 items-center">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
               <Filter className="w-3 h-3" />
@@ -161,7 +161,7 @@ export function SearchModal({ onClose }: SearchModalProps) {
                     <h3 className="text-sm font-bold text-slate-800 truncate">
                       {result.title}
                     </h3>
-                    <p className="text-xs text-rose-300 font-medium">
+                    <p className="text-xs text-slate-500 font-medium">
                       {result.folder} • {result.date}
                     </p>
                   </div>
@@ -177,14 +177,14 @@ export function SearchModal({ onClose }: SearchModalProps) {
               <p className="text-sm font-bold text-slate-400">
                 No results found for "{query}"
               </p>
-              <p className="text-xs text-rose-200 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 Try searching for something else ✨
               </p>
             </div>
           )}
         </div>
 
-        <div className="p-4 bg-slate-50 border-t border-rose-50 flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+        <div className="p-4 bg-white/30 border-t border-rose-100 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest">
           <div className="flex gap-4">
             <span className="flex items-center gap-1.5">
               <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-200 shadow-sm">

@@ -105,9 +105,9 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 20 }}
-        className="bg-background-light w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+        className="bg-white/70 backdrop-blur-xl w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl border border-white/50 flex flex-col max-h-[90vh]"
       >
-        <header className="flex items-center justify-between border-b-4 border-border-soft px-6 py-5 bg-white sticky top-0 z-10">
+        <header className="flex items-center justify-between border-b border-dashed border-pink-100 px-6 py-5 shrink-0">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/20 text-primary shadow-sm">
               <Share2 className="w-6 h-6" />
@@ -215,7 +215,7 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
             </section>
           </div>
 
-          <aside className="w-[400px] bg-pink-50/50 border-l-4 border-border-soft flex flex-col">
+          <aside className="w-[400px] bg-pink-50/30 border-l border-dashed border-pink-100 flex flex-col">
             <div className="p-8 flex-1 flex flex-col overflow-hidden">
               <h4 className="text-xs font-black uppercase tracking-[0.2em] text-pink-400 mb-6">
                 Export Preview
@@ -344,7 +344,7 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
                 </div>
               </div>
             </div>
-            <div className="p-8 bg-white border-t-4 border-border-soft space-y-4">
+            <div className="p-8 bg-white border-t border-dashed border-pink-100 space-y-4">
               <button
                 onClick={handleExport}
                 className="w-full flex items-center justify-center gap-2 bg-primary text-white py-4 rounded-2xl font-bold shadow-lg shadow-pink-200/50 hover:brightness-105 active:scale-[0.98] transition-all"

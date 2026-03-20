@@ -20,8 +20,8 @@ export function FormatOption({
       className={cn(
         "group relative flex cursor-pointer items-start gap-4 rounded-2xl border-2 p-5 transition-all",
         checked
-          ? "border-primary bg-pink-50/50 shadow-[0_4px_0_#ffd1e3]"
-          : "border-border-soft hover:border-primary/30",
+          ? "border-primary bg-white shadow-[0_4px_0_#ffd1e3]"
+          : "border-border-soft bg-white hover:border-primary/30",
       )}
     >
       <input
