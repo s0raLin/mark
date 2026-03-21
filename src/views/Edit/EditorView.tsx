@@ -27,7 +27,7 @@ export default function EditorView() {
 
   // 文件系统 Hook
   const fileSystem = useFileSystem();
-  
+
   // 文件操作 Hook
   const fileOperations = useFileOperations({
     nodes: fileSystem.nodes,
@@ -90,7 +90,11 @@ export default function EditorView() {
       markdownSync.setMarkdown(content);
       fileSystem.setActiveFileId(id);
     },
-    [fileSystem.fileContents, fileSystem.setActiveFileId, markdownSync.setMarkdown],
+    [
+      fileSystem.fileContents,
+      fileSystem.setActiveFileId,
+      markdownSync.setMarkdown,
+    ],
   );
 
   return (
@@ -116,14 +120,14 @@ export default function EditorView() {
       <div className="flex-1 flex overflow-hidden relative z-10">
         <aside className="w-80 h-full flex flex-col border-r border-rose-100 bg-white/80 backdrop-blur-2xl shrink-0">
           <Sidebar
-            setIsSettingsModalOpen={setIsSettingsModalOpen}
-            setIsSearchModalOpen={setIsSearchModalOpen}
             fs={{
               ...fileSystem,
               ...fileOperations,
               pinnedFiles: fileSystem.pinnedNodes,
               openFile: handleOpenFile,
             }}
+            setIsSettingsModalOpen={setIsSettingsModalOpen}
+            setIsSearchModalOpen={setIsSearchModalOpen}
           />
         </aside>
 
