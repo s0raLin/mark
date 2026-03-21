@@ -1,21 +1,12 @@
 import { useRef } from 'react';
 import { 
-  Bold, 
-  Italic, 
-  Strikethrough, 
-  Heading1, 
-  Heading2, 
-  List, 
-  ListOrdered, 
-  CheckSquare, 
-  Quote, 
-  Code, 
-  Link as LinkIcon, 
-  Image as ImageIcon, 
-  Table as TableIcon
+  Bold, Italic, Strikethrough, Heading1, Heading2,
+  List, ListOrdered, CheckSquare, Quote, Code,
+  Link as LinkIcon, Image as ImageIcon, Table as TableIcon
 } from 'lucide-react';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { ToolbarButton } from './ToolbarButton';
+import { uploadImage } from '@/api';
 
 interface ToolbarProps {
   editorRef: React.RefObject<ReactCodeMirrorRef>;
@@ -46,34 +37,15 @@ export default function Toolbar({ editorRef }: ToolbarProps) {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const formData = new FormData();
-    formData.append('image', file);
-
     try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const imageUrl = data.url;
-        // Insert image markdown at cursor position
-        const view = editorRef.current?.view;
-        if (view) {
-          const { from } = view.state.selection.main;
-          const imageMarkdown = `\n![${file.name}](${imageUrl})\n`;
-          view.dispatch({
-            changes: { from, insert: imageMarkdown }
-          });
-        }
-      } else {
-        alert('Upload failed');
+      const { url } = await uploadImage(file);
+      const view = editorRef.current?.view;
+      if (view) {
+        const { from } = view.state.selection.main;
+        view.dispatch({ changes: { from, insert: `\n![${file.name}](${url})\n` } });
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image');
     }
     e.target.value = '';
   };

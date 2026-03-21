@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { INITIAL_MARKDOWN } from "@/src/constants";
+import { INITIAL_MARKDOWN } from "@/constants";
 
 export interface UseMarkdownSyncReturn {
   markdown: string;
@@ -10,7 +10,7 @@ export interface UseMarkdownSyncProps {
   activeFileId: string;
   fileContents: Record<string, string>;
   setFileContents: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  setNodes: React.Dispatch<React.SetStateAction<import("@/src/types/filesystem").FileNode[]>>;
+  setNodes: React.Dispatch<React.SetStateAction<import("@/types/filesystem").FileNode[]>>;
 }
 
 export function useMarkdownSync({
@@ -21,24 +21,22 @@ export function useMarkdownSync({
 }: UseMarkdownSyncProps): UseMarkdownSyncReturn {
   const [markdown, setMarkdown] = useState(INITIAL_MARKDOWN);
   const prevActiveFileIdRef = useRef<string | null>(null);
+  const fileContentsRef = useRef(fileContents);
+
+  // 保持 ref 与最新 fileContents 同步
+  useEffect(() => {
+    fileContentsRef.current = fileContents;
+  });
 
   // 当 activeFileId 变化时，加载对应文件的内容
-  // 只监听 activeFileId，不监听 fileContents，避免循环
   useEffect(() => {
     if (!activeFileId) return;
-    
-    // 如果是文件切换（不是初次加载），从 fileContents 加载内容
     if (prevActiveFileIdRef.current !== null && prevActiveFileIdRef.current !== activeFileId) {
-      const content = fileContents[activeFileId];
-      if (content !== undefined) {
-        setMarkdown(content);
-      } else {
-        setMarkdown("");
-      }
+      const content = fileContentsRef.current[activeFileId];
+      setMarkdown(content !== undefined ? content : "");
     }
-    
     prevActiveFileIdRef.current = activeFileId;
-  }, [activeFileId, fileContents]);
+  }, [activeFileId]);
 
   // 保存内容到 fileContents - 使用 useCallback 包装避免依赖变化
   const saveToFileContents = useCallback((newMarkdown: string) => {

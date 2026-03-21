@@ -1,4 +1,4 @@
-import { cn } from "@/src/utils/cn";
+import { cn } from "@/utils/cn";
 import { motion } from "motion/react";
 import { memo } from "react";
 

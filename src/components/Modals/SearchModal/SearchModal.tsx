@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronRight, FileText, Search, Calendar, Filter } from "lucide-react";
 import { motion } from "motion/react";
-import { cn } from "@/src/utils/cn";
+import { cn } from "@/utils/cn";
 
 interface SearchModalProps {
   onClose: () => void;

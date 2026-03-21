@@ -8,7 +8,7 @@ import {
   Smile,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { cn } from "@/src/utils/cn";
+import { cn } from "@/utils/cn";
 import General from "./SettingGeneral/SettingGeneral";
 import SettingEditor from "./SettingEditor/SettingEditor";
 import SettingExport from "./SettingExport/SettingExport";
@@ -25,18 +25,29 @@ interface SettingsModalProps {
   setParticlesOn: (on: boolean) => void;
   fontChoice: string;
   setFontChoice: (font: string) => void;
+  accentColor: string;
+  setAccentColor: (color: string) => void;
+  fontSize: number;
+  setFontSize: (size: number) => void;
+  blurAmount: number;
+  setBlurAmount: (amount: number) => void;
+  bgImage: string;
+  setBgImage: (url: string) => void;
+  customFonts: { name: string; url: string }[];
+  addCustomFont: (font: { name: string; url: string }) => void;
 }
 
 export function SettingsModal({
   onClose,
-  editorTheme,
-  setEditorTheme,
-  previewTheme,
-  setPreviewTheme,
-  particlesOn,
-  setParticlesOn,
-  fontChoice,
-  setFontChoice,
+  editorTheme, setEditorTheme,
+  previewTheme, setPreviewTheme,
+  particlesOn, setParticlesOn,
+  fontChoice, setFontChoice,
+  accentColor, setAccentColor,
+  fontSize, setFontSize,
+  blurAmount, setBlurAmount,
+  bgImage, setBgImage,
+  customFonts, addCustomFont,
 }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState("general");
 
@@ -121,6 +132,16 @@ export function SettingsModal({
                 setParticlesOn={setParticlesOn}
                 fontChoice={fontChoice}
                 setFontChoice={setFontChoice}
+                accentColor={accentColor}
+                setAccentColor={setAccentColor}
+                fontSize={fontSize}
+                setFontSize={setFontSize}
+                blurAmount={blurAmount}
+                setBlurAmount={setBlurAmount}
+                bgImage={bgImage}
+                setBgImage={setBgImage}
+                customFonts={customFonts}
+                addCustomFont={addCustomFont}
               />
             )}
 

@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { FileText, Folder, FolderOpen } from "lucide-react";
-import { FileNode, FileSystemAPI } from "@/src/types/filesystem";
-import { cn } from "@/src/utils/cn";
+import { FileNode, FileSystemAPI } from "@/types/filesystem";
+import { cn } from "@/utils/cn";
 import { DropTarget } from "../types";
 import RenameInput from "./RenameInput";
 import ContextMenu from "./ContextMenu";

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { FileNode } from "@/src/types/filesystem";
-import { cn } from "@/src/utils/cn";
+import { FileNode } from "@/types/filesystem";
+import { cn } from "@/utils/cn";
 import { DropTarget, DragContext } from "../types";
 
 interface DragListProps {

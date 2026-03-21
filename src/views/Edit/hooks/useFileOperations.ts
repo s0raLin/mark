@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { FileNode, FileSystemAPI } from "@/src/types/filesystem";
+import { FileNode, FileSystemAPI } from "@/types/filesystem";
 import {
   ensureMarkdownExtension,
   generateId,

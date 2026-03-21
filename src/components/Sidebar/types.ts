@@ -1,9 +1,9 @@
 import React from "react";
-import { FileSystemAPI } from "@/src/types/filesystem";
+import { FileSystemAPI } from "@/types/filesystem";
 
 export interface SidebarProps {
-  setIsSettingsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsSearchModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsSettingsModalOpen: (open: boolean) => void;
+  setIsSearchModalOpen: (open: boolean) => void;
   fs: FileSystemAPI;
 }
 

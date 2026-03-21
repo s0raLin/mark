@@ -1,4 +1,4 @@
-import { FileSystemAPI } from "@/src/types/filesystem";
+import { FileSystemAPI } from "@/types/filesystem";
 
 export function isMarkdownLikeName(name: string, mimeType?: string) {
   return (

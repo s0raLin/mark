@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useImperativeHandle } from "react";
 import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
-import Outline from "@/src/components/MainContent/Outline/Outline";
+import Outline from "@/components/MainContent/Outline/Outline";
 import { EditorPane, PreviewPane } from "./Pane";
 import { useHeadings, useCheckStates, useScrollSync } from "./hooks";
 import { MainContentProps } from "./types";

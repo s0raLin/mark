@@ -1,0 +1,38 @@
+{
+  "userId": "default-user",
+  "username": "Guest",
+  "email": "",
+  "fileSystem": {
+    "nodes": [
+      {
+        "id": "welcome-doc",
+        "name": "欢迎.md",
+        "type": "file",
+        "parentId": null,
+        "createdAt": 1774094525136,
+        "updatedAt": 1774094525136
+      }
+    ],
+    "fileContents": {
+      "welcome-doc": "# 欢迎使用 StudioMark\n\n开始编辑你的文档吧！"
+    },
+    "pinnedIds": [],
+    "explorerOrder": [
+      "welcome-doc"
+    ],
+    "folderOrder": {},
+    "updatedAt": 1774094547639
+  },
+  "editorConfig": {
+    "editorTheme": "githubLight",
+    "previewTheme": "theme-heart-classic",
+    "fontChoice": "Quicksand",
+    "fontSize": 16,
+    "accentColor": "#ff9a9e",
+    "blurAmount": 0,
+    "bgImage": "",
+    "particlesOn": false,
+    "customFonts": []
+  },
+  "updatedAt": 1774094547639
+}

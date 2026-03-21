@@ -14,7 +14,7 @@ import { dracula } from "@uiw/codemirror-theme-dracula";
 import { nord } from "@uiw/codemirror-theme-nord";
 import { sublime } from "@uiw/codemirror-theme-sublime";
 import { EditorView, scrollPastEnd } from "@codemirror/view";
-import Toolbar from "@/src/components/MainContent/Toolbar/Toolbar";
+import Toolbar from "@/components/MainContent/Toolbar/Toolbar";
 
 interface EditorPaneProps {
   markdown: string;

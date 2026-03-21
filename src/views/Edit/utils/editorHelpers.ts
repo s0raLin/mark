@@ -1,4 +1,4 @@
-import { FileNode } from "@/src/types/filesystem";
+import { FileNode } from "@/types/filesystem";
 
 /**
  * 默认文件ID - 引导教程文件的唯一标识符

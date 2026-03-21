@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Pin, Pencil, Trash2 } from "lucide-react";
-import { FileNode } from "@/src/types/filesystem";
+import { FileNode } from "@/types/filesystem";
 
 interface ContextMenuProps {
   x: number;
@@ -23,9 +23,9 @@ export default function ContextMenu({
   onClose,
 }: ContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ top: y, left: x });
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     setPos({
@@ -40,6 +40,9 @@ export default function ContextMenu({
     });
   }, [x, y]);
 
+  // 初始位置设为 null，直到计算出正确位置
+  const displayPos = pos ?? { top: y, left: x };
+
   useEffect(() => {
     const h = (e: MouseEvent) => {
       if (!ref.current?.contains(e.target as Node)) onClose();
@@ -51,7 +54,7 @@ export default function ContextMenu({
   return (
     <div
       ref={ref}
-      style={{ top: pos.top, left: pos.left }}
+      style={{ top: displayPos.top, left: displayPos.left }}
       className="fixed z-50 bg-white rounded-xl shadow-lg border border-rose-100 py-1 min-w-[140px] text-sm"
     >
       <button

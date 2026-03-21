@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Download, CheckCircle2 } from "lucide-react";
-import { cn } from "@/src/utils/cn";
+import { cn } from "@/utils/cn";
 import { Heading, CheckStates } from "../types";
 
 interface PreviewPaneProps {

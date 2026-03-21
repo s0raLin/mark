@@ -7,12 +7,13 @@ import {
   Terminal,
   X,
 } from "lucide-react";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { ThemeOption } from "./ThemeOption";
 import { PreviewThemeCard } from "./PreviewThemeCard";
 import { AccentCircle } from "./AccentCircle";
-import { cn } from "@/src/utils/cn";
-import { ACCENT_COLORS, EDITOR_THEMES, PREVIEW_THEMES } from "@/src/constants/theme";
+import { cn } from "@/utils/cn";
+import { ACCENT_COLORS, EDITOR_THEMES, PREVIEW_THEMES } from "@/constants/theme";
+import { uploadImage, uploadFont } from "@/api";
 
 interface SettingEditorProps {
   editorTheme: string;
@@ -23,61 +24,34 @@ interface SettingEditorProps {
   setParticlesOn: React.Dispatch<React.SetStateAction<boolean>>;
   fontChoice: string;
   setFontChoice: React.Dispatch<React.SetStateAction<string>>;
+  accentColor: string;
+  setAccentColor: (color: string) => void;
+  fontSize: number;
+  setFontSize: (size: number) => void;
+  blurAmount: number;
+  setBlurAmount: (amount: number) => void;
+  bgImage: string;
+  setBgImage: (url: string) => void;
+  customFonts: { name: string; url: string }[];
+  addCustomFont: (font: { name: string; url: string }) => void;
 }
 
 export default function SettingEditor({
-  editorTheme,
-  setEditorTheme,
-  previewTheme,
-  setPreviewTheme,
-  particlesOn,
-  setParticlesOn,
-  fontChoice,
-  setFontChoice,
+  editorTheme, setEditorTheme,
+  previewTheme, setPreviewTheme,
+  particlesOn, setParticlesOn,
+  fontChoice, setFontChoice,
+  accentColor, setAccentColor,
+  fontSize, setFontSize,
+  blurAmount, setBlurAmount,
+  bgImage, setBgImage,
+  customFonts, addCustomFont,
 }: SettingEditorProps) {
-  const [accentColor, setAccentColor] = useState("#ff9a9e");
-  const [fontSize, setFontSize] = useState(16);
-  const [blurAmount, setBlurAmount] = useState(0);
-  const [bgImage, setBgImage] = useState("");
   const [bgUploading, setBgUploading] = useState(false);
-  const [customFonts, setCustomFonts] = useState<{ name: string; url: string }[]>([]);
   const [fontUploading, setFontUploading] = useState(false);
 
   const bgInputRef = useRef<HTMLInputElement>(null);
   const fontInputRef = useRef<HTMLInputElement>(null);
-
-  // Apply accent color
-  useEffect(() => {
-    document.documentElement.style.setProperty("--color-primary", accentColor);
-  }, [accentColor]);
-
-  // Apply font size
-  useEffect(() => {
-    document.documentElement.style.setProperty("--markdown-font-size", `${fontSize}px`);
-  }, [fontSize]);
-
-  // Apply background image to global bg layer
-  useEffect(() => {
-    const el = document.getElementById("editor-bg-layer");
-    if (!el) return;
-    if (bgImage) {
-      el.style.backgroundImage = `url(${bgImage})`;
-      el.style.backgroundSize = "cover";
-      el.style.backgroundPosition = "center";
-    } else {
-      el.style.backgroundImage = "";
-    }
-  }, [bgImage]);
-
-  // Apply blur as CSS variable — drives backdrop-filter on editor pane
-  useEffect(() => {
-    document.documentElement.style.setProperty("--editor-blur", `${blurAmount}px`);
-  }, [blurAmount]);
-
-  // Re-inject custom font @font-face on mount
-  useEffect(() => {
-    customFonts.forEach(injectFontFace);
-  }, []);
 
   function injectFontFace(font: { name: string; url: string }) {
     const styleId = `custom-font-${font.name.replace(/\s/g, "-")}`;
@@ -93,13 +67,8 @@ export default function SettingEditor({
     if (!file) return;
     setBgUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("image", file);
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      if (res.ok) {
-        const data = await res.json();
-        setBgImage(data.url);
-      }
+      const { url } = await uploadImage(file);
+      setBgImage(url);
     } catch (err) {
       console.error("Background upload failed", err);
     } finally {
@@ -117,18 +86,11 @@ export default function SettingEditor({
     if (!file) return;
     setFontUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("font", file);
-      const res = await fetch("/api/upload-font", { method: "POST", body: formData });
-      if (res.ok) {
-        const data = await res.json();
-        const font = { name: data.fontFamily, url: data.url };
-        injectFontFace(font);
-        const next = [...customFonts, font];
-        setCustomFonts(next);
-        // Auto-select the new font
-        setFontChoice(data.fontFamily);
-      }
+      const { url, fontFamily } = await uploadFont(file);
+      const font = { name: fontFamily, url };
+      injectFontFace(font);
+      addCustomFont(font);
+      setFontChoice(fontFamily);
     } catch (err) {
       console.error("Font upload failed", err);
     } finally {
