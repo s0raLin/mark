@@ -4,7 +4,6 @@ import {
   Layout,
   Terminal,
   Upload,
-  Sparkles,
   FileText,
   FolderOpen,
   Download,
@@ -27,8 +26,6 @@ interface HeaderProps {
 export default function Header({
   viewMode = "split",
   onViewModeChange,
-  particlesOn = false,
-  onParticlesToggle,
   onNewSparkle,
   onSave,
   onSaveAs,

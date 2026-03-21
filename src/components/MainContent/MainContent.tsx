@@ -54,14 +54,9 @@ export default function MainContent({
   setMarkdown,
   viewMode,
   editorTheme,
-  setEditorTheme,
   previewTheme,
-  setPreviewTheme,
   fontChoice,
-  setFontChoice,
 }: MainContentProps) {
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isSaveAsModalOpen, setIsSaveAsModalOpen] = useState(false);
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [activeOutlineId, setActiveOutlineId] = useState<string | null>(null);
@@ -201,7 +196,6 @@ export default function MainContent({
   const renderHeadingIndexRef = useRef(0);
   renderHeadingIndexRef.current = 0; // 每次 render 重置
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
 
   // Expose editorRef to parent toolbarRef
@@ -300,7 +294,7 @@ export default function MainContent({
         actions: [
           {
             name: `Close ${type}`,
-            apply(view, from, to) {
+            apply(view, to) {
               view.dispatch({ changes: { from: to, insert: marker } });
             },
           },
@@ -395,33 +389,6 @@ export default function MainContent({
     view.focus();
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const imageUrl = data.url;
-        setMarkdown((prev) => prev + `\n\n![${file.name}](${imageUrl})`);
-      } else {
-        alert("Upload failed");
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      alert("Error uploading image");
-    }
-    // Reset input value to allow uploading the same file again
-    e.target.value = "";
-  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -472,28 +439,22 @@ export default function MainContent({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleNewSparkle = () => {
-    setMarkdown("# New Sparkle\n\nStart writing here...");
-    setActiveMenu(null);
-  };
 
-  const handleSaveAs = () => {
-    setIsSaveAsModalOpen(true);
-    setActiveMenu(null);
-  };
   return (
     <div className="flex h-full w-full">
       {/* Editor Pane */}
       {(viewMode === "split" || viewMode === "editor") && (
-        <section className="flex-1 border-r border-border-soft flex flex-col relative bg-white overflow-hidden">
-          {/* Toolbar - 侧边栏右边，小地图左边，编辑区顶部 */}
-          <div className="h-14 border-b border-border-soft bg-white/50 flex items-center justify-center px-4 gap-1 shrink-0">
+        <section className="flex-1 border-r border-border-soft flex flex-col relative overflow-hidden">
+          {/* Frosted glass layer over the global background — blur controlled by CSS var */}
+          <div
+            className="absolute inset-0 pointer-events-none z-0"
+            style={{ backdropFilter: "blur(var(--editor-blur, 0px))", WebkitBackdropFilter: "blur(var(--editor-blur, 0px))", backgroundColor: "rgba(255,255,255,0.55)" }}
+          />
+          {/* Toolbar */}
+          <div className="h-14 border-b border-border-soft bg-white/40 backdrop-blur-sm flex items-center justify-center px-4 gap-1 shrink-0 relative z-10">
             <Toolbar editorRef={editorRef} />
           </div>
-          {/* <div className="absolute top-6 left-8 text-[11px] font-extrabold text-primary/60 uppercase tracking-widest z-10 pointer-events-none bg-primary/5 px-2 py-0.5 rounded-md">
-            Markdown Editor
-          </div> */}
-          <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="flex-1 overflow-hidden flex flex-col relative z-10">
             <CodeMirror
               ref={editorRef}
               value={markdown}

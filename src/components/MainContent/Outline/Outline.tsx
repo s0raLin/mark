@@ -22,7 +22,7 @@ export default function Outline({
   markdown,
 }: OutlineProps) {
   return (
-    <aside className="w-56 border-l border-border-soft bg-white hidden lg:flex flex-col shrink-0">
+    <aside className="w-56 border-l border-border-soft bg-white/80 backdrop-blur-2xl hidden lg:flex flex-col shrink-0">
       <div className="p-6 border-b border-border-soft flex items-center justify-between">
         <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
           Outline

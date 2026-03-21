@@ -1,5 +1,4 @@
 import { Layout, Terminal } from "lucide-react";
-import React from "react";
 import { ShortcutRow } from "./ShortcutRow";
 
 export default function SettingGeneral() {

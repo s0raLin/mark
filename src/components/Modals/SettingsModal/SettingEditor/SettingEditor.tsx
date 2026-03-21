@@ -12,6 +12,7 @@ import { ThemeOption } from "./ThemeOption";
 import { PreviewThemeCard } from "./PreviewThemeCard";
 import { AccentCircle } from "./AccentCircle";
 import { cn } from "@/src/utils/cn";
+import { ACCENT_COLORS, EDITOR_THEMES, PREVIEW_THEMES } from "@/src/constants/theme";
 
 interface SettingEditorProps {
   editorTheme: string;
@@ -24,84 +25,6 @@ interface SettingEditorProps {
   setFontChoice: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const EDITOR_THEMES = [
-  {
-    value: "githubLight",
-    label: "GitHub Light",
-    colors: ["#ffffff", "#24292e", "#0366d6"] as [string, string, string],
-  },
-  {
-    value: "oneDark",
-    label: "One Dark",
-    colors: ["#282c34", "#abb2bf", "#61afef"] as [string, string, string],
-    isDark: true,
-  },
-  {
-    value: "githubDark",
-    label: "GitHub Dark",
-    colors: ["#0d1117", "#c9d1d9", "#58a6ff"] as [string, string, string],
-    isDark: true,
-  },
-  {
-    value: "vscodeDark",
-    label: "VS Code Dark",
-    colors: ["#1e1e1e", "#d4d4d4", "#569cd6"] as [string, string, string],
-    isDark: true,
-  },
-  {
-    value: "dracula",
-    label: "Dracula",
-    colors: ["#282a36", "#f8f8f2", "#bd93f9"] as [string, string, string],
-    isDark: true,
-  },
-  {
-    value: "nord",
-    label: "Nord",
-    colors: ["#2e3440", "#d8dee9", "#88c0d0"] as [string, string, string],
-    isDark: true,
-  },
-] as const;
-
-const PREVIEW_THEMES = [
-  {
-    value: "theme-heart-classic",
-    title: "Classic Heart",
-    subtitle: "Cream & Rose",
-    colors: ["#fffafb", "#ff4d6d", "#ffb3c1"],
-    isDark: false,
-  },
-  {
-    value: "theme-heart-midnight",
-    title: "Midnight Pulse",
-    subtitle: "Ruby & Charcoal",
-    colors: ["#1a1a1a", "#ff002b", "#800015"],
-    isDark: true,
-  },
-  {
-    value: "theme-heart-golden",
-    title: "Golden Love",
-    subtitle: "Terracotta & Gold",
-    colors: ["#fdf6e3", "#b58900", "#cb4b16"],
-    isDark: false,
-  },
-  {
-    value: "theme-heart-organic",
-    title: "Organic Pulse",
-    subtitle: "Sage & Violet",
-    colors: ["#f0f4f0", "#6c5ce7", "#00b894"],
-    isDark: false,
-  },
-];
-
-const ACCENT_COLORS = [
-  "#ff9a9e",
-  "#a1c4fd",
-  "#c2e9fb",
-  "#d4fc79",
-  "#f6d365",
-  "#ffecd2",
-];
-
 export default function SettingEditor({
   editorTheme,
   setEditorTheme,
@@ -112,26 +35,12 @@ export default function SettingEditor({
   fontChoice,
   setFontChoice,
 }: SettingEditorProps) {
-  const [accentColor, setAccentColor] = useState(() => {
-    return localStorage.getItem("studiomark_accent_color") || "#ff9a9e";
-  });
-  const [fontSize, setFontSize] = useState(() => {
-    return Number(localStorage.getItem("studiomark_font_size") || "16");
-  });
-  const [blurAmount, setBlurAmount] = useState(() => {
-    return Number(localStorage.getItem("studiomark_blur_amount") || "12");
-  });
-  const [bgImage, setBgImage] = useState(() => {
-    return localStorage.getItem("studiomark_bg_image") || "";
-  });
+  const [accentColor, setAccentColor] = useState("#ff9a9e");
+  const [fontSize, setFontSize] = useState(16);
+  const [blurAmount, setBlurAmount] = useState(0);
+  const [bgImage, setBgImage] = useState("");
   const [bgUploading, setBgUploading] = useState(false);
-  const [customFonts, setCustomFonts] = useState<{ name: string; url: string }[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem("studiomark_custom_fonts") || "[]");
-    } catch {
-      return [];
-    }
-  });
+  const [customFonts, setCustomFonts] = useState<{ name: string; url: string }[]>([]);
   const [fontUploading, setFontUploading] = useState(false);
 
   const bgInputRef = useRef<HTMLInputElement>(null);
@@ -140,21 +49,14 @@ export default function SettingEditor({
   // Apply accent color
   useEffect(() => {
     document.documentElement.style.setProperty("--color-primary", accentColor);
-    localStorage.setItem("studiomark_accent_color", accentColor);
   }, [accentColor]);
 
   // Apply font size
   useEffect(() => {
     document.documentElement.style.setProperty("--markdown-font-size", `${fontSize}px`);
-    localStorage.setItem("studiomark_font_size", String(fontSize));
   }, [fontSize]);
 
-  // Persist blur
-  useEffect(() => {
-    localStorage.setItem("studiomark_blur_amount", String(blurAmount));
-  }, [blurAmount]);
-
-  // Apply background image to the editor wrapper
+  // Apply background image to global bg layer
   useEffect(() => {
     const el = document.getElementById("editor-bg-layer");
     if (!el) return;
@@ -162,12 +64,15 @@ export default function SettingEditor({
       el.style.backgroundImage = `url(${bgImage})`;
       el.style.backgroundSize = "cover";
       el.style.backgroundPosition = "center";
-      el.style.filter = `blur(${blurAmount}px)`;
     } else {
       el.style.backgroundImage = "";
-      el.style.filter = "";
     }
-  }, [bgImage, blurAmount]);
+  }, [bgImage]);
+
+  // Apply blur as CSS variable — drives backdrop-filter on editor pane
+  useEffect(() => {
+    document.documentElement.style.setProperty("--editor-blur", `${blurAmount}px`);
+  }, [blurAmount]);
 
   // Re-inject custom font @font-face on mount
   useEffect(() => {
@@ -194,7 +99,6 @@ export default function SettingEditor({
       if (res.ok) {
         const data = await res.json();
         setBgImage(data.url);
-        localStorage.setItem("studiomark_bg_image", data.url);
       }
     } catch (err) {
       console.error("Background upload failed", err);
@@ -206,7 +110,6 @@ export default function SettingEditor({
 
   const handleClearBg = () => {
     setBgImage("");
-    localStorage.removeItem("studiomark_bg_image");
   };
 
   const handleFontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -223,7 +126,6 @@ export default function SettingEditor({
         injectFontFace(font);
         const next = [...customFonts, font];
         setCustomFonts(next);
-        localStorage.setItem("studiomark_custom_fonts", JSON.stringify(next));
         // Auto-select the new font
         setFontChoice(data.fontFamily);
       }
