@@ -25,6 +25,8 @@ interface SettingsModalProps {
   setParticlesOn: (on: boolean) => void;
   fontChoice: string;
   setFontChoice: (font: string) => void;
+  editorFont: string;
+  setEditorFont: (font: string) => void;
   accentColor: string;
   setAccentColor: (color: string) => void;
   fontSize: number;
@@ -43,6 +45,7 @@ export function SettingsModal({
   previewTheme, setPreviewTheme,
   particlesOn, setParticlesOn,
   fontChoice, setFontChoice,
+  editorFont, setEditorFont,
   accentColor, setAccentColor,
   fontSize, setFontSize,
   blurAmount, setBlurAmount,
@@ -132,6 +135,8 @@ export function SettingsModal({
                 setParticlesOn={setParticlesOn}
                 fontChoice={fontChoice}
                 setFontChoice={setFontChoice}
+                editorFont={editorFont}
+                setEditorFont={setEditorFont}
                 accentColor={accentColor}
                 setAccentColor={setAccentColor}
                 fontSize={fontSize}

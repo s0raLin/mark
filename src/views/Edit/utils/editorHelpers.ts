@@ -6,18 +6,22 @@ import { FileNode } from "@/types/filesystem";
 const DEFAULT_FILE_ID = "default";
 
 /**
- * 确保文件名以 .md 结尾
- * 如果文件名以 .markdown 结尾，则转换为 .md
- * 如果文件名没有扩展名，则添加 .md 扩展名
- * 
- * @param name - 原始文件名
- * @returns 确保以 .md 结尾的文件名
+ * 确保文件名有扩展名
+ * 如果文件名已有扩展名则保留，否则默认添加 .md
+ */
+export function ensureFileExtension(name: string): string {
+  const trimmed = name.trim();
+  // 有扩展名（含点且点不在首位）则直接返回
+  const lastDot = trimmed.lastIndexOf(".");
+  if (lastDot > 0) return trimmed;
+  return `${trimmed}.md`;
+}
+
+/**
+ * @deprecated 使用 ensureFileExtension 替代
  */
 export function ensureMarkdownExtension(name: string): string {
-  if (name.endsWith(".md")) return name;
-  if (name.endsWith(".markdown"))
-    return `${name.slice(0, -".markdown".length)}.md`;
-  return `${name}.md`;
+  return ensureFileExtension(name);
 }
 
 /**

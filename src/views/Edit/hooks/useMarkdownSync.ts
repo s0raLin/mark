@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { INITIAL_MARKDOWN } from "@/constants";
+import { saveFileContent, getFileContent } from "@/api";
 
 export interface UseMarkdownSyncReturn {
   markdown: string;
@@ -8,61 +9,66 @@ export interface UseMarkdownSyncReturn {
 
 export interface UseMarkdownSyncProps {
   activeFileId: string;
-  fileContents: Record<string, string>;
-  setFileContents: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   setNodes: React.Dispatch<React.SetStateAction<import("@/types/filesystem").FileNode[]>>;
 }
 
 export function useMarkdownSync({
   activeFileId,
-  fileContents,
-  setFileContents,
   setNodes,
 }: UseMarkdownSyncProps): UseMarkdownSyncReturn {
   const [markdown, setMarkdown] = useState(INITIAL_MARKDOWN);
-  const prevActiveFileIdRef = useRef<string | null>(null);
-  const fileContentsRef = useRef(fileContents);
+  // 内部缓存，避免重复请求后端
+  const fileContentsRef = useRef<Record<string, string>>({});
 
-  // 保持 ref 与最新 fileContents 同步
-  useEffect(() => {
-    fileContentsRef.current = fileContents;
-  });
-
-  // 当 activeFileId 变化时，加载对应文件的内容
   useEffect(() => {
     if (!activeFileId) return;
-    if (prevActiveFileIdRef.current !== null && prevActiveFileIdRef.current !== activeFileId) {
-      const content = fileContentsRef.current[activeFileId];
-      setMarkdown(content !== undefined ? content : "");
-    }
-    prevActiveFileIdRef.current = activeFileId;
+
+    const load = async () => {
+      try {
+        const cached = fileContentsRef.current[activeFileId];
+        if (cached !== undefined) {
+          setMarkdown(cached);
+        } else {
+          const response = await getFileContent(activeFileId);
+          const content = response.content || "";
+          fileContentsRef.current[activeFileId] = content;
+          setMarkdown(content);
+        }
+      } catch (err) {
+        console.error("加载文件失败:", err);
+        setMarkdown("");
+      }
+    };
+
+    load();
   }, [activeFileId]);
 
-  // 保存内容到 fileContents - 使用 useCallback 包装避免依赖变化
-  const saveToFileContents = useCallback((newMarkdown: string) => {
-    if (!activeFileId) return;
-    setFileContents((prev) => ({ ...prev, [activeFileId]: newMarkdown }));
-    setNodes((prev) =>
-      prev.map((n) =>
-        n.id === activeFileId ? { ...n, updatedAt: Date.now() } : n,
-      ),
-    );
-  }, [activeFileId, setFileContents, setNodes]);
+  const saveToBackend = useCallback(
+    (newMarkdown: string) => {
+      if (!activeFileId) return;
+      fileContentsRef.current[activeFileId] = newMarkdown;
+      setNodes((prev) =>
+        prev.map((n) =>
+          n.id === activeFileId ? { ...n, updatedAt: Date.now() } : n,
+        ),
+      );
+      saveFileContent(activeFileId, newMarkdown).catch((err) => {
+        console.error("保存文件失败:", err);
+      });
+    },
+    [activeFileId, setNodes],
+  );
 
-  // 包装 setMarkdown，在更新时同步保存
-  const handleSetMarkdown = useCallback((value: string | ((prev: string) => string)) => {
-    setMarkdown((prev) => {
-      const newValue = typeof value === "function" ? value(prev) : value;
-      // 只有值真正变化时才保存
-      if (newValue !== prev) {
-        saveToFileContents(newValue);
-      }
-      return newValue;
-    });
-  }, [saveToFileContents]);
+  const handleSetMarkdown = useCallback(
+    (value: string | ((prev: string) => string)) => {
+      setMarkdown((prev) => {
+        const next = typeof value === "function" ? value(prev) : value;
+        if (next !== prev) saveToBackend(next);
+        return next;
+      });
+    },
+    [saveToBackend],
+  );
 
-  return {
-    markdown,
-    setMarkdown: handleSetMarkdown,
-  };
+  return { markdown, setMarkdown: handleSetMarkdown };
 }

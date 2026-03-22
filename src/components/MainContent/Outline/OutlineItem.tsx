@@ -16,8 +16,8 @@ function OutlineItemComponent({ label, active, sub, onClick }: OutlineItemProps)
       className={cn(
         "flex items-center w-full text-left rounded-xl transition-all duration-300 relative overflow-hidden",
         sub
-          ? "px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-primary"
-          : "px-3 py-2.5 text-sm font-medium text-slate-500 hover:text-primary hover:bg-slate-50",
+          ? "px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-primary"
+          : "px-3 py-2.5 text-sm font-medium text-slate-700 hover:text-primary hover:bg-slate-50",
         active && "text-primary bg-primary/5 font-bold",
       )}
     >

@@ -33,21 +33,11 @@ export interface StorageFileNode {
 }
 
 /**
- * 文件内容（用于持久化）
- */
-export interface StorageFileContent {
-  id: string;
-  content: string;
-}
-
-/**
- * 文件系统完整数据（用于持久化）
+ * 文件系统完整数据（用于持久化，文件内容存储在 .md 文件的 frontmatter 中）
  */
 export interface StorageFileSystem {
   /** 所有文件/文件夹节点 */
   nodes: StorageFileNode[];
-  /** 文件内容映射 */
-  fileContents: Record<string, string>;
   /** 已置顶的文件/文件夹ID列表 */
   pinnedIds: string[];
   /** 根目录中节点的显示顺序 */
@@ -65,6 +55,7 @@ export interface StorageEditorConfig {
   editorTheme: string;
   previewTheme: string;
   fontChoice: string;
+  editorFont: string;
   fontSize: number;
   accentColor: string;
   blurAmount: number;

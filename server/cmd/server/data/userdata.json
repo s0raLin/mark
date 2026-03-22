@@ -1,0 +1,18 @@
+{
+  "userId": "demo-user",
+  "username": "Demo",
+  "email": "demo@example.com",
+  "editorConfig": {
+    "editorTheme": "vs-dark",
+    "previewTheme": "github",
+    "fontChoice": "",
+    "editorFont": "",
+    "fontSize": 14,
+    "accentColor": "",
+    "blurAmount": 0,
+    "bgImage": "",
+    "particlesOn": false,
+    "customFonts": []
+  },
+  "updatedAt": "2026-03-22T12:48:49.046619668+08:00"
+}

@@ -11,6 +11,8 @@ export interface MainContentProps {
   setPreviewTheme: React.Dispatch<React.SetStateAction<string>>;
   fontChoice: string;
   setFontChoice: React.Dispatch<React.SetStateAction<string>>;
+  editorFont: string;
+  activeFileName: string;
 }
 
 export interface Heading {

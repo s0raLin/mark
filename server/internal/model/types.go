@@ -28,10 +28,22 @@ type StorageFileNode struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-// StorageFileSystem 完整文件系統結構（不含內容）
+// FileFrontmatter 存储在 .md 文件头部的元数据（--- 块）
+// 文件夹也用同名 .folder 文件存储其元数据
+type FileFrontmatter struct {
+	ID        string    `yaml:"id"`
+	Name      string    `yaml:"name"`
+	Type      string    `yaml:"type"` // "file" | "folder"
+	ParentID  string    `yaml:"parentId,omitempty"`
+	Pinned    bool      `yaml:"pinned,omitempty"`
+	Order     int       `yaml:"order"`
+	CreatedAt time.Time `yaml:"createdAt"`
+	UpdatedAt time.Time `yaml:"updatedAt"`
+}
+
+// StorageFileSystem 文件系統結構（从磁盘文件重建，不持久化到 JSON）
 type StorageFileSystem struct {
 	Nodes         []StorageFileNode   `json:"nodes"`
-	FileContents  map[string]string   `json:"fileContents"` // id → content
 	PinnedIDs     []string            `json:"pinnedIds"`
 	ExplorerOrder []string            `json:"explorerOrder"`
 	FolderOrder   map[string][]string `json:"folderOrder"`
@@ -43,6 +55,7 @@ type StorageEditorConfig struct {
 	EditorTheme  string  `json:"editorTheme"`
 	PreviewTheme string  `json:"previewTheme"`
 	FontChoice   string  `json:"fontChoice"`
+	EditorFont   string  `json:"editorFont"`
 	FontSize     int     `json:"fontSize"`
 	AccentColor  string  `json:"accentColor"`
 	BlurAmount   float64 `json:"blurAmount"`
@@ -54,7 +67,16 @@ type StorageEditorConfig struct {
 	} `json:"customFonts"`
 }
 
-// StorageUserSettings 完整使用者資料
+// StorageAppConfig 仅保存应用配置（持久化到 JSON，不含文件系统数据）
+type StorageAppConfig struct {
+	UserID       string              `json:"userId"`
+	Username     string              `json:"username"`
+	Email        string              `json:"email"`
+	EditorConfig StorageEditorConfig `json:"editorConfig"`
+	UpdatedAt    time.Time           `json:"updatedAt"`
+}
+
+// StorageUserSettings 完整使用者資料（含从磁盘重建的文件系统，用于 API 响应）
 type StorageUserSettings struct {
 	UserID       string              `json:"userId"`
 	Username     string              `json:"username"`
@@ -75,6 +97,17 @@ type GetFileContentResponse struct {
 type SaveFileContentResponse struct {
 	Success   bool      `json:"success"`
 	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// GetFilePathResponse 文件真实路径响应
+type GetFilePathResponse struct {
+	ID       string `json:"id"`
+	FilePath string `json:"filePath"`
+}
+
+// GetFilesRootResponse 文件根目录响应
+type GetFilesRootResponse struct {
+	RootDir string `json:"rootDir"`
 }
 
 // 通用成功回應（save 操作）

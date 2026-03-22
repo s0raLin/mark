@@ -52,9 +52,9 @@ export function SaveAsModal({ markdown, onClose }: SaveAsModalProps) {
           </div>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-pink-50 transition-colors"
+            className="flex items-center justify-center rounded-full h-9 w-9 bg-white/60 hover:bg-primary/20 hover:text-primary text-slate-400 transition-all"
           >
-            <X className="w-4 h-4 text-slate-400" />
+            <X className="w-4 h-4" />
           </button>
         </header>
 

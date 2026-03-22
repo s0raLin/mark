@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // 端口配置
 const FRONTEND_PORT = 5173;
-const API_PORT = 8080;
+const API_PORT = process.env.API_PORT || 8080;
 
 // 创建前端服务器
 const frontendServer = express();
@@ -84,7 +84,10 @@ function startGoServer(): Promise<void> {
     const goSrcPath = path.join(__dirname, 'server', 'cmd', 'server');
     
     console.log('Starting Go server with go run...');
-    goServer = spawn('go', ['run', '.'], {cwd: goSrcPath});
+    
+    // Pass PORT environment variable to Go server
+    const env = { ...process.env, PORT: API_PORT.toString() };
+    goServer = spawn('go', ['run', '.'], {cwd: goSrcPath, env});
     
     goServer.stdout?.on('data', (data: Buffer) => {
       console.log(`Go: ${data.toString().trim()}`);

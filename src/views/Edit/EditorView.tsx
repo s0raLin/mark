@@ -27,8 +27,7 @@ export default function EditorView() {
   // 路由管理的模态框状态
   const { isModalOpen, openModal, closeModal } = useModalRoute();
 
-  // 粒子效果状态
-  const [particlesOn, setParticlesOn] = useState(false);
+  // 粒子效果状态由 editorTheme 统一管理
 
   // 用 useMemo 稳定引用，避免每次渲染都生成新对象触发子 hook effect
   const initialFileSystem = useMemo(
@@ -48,14 +47,9 @@ export default function EditorView() {
   // 编辑器主题 Hook
   const editorTheme = useEditorTheme({ initialConfig });
 
-  // 数据变化时自动保存
+  // 数据变化时自动保存（文件内容已保存到真实.md文件，不再保存到JSON配置）
   useEffect(() => {
     if (storageSync.isInitialized) {
-      console.log('[Auto-save] Triggered with data:', {
-        nodes: fileSystem.nodes.length,
-        fileContents: Object.keys(fileSystem.fileContents).length,
-        editorTheme: editorTheme.editorTheme
-      });
       storageSync.saveData({
         fileSystem: {
           nodes: fileSystem.nodes.map(n => ({
@@ -63,7 +57,6 @@ export default function EditorView() {
             createdAt: new Date(n.createdAt).toISOString(),
             updatedAt: new Date(n.updatedAt).toISOString(),
           })),
-          fileContents: fileSystem.fileContents,
           pinnedIds: fileSystem.pinnedIds,
           explorerOrder: fileSystem.explorerOrder,
           folderOrder: fileSystem.folderOrder,
@@ -73,6 +66,7 @@ export default function EditorView() {
           editorTheme: editorTheme.editorTheme,
           previewTheme: editorTheme.previewTheme,
           fontChoice: editorTheme.fontChoice,
+          editorFont: editorTheme.editorFont,
           fontSize: editorTheme.fontSize,
           accentColor: editorTheme.accentColor,
           blurAmount: editorTheme.blurAmount,
@@ -81,20 +75,19 @@ export default function EditorView() {
           customFonts: editorTheme.customFonts,
         },
       });
-    } else {
-      console.log('[Auto-save] Skipped: not initialized');
     }
   }, [
     storageSync.isInitialized,
     storageSync.saveData,
     fileSystem.nodes,
-    fileSystem.fileContents,
+    // 移除fileContents触发器，避免每次编辑都触发保存
     fileSystem.pinnedIds,
     fileSystem.explorerOrder,
     fileSystem.folderOrder,
     editorTheme.editorTheme,
     editorTheme.previewTheme,
     editorTheme.fontChoice,
+    editorTheme.editorFont,
     editorTheme.fontSize,
     editorTheme.accentColor,
     editorTheme.blurAmount,
@@ -103,30 +96,20 @@ export default function EditorView() {
     editorTheme.customFonts,
   ]);
 
-  // 数据初始化完成后，加载活动文件的内容到编辑器
-  useEffect(() => {
-    if (!storageSync.isInitialized) return;
-    const content = fileSystem.fileContents[fileSystem.activeFileId];
-    if (content !== undefined) markdownSync.setMarkdown(content);
-  // 只在初始化完成时触发一次
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storageSync.isInitialized]);
-
   // 文件操作 Hook
   const fileOperations = useFileOperations({
     nodes: fileSystem.nodes,
-    fileContents: fileSystem.fileContents,
     pinnedIds: fileSystem.pinnedIds,
     explorerOrder: fileSystem.explorerOrder,
     folderOrder: fileSystem.folderOrder,
     activeFileId: fileSystem.activeFileId,
     expandedFolders: fileSystem.expandedFolders,
     setNodes: fileSystem.setNodes,
-    setFileContents: fileSystem.setFileContents,
     setPinnedIds: fileSystem.setPinnedIds,
     setExplorerOrder: fileSystem.setExplorerOrder,
     setFolderOrder: fileSystem.setFolderOrder,
     setExpandedFolders: fileSystem.setExpandedFolders,
+    setActiveFileId: fileSystem.setActiveFileId,
   });
 
   // 编辑器状态 Hook
@@ -137,8 +120,6 @@ export default function EditorView() {
   // Markdown 同步 Hook
   const markdownSync = useMarkdownSync({
     activeFileId: fileSystem.activeFileId,
-    fileContents: fileSystem.fileContents,
-    setFileContents: fileSystem.setFileContents,
     setNodes: fileSystem.setNodes,
   });
 
@@ -162,12 +143,23 @@ export default function EditorView() {
 
   // 字体设置已在 useEditorTheme 内部处理
 
-  // 打开文件时加载内容
+  // 打开文件时加载内容，并自动展开父文件夹
   const handleOpenFile = useCallback(
     (id: string) => {
       fileSystem.setActiveFileId(id);
+      // 展开所有祖先文件夹，确保侧边栏能看到选中项
+      const node = fileSystem.nodes.find(n => n.id === id);
+      if (!node) return;
+      let parentId = node.parentId;
+      while (parentId) {
+        if (!fileSystem.expandedFolders.has(parentId)) {
+          fileSystem.setExpandedFolders(prev => new Set([...prev, parentId!]));
+        }
+        const parent = fileSystem.nodes.find(n => n.id === parentId);
+        parentId = parent?.parentId ?? null;
+      }
     },
-    [fileSystem.setActiveFileId],
+    [fileSystem.setActiveFileId, fileSystem.nodes, fileSystem.expandedFolders, fileSystem.setExpandedFolders],
   );
 
   // 加载状态显示
@@ -190,8 +182,8 @@ export default function EditorView() {
         <Header
           viewMode={editorState.viewMode}
           onViewModeChange={editorState.handleViewModeChange}
-          particlesOn={particlesOn}
-          onParticlesToggle={() => setParticlesOn((prev) => !prev)}
+          particlesOn={editorTheme.particlesOn}
+          onParticlesToggle={() => editorTheme.setParticlesOn((prev) => !prev)}
           onNewSparkle={editorState.handleNewSparkle}
           onSave={editorState.handleSave}
           onSaveAs={() => openModal(ROUTES.SAVE_AS)}
@@ -225,6 +217,8 @@ export default function EditorView() {
             setPreviewTheme={editorTheme.setPreviewTheme}
             fontChoice={editorTheme.fontChoice}
             setFontChoice={editorTheme.setFontChoice}
+            editorFont={editorTheme.editorFont}
+            activeFileName={fileSystem.nodes.find(n => n.id === fileSystem.activeFileId)?.name ?? ""}
           />
         </main>
       </div>
@@ -251,10 +245,12 @@ export default function EditorView() {
         setIsSettingsModalOpen={(open) => open ? openModal(ROUTES.SETTINGS) : closeModal()}
         setIsSearchModalOpen={(open) => open ? openModal(ROUTES.SEARCH) : closeModal()}
         markdown={markdownSync.markdown}
-        particlesOn={particlesOn}
-        setParticlesOn={setParticlesOn}
+        particlesOn={editorTheme.particlesOn}
+        setParticlesOn={editorTheme.setParticlesOn}
         fontChoice={editorTheme.fontChoice}
         setFontChoice={editorTheme.setFontChoice}
+        editorFont={editorTheme.editorFont}
+        setEditorFont={editorTheme.setEditorFont}
         accentColor={editorTheme.accentColor}
         setAccentColor={editorTheme.setAccentColor}
         fontSize={editorTheme.fontSize}
@@ -265,6 +261,8 @@ export default function EditorView() {
         setBgImage={editorTheme.setBgImage}
         customFonts={editorTheme.customFonts}
         addCustomFont={editorTheme.addCustomFont}
+        nodes={fileSystem.nodes}
+        onOpenFile={handleOpenFile}
       />
     </div>
   );

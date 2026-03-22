@@ -2,7 +2,6 @@ import React, { useState, useCallback } from "react";
 import { Folder, FolderOpen, Pin } from "lucide-react";
 import { FileNode, FileSystemAPI } from "@/types/filesystem";
 import { cn } from "@/utils/cn";
-import { DropTarget } from "../types";
 import RenameInput from "./RenameInput";
 import ContextMenu from "./ContextMenu";
 import GripHandle from "./GripHandle";
@@ -15,61 +14,35 @@ interface PinnedItemRowProps {
   fs: FileSystemAPI;
 }
 
-export default function PinnedItemRow({
-  node,
-  fs,
-}: PinnedItemRowProps) {
+export default function PinnedItemRow({ node, fs }: PinnedItemRowProps) {
   const [renaming, setRenaming] = useState(false);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
+  const [isDragOverFolder, setIsDragOverFolder] = useState(false);
+
   const isActive = fs.activeFileId === node.id;
   const isOpen = node.type === "folder" && fs.expandedFolders.has(node.id);
   const children = isOpen ? fs.getChildren(node.id) : [];
 
-  const handleDrop = useCallback(
-    (draggedId: string, target: DropTarget) => {
-      if (draggedId === node.id) return;
-      if (target.kind === "into") {
-        fs.moveNode(draggedId, target.folderId, null);
-      } else {
-        fs.moveNode(draggedId, node.id, target.insertBeforeId);
-      }
-    },
-    [node, fs],
-  );
-
-  // Handle drop from OS file system into folder
-  const [isDragOverFolder, setIsDragOverFolder] = useState(false);
-
-  const handleOSDrop = useCallback(
-    async (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragOverFolder(false);
-
-      if (node.type !== "folder") return;
-
-      await importDroppedIntoFs(e.dataTransfer, fs, node.id);
-      if (!fs.expandedFolders.has(node.id)) fs.toggleFolder(node.id);
-    },
-    [node, fs],
-  );
-
-  const handleOSDragOver = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (node.type === "folder") {
-        setIsDragOverFolder(true);
-      }
-    },
-    [node.type],
-  );
+  const handleOSDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (node.type === "folder") setIsDragOverFolder(true);
+  }, [node.type]);
 
   const handleOSDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOverFolder(false);
   }, []);
+
+  const handleOSDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOverFolder(false);
+    if (node.type !== "folder") return;
+    await importDroppedIntoFs(e.dataTransfer, fs, node.id);
+    if (!fs.expandedFolders.has(node.id)) fs.toggleFolder(node.id);
+  }, [node, fs]);
 
   return (
     <div>
@@ -85,39 +58,29 @@ export default function PinnedItemRow({
         onDragOver={handleOSDragOver}
         onDragLeave={handleOSDragLeave}
         onDrop={handleOSDrop}
+        data-folder={node.type === "folder" ? "true" : undefined}
+        data-node-id={node.id}
         className={cn(
           "flex items-center gap-2 rounded-xl px-2 py-2 transition-colors select-none cursor-default",
-          isActive
-            ? "bg-primary/10 text-slate-800"
-            : "hover:bg-rose-50 text-slate-600",
-          isDragOverFolder && "bg-primary/8 text-slate-800",
+          isActive ? "bg-primary/15 text-primary font-semibold" : "hover:bg-rose-50 text-slate-600",
+          (isDragOverFolder) && "bg-primary/8 ring-1 ring-primary/30",
         )}
       >
         {node.type === "folder" ? (
-          isOpen ? (
-            <FolderOpen className="w-4 h-4 text-accent shrink-0" />
-          ) : (
-            <Folder className="w-4 h-4 text-secondary shrink-0" />
-          )
+          isOpen
+            ? <FolderOpen className="w-4 h-4 text-accent shrink-0" />
+            : <Folder className="w-4 h-4 text-secondary shrink-0" />
         ) : (
           <Pin className="w-4 h-4 text-primary shrink-0" />
         )}
         {renaming ? (
           <RenameInput
             initial={node.name}
-            onConfirm={(v) => {
-              fs.renameNode(node.id, v);
-              setRenaming(false);
-            }}
+            onConfirm={(v) => { fs.renameNode(node.id, v); setRenaming(false); }}
             onCancel={() => setRenaming(false)}
           />
         ) : (
-          <span
-            className={cn(
-              "flex-1 truncate text-sm",
-              isActive && "font-semibold",
-            )}
-          >
+          <span className={cn("flex-1 truncate text-sm", isActive && "font-bold")}>
             {node.name}
           </span>
         )}
@@ -136,12 +99,11 @@ export default function PinnedItemRow({
         )}
       </div>
 
-      {/* Folder children rendered inline under pinned folder */}
       {isOpen && (
         <div className="border-l border-rose-100 ml-4">
           <DragList
             nodes={children}
-            onDrop={handleDrop}
+            parentId={node.id}
             renderNode={(child) => <TreeNode node={child} depth={1} fs={fs} />}
           />
           {children.length === 0 && (

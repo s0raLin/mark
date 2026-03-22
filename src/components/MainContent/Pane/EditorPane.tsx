@@ -4,6 +4,9 @@ import {
   markdown as markdownLang,
   markdownLanguage,
 } from "@codemirror/lang-markdown";
+import { json as jsonLang } from "@codemirror/lang-json";
+import { javascript as jsLang } from "@codemirror/lang-javascript";
+import { css as cssLang } from "@codemirror/lang-css";
 import { languages } from "@codemirror/language-data";
 import { linter, Diagnostic } from "@codemirror/lint";
 import { autocompletion, CompletionContext } from "@codemirror/autocomplete";
@@ -20,6 +23,8 @@ interface EditorPaneProps {
   markdown: string;
   setMarkdown: React.Dispatch<React.SetStateAction<string>>;
   editorTheme: string;
+  editorFont: string;
+  fileName: string;
   editorRef: React.RefObject<ReactCodeMirrorRef>;
 }
 
@@ -138,40 +143,52 @@ export default function EditorPane({
   markdown,
   setMarkdown,
   editorTheme,
+  editorFont,
+  fileName,
   editorRef,
 }: EditorPaneProps) {
   const applyMarkdownRef = useRef<((prefix: string, suffix?: string) => void) | null>(null);
 
+  // 根据文件扩展名选择语言扩展
+  const ext = (fileName ?? "").includes(".") ? fileName.split(".").pop()!.toLowerCase() : "md";
+
   const editorExtensions = useMemo(
-    () => [
-      scrollPastEnd(),
-      markdownLang({
-        base: markdownLanguage,
-        codeLanguages: languages,
-      }),
-      markdownLinter,
-      autocompletion({ override: [markdownCompletions] }),
-      EditorView.lineWrapping,
-      EditorView.theme({
-        "&": {
-          height: "100%",
-          backgroundColor: "transparent !important",
-        },
-        ".cm-scroller": {
-          overflow: "auto",
-          maxHeight: "calc(100vh - 180px)",
-          padding: "48px 12px 48px 12px",
-        },
-        ".cm-content": {
-          fontFamily: "'JetBrains Mono', monospace",
-        },
-        ".cm-gutters": {
-          backgroundColor: "transparent !important",
-          border: "none !important",
-        },
-      }),
-    ],
-    [],
+    () => {
+      const langExt = (() => {
+        switch (ext) {
+          case "json": return jsonLang();
+          case "js": case "jsx": return jsLang();
+          case "ts": case "tsx": return jsLang({ typescript: true });
+          case "css": return cssLang();
+          case "md": case "markdown": default:
+            return markdownLang({ base: markdownLanguage, codeLanguages: languages });
+        }
+      })();
+
+      const base = [
+        scrollPastEnd(),
+        langExt,
+        autocompletion({ override: ext === "md" || ext === "markdown" ? [markdownCompletions] : [] }),
+        EditorView.lineWrapping,
+        EditorView.theme({
+          "&": { height: "100%", backgroundColor: "transparent !important" },
+          ".cm-scroller": {
+            overflow: "auto",
+            maxHeight: "calc(100vh - 180px)",
+            padding: "48px 12px 48px 12px",
+          },
+          ".cm-content": { fontFamily: "var(--editor-font, 'JetBrains Mono', monospace)" },
+          ".cm-gutters": { backgroundColor: "transparent !important", border: "none !important" },
+        }),
+      ];
+
+      // markdown linter 只对 .md 文件启用
+      if (ext === "md" || ext === "markdown") base.splice(2, 0, markdownLinter);
+
+      return base;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ext],
   );
 
   const applyMarkdown = (prefix: string, suffix: string = "") => {

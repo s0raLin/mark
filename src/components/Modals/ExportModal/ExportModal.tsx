@@ -123,9 +123,9 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
           </div>
           <button
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-pink-50 transition-colors"
+            className="flex items-center justify-center rounded-full h-9 w-9 bg-white/60 hover:bg-primary/20 hover:text-primary text-slate-400 transition-all"
           >
-            <X className="w-5 h-5 text-slate-400" />
+            <X className="w-4 h-4" />
           </button>
         </header>
 
@@ -215,7 +215,7 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
             </section>
           </div>
 
-          <aside className="w-[400px] bg-pink-50/30 border-l border-dashed border-pink-100 flex flex-col">
+          <aside className="w-[400px] bg-pink-50/60 border-l border-dashed border-pink-200 flex flex-col">
             <div className="p-8 flex-1 flex flex-col overflow-hidden">
               <h4 className="text-xs font-black uppercase tracking-[0.2em] text-pink-400 mb-6">
                 Export Preview

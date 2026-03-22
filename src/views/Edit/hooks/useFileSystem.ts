@@ -20,7 +20,6 @@ export interface UseFileSystemProps {
  */
 export interface UseFileSystemReturn {
   nodes: FileNode[];
-  fileContents: Record<string, string>;
   pinnedIds: string[];
   explorerOrder: string[];
   folderOrder: Record<string, string[]>;
@@ -28,7 +27,6 @@ export interface UseFileSystemReturn {
   expandedFolders: Set<string>;
   pinnedNodes: FileNode[];
   setNodes: React.Dispatch<React.SetStateAction<FileNode[]>>;
-  setFileContents: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   setPinnedIds: React.Dispatch<React.SetStateAction<string[]>>;
   setExplorerOrder: React.Dispatch<React.SetStateAction<string[]>>;
   setFolderOrder: React.Dispatch<React.SetStateAction<Record<string, string[]>>>;
@@ -51,10 +49,6 @@ export function useFileSystem(props?: UseFileSystemProps): UseFileSystemReturn {
       })) as FileNode[];
     }
     return getDefaultNodes();
-  });
-
-  const [fileContents, setFileContents] = useState<Record<string, string>>(() => {
-    return initialFileSystem?.fileContents ?? {};
   });
 
   const [pinnedIds, setPinnedIds] = useState<string[]>(() => {
@@ -96,7 +90,6 @@ export function useFileSystem(props?: UseFileSystemProps): UseFileSystemReturn {
       const firstFile = initialFileSystem.nodes.find(n => n.type === "file");
       if (firstFile) setActiveFileId(firstFile.id);
     }
-    if (initialFileSystem.fileContents) setFileContents(initialFileSystem.fileContents);
     if (initialFileSystem.pinnedIds) setPinnedIds(initialFileSystem.pinnedIds);
     if (initialFileSystem.explorerOrder?.length > 0) setExplorerOrder(initialFileSystem.explorerOrder);
     if (initialFileSystem.folderOrder) setFolderOrder(initialFileSystem.folderOrder);
@@ -146,7 +139,6 @@ export function useFileSystem(props?: UseFileSystemProps): UseFileSystemReturn {
 
   return {
     nodes,
-    fileContents,
     pinnedIds,
     explorerOrder,
     folderOrder,
@@ -154,7 +146,6 @@ export function useFileSystem(props?: UseFileSystemProps): UseFileSystemReturn {
     expandedFolders,
     pinnedNodes,
     setNodes,
-    setFileContents,
     setPinnedIds,
     setExplorerOrder,
     setFolderOrder,

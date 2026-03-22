@@ -6,6 +6,8 @@ import { SettingsModal } from "./SettingsModal/SettingsModal";
 import { SearchModal } from "./SearchModal/SearchModal";
 import { SparkleDust } from "../../components/Modals/SparkleDust/SparkleDust";
 import { useSearchParams } from "react-router-dom";
+import type { FileNode } from "@/types/filesystem";
+
 interface ModalProps {
   editorTheme: string;
   previewTheme: string;
@@ -24,6 +26,8 @@ interface ModalProps {
   setParticlesOn: React.Dispatch<React.SetStateAction<boolean>>;
   fontChoice: string;
   setFontChoice: React.Dispatch<React.SetStateAction<string>>;
+  editorFont: string;
+  setEditorFont: React.Dispatch<React.SetStateAction<string>>;
   accentColor: string;
   setAccentColor: (color: string) => void;
   fontSize: number;
@@ -34,6 +38,8 @@ interface ModalProps {
   setBgImage: (url: string) => void;
   customFonts: { name: string; url: string }[];
   addCustomFont: (font: { name: string; url: string }) => void;
+  nodes: FileNode[];
+  onOpenFile: (id: string) => void;
 }
 
 export default function Modal({
@@ -42,8 +48,10 @@ export default function Modal({
   setEditorTheme, setPreviewTheme,
   setIsExportModalOpen, setIsSaveAsModalOpen, setIsSettingsModalOpen, setIsSearchModalOpen,
   markdown, particlesOn, setParticlesOn, fontChoice, setFontChoice,
+  editorFont, setEditorFont,
   accentColor, setAccentColor, fontSize, setFontSize,
   blurAmount, setBlurAmount, bgImage, setBgImage, customFonts, addCustomFont,
+  nodes, onOpenFile,
 }: ModalProps) {
   const [searchParams] = useSearchParams();
   const modal = searchParams.get('modal') || '';
@@ -58,6 +66,7 @@ export default function Modal({
             previewTheme={previewTheme} setPreviewTheme={setPreviewTheme}
             particlesOn={particlesOn} setParticlesOn={setParticlesOn}
             fontChoice={fontChoice} setFontChoice={setFontChoice}
+            editorFont={editorFont} setEditorFont={setEditorFont}
             accentColor={accentColor} setAccentColor={setAccentColor}
             fontSize={fontSize} setFontSize={setFontSize}
             blurAmount={blurAmount} setBlurAmount={setBlurAmount}
@@ -66,7 +75,11 @@ export default function Modal({
           />
         )}
         {modal === 'search' && (
-          <SearchModal onClose={() => setIsSearchModalOpen(false)} />
+          <SearchModal
+            onClose={() => setIsSearchModalOpen(false)}
+            nodes={nodes}
+            onOpenFile={(id) => { onOpenFile(id); setIsSearchModalOpen(false); }}
+          />
         )}
         {modal === 'save-as' && (
           <SaveAsModal

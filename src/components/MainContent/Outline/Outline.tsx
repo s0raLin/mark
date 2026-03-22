@@ -31,23 +31,15 @@ export default function Outline({
       </div>
       <div className="flex-1 overflow-y-auto py-6">
         <nav className="space-y-1 pl-2">
-          {headings.length > 0 ? (
-            headings.map((heading) => (
-              <OutlineItem
-                key={heading.id}
-                label={heading.text}
-                active={activeOutlineId === heading.id}
-                sub={heading.level > 1}
-                onClick={() => scrollToSection(heading.id)}
-              />
-            ))
-          ) : (
-            <div className="px-4 py-8 text-center">
-              <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">
-                No headings found
-              </p>
-            </div>
-          )}
+          {headings.map((heading) => (
+            <OutlineItem
+              key={heading.id}
+              label={heading.text}
+              active={activeOutlineId === heading.id}
+              sub={heading.level > 1}
+              onClick={() => scrollToSection(heading.id)}
+            />
+          ))}
         </nav>
       </div>
       <div className="p-6 border-t border-border-soft">

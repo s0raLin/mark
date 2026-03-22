@@ -17,6 +17,7 @@ export interface UseEditorThemeReturn {
   editorTheme: EditorTheme;
   previewTheme: PreviewTheme;
   fontChoice: FontChoice;
+  editorFont: string;
   fontSize: number;
   accentColor: string;
   blurAmount: number;
@@ -26,6 +27,7 @@ export interface UseEditorThemeReturn {
   setEditorTheme: React.Dispatch<React.SetStateAction<EditorTheme>>;
   setPreviewTheme: React.Dispatch<React.SetStateAction<PreviewTheme>>;
   setFontChoice: React.Dispatch<React.SetStateAction<FontChoice>>;
+  setEditorFont: React.Dispatch<React.SetStateAction<string>>;
   setFontSize: React.Dispatch<React.SetStateAction<number>>;
   setAccentColor: React.Dispatch<React.SetStateAction<string>>;
   setBlurAmount: React.Dispatch<React.SetStateAction<number>>;
@@ -45,6 +47,7 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
     editorTheme: "oneDark",
     previewTheme: "theme-heart-classic",
     fontChoice: "Quicksand",
+    editorFont: "JetBrains Mono",
     fontSize: 16,
     accentColor: "#ff9a9e",
     blurAmount: 0,
@@ -58,6 +61,7 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
   const [editorTheme, setEditorTheme] = useState<EditorTheme>(() => config.editorTheme as EditorTheme);
   const [previewTheme, setPreviewTheme] = useState<PreviewTheme>(() => config.previewTheme as PreviewTheme);
   const [fontChoice, setFontChoice] = useState<FontChoice>(() => config.fontChoice as FontChoice);
+  const [editorFont, setEditorFont] = useState<string>(() => config.editorFont ?? "JetBrains Mono");
   const [fontSize, setFontSize] = useState<number>(() => config.fontSize);
   const [accentColor, setAccentColor] = useState<string>(() => config.accentColor);
   const [blurAmount, setBlurAmount] = useState<number>(() => config.blurAmount);
@@ -73,12 +77,23 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
     setEditorTheme(initialConfig.editorTheme as EditorTheme);
     setPreviewTheme(initialConfig.previewTheme as PreviewTheme);
     setFontChoice(initialConfig.fontChoice as FontChoice);
+    setEditorFont(initialConfig.editorFont ?? "JetBrains Mono");
     setFontSize(initialConfig.fontSize);
     setAccentColor(initialConfig.accentColor);
     setBlurAmount(initialConfig.blurAmount);
     setBgImage(initialConfig.bgImage);
     setParticlesOn(initialConfig.particlesOn);
     setCustomFonts(initialConfig.customFonts ?? []);
+    // 恢复自定义字体的 @font-face 注入
+    for (const font of initialConfig.customFonts ?? []) {
+      const styleId = `custom-font-${font.name.replace(/\s/g, "-")}`;
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement("style");
+        style.id = styleId;
+        style.textContent = `@font-face { font-family: "${font.name}"; src: url("${font.url}"); }`;
+        document.head.appendChild(style);
+      }
+    }
   }, [initialConfig]);
 
   // 应用 CSS 变量 — 状态变化时立即生效，不依赖 SettingEditor 是否挂载
@@ -100,6 +115,13 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
       fontChoice === "Quicksand" ? '"Quicksand", sans-serif' : `"${fontChoice}", sans-serif`,
     );
   }, [fontChoice]);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--editor-font",
+      editorFont === "monospace" ? "monospace" : `"${editorFont}", monospace`,
+    );
+  }, [editorFont]);
 
   useEffect(() => {
     const el = document.getElementById("editor-bg-layer");
@@ -125,6 +147,7 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
     editorTheme,
     previewTheme,
     fontChoice,
+    editorFont,
     fontSize,
     accentColor,
     blurAmount,
@@ -134,6 +157,7 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
     setEditorTheme,
     setPreviewTheme,
     setFontChoice,
+    setEditorFont,
     setFontSize,
     setAccentColor,
     setBlurAmount,

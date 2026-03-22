@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"os"
+	"strconv"
 
 	"server/internal/handler"
 
@@ -9,54 +11,56 @@ import (
 )
 
 func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	portNum, err := strconv.Atoi(port)
+	if err != nil || portNum < 1 || portNum > 65535 {
+		log.Fatalf("Invalid port: %s", port)
+	}
+
 	r := gin.New()
-
 	r.Use(gin.Logger())
-
-	// 建議加上 recovery 中間件（gin 內建）
 	r.Use(gin.Recovery())
-
-	// CORS 配置
 	r.Use(func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
 			return
 		}
-
 		c.Next()
 	})
 
 	api := r.Group("/api")
 
-	// 使用者完整資料
+	// 用户数据
 	api.GET("/user/data", handler.GetUserData)
 	api.POST("/user/data", handler.SaveUserData)
 
-	// 文件系統（可選分開）
-	// api.GET("/user/filesystem", ...)
-	// api.PUT("/user/filesystem", ...)
+	// 文件操作（固定路径，不与通配符冲突）
+	api.GET("/files/search", handler.SearchFiles)
+	api.POST("/files/create", handler.CreateFile)
+	api.POST("/files/mkdir", handler.CreateFolder)
+	api.POST("/files/move", handler.MoveNode)
+	api.POST("/files/rename", handler.RenameNode)
 
-	// 編輯器設定（可選分開）
-	// api.GET("/user/config", ...)
-	// api.PUT("/user/config", ...)
-
-	// 单档内容
-	api.GET("/files/:fileId/content", handler.GetFileContent)
-	api.PUT("/files/:fileId/content", handler.SaveFileContent)
+	// 文件内容读写 + 删除：用 /file/* 前缀（与 /files/* 固定路由分开）
+	fc := r.Group("/api/file")
+	fc.GET("/*fileId", handler.GetFileContent)
+	fc.PUT("/*fileId", handler.SaveFileContent)
+	fc.DELETE("/*fileId", handler.DeleteNode)
 
 	// 上传
 	api.POST("/upload", handler.UploadImage)
 	api.POST("/upload-font", handler.UploadFont)
 
-	// 静态文件服务（上传的图片/字体）
 	r.Static("/uploads", "./public/uploads")
 
-	log.Println("Server starting on :8080")
-	if err := r.Run(":8080"); err != nil {
+	log.Printf("Server starting on :%s", port)
+	if err := r.Run(":" + port); err != nil {
 		log.Fatal(err)
 	}
 }

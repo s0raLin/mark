@@ -24,6 +24,8 @@ interface SettingEditorProps {
   setParticlesOn: React.Dispatch<React.SetStateAction<boolean>>;
   fontChoice: string;
   setFontChoice: React.Dispatch<React.SetStateAction<string>>;
+  editorFont: string;
+  setEditorFont: React.Dispatch<React.SetStateAction<string>>;
   accentColor: string;
   setAccentColor: (color: string) => void;
   fontSize: number;
@@ -41,6 +43,7 @@ export default function SettingEditor({
   previewTheme, setPreviewTheme,
   particlesOn, setParticlesOn,
   fontChoice, setFontChoice,
+  editorFont, setEditorFont,
   accentColor, setAccentColor,
   fontSize, setFontSize,
   blurAmount, setBlurAmount,
@@ -302,7 +305,7 @@ export default function SettingEditor({
           Lettering
         </h2>
         <div className="flex flex-col gap-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Font Choice */}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-slate-600 px-1">
@@ -318,6 +321,30 @@ export default function SettingEditor({
                 <option value="Patrick Hand">Patrick Hand</option>
                 <option value="Comfortaa">Comfortaa</option>
                 <option value="Playfair Display">Playfair Display</option>
+                {customFonts.map((f) => (
+                  <option key={f.name} value={f.name}>
+                    {f.name} (Custom)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Editor Font */}
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-bold text-slate-600 px-1">
+                Editor Font
+              </label>
+              <select
+                value={editorFont}
+                onChange={(e) => setEditorFont(e.target.value)}
+                className="w-full bg-white border-2 border-slate-100 rounded-xl text-sm py-3 px-4 focus:ring-primary focus:border-primary appearance-none font-mono"
+              >
+                <option value="JetBrains Mono">JetBrains Mono (Default)</option>
+                <option value="Fira Code">Fira Code</option>
+                <option value="Source Code Pro">Source Code Pro</option>
+                <option value="Cascadia Code">Cascadia Code</option>
+                <option value="Inconsolata">Inconsolata</option>
+                <option value="monospace">System Monospace</option>
                 {customFonts.map((f) => (
                   <option key={f.name} value={f.name}>
                     {f.name} (Custom)

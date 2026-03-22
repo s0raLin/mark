@@ -1,70 +1,133 @@
-import { useState, useEffect, useRef } from "react";
-import { ChevronRight, FileText, Search, Calendar, Filter } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { ChevronRight, FileText, Folder, Search, X, Filter, Calendar } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "@/utils/cn";
+import { searchFiles } from "@/api";
+import type { FileNode } from "@/types/filesystem";
+
+interface SearchResult {
+  id: string;
+  name: string;
+  snippet: string;
+  matchType: "name" | "content";
+  updatedAt?: number;
+}
 
 interface SearchModalProps {
   onClose: () => void;
+  nodes: FileNode[];
+  onOpenFile: (id: string) => void;
 }
-export function SearchModal({ onClose }: SearchModalProps) {
+
+export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
   const [query, setQuery] = useState("");
+  const [rawResults, setRawResults] = useState<SearchResult[]>([]);
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedType, setSelectedType] = useState("all");
   const [dateRange, setDateRange] = useState("all");
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
 
-  const results = [
-    {
-      title: "Project_Specs.md",
-      folder: "Documentation",
-      date: "2026-03-18",
-      type: ".md",
-    },
-    {
-      title: "Release_Notes.md",
-      folder: "Documentation",
-      date: "2026-03-17",
-      type: ".md",
-    },
-    {
-      title: "Getting_Started.md",
-      folder: "Root",
-      date: "2026-03-15",
-      type: ".md",
-    },
-    {
-      title: "API_Reference.md",
-      folder: "Root",
-      date: "2026-03-11",
-      type: ".md",
-    },
-    {
-      title: "config.json",
-      folder: "Settings",
-      date: "2026-03-10",
-      type: ".json",
-    },
-    { title: "todo.txt", folder: "Personal", date: "2026-03-18", type: ".txt" },
-  ].filter((item) => {
-    const matchesQuery = item.title.toLowerCase().includes(query.toLowerCase());
-    const matchesType = selectedType === "all" || item.type === selectedType;
+  // 防抖搜索
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!query.trim()) { setRawResults([]); setSelectedIdx(0); return; }
+    debounceRef.current = setTimeout(async () => {
+      setIsLoading(true);
+      try {
+        const data = await searchFiles(query.trim());
+        // 把 nodes 里的 updatedAt 合并进来，用于日期过滤
+        const enriched = data.map(r => ({
+          ...r,
+          updatedAt: nodes.find(n => n.id === r.id)?.updatedAt,
+        }));
+        setRawResults(enriched);
+        setSelectedIdx(0);
+      } catch {
+        setRawResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 200);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [query, nodes]);
 
-    let matchesDate = true;
-    if (dateRange !== "all") {
-      const itemDate = new Date(item.date);
-      const now = new Date("2026-03-18T14:47:41Z");
-      const diffDays =
-        (now.getTime() - itemDate.getTime()) / (1000 * 3600 * 24);
+  // 重置选中索引当过滤条件变化
+  useEffect(() => { setSelectedIdx(0); }, [selectedType, dateRange]);
 
-      if (dateRange === "today") matchesDate = diffDays < 1;
-      else if (dateRange === "week") matchesDate = diffDays < 7;
-      else if (dateRange === "month") matchesDate = diffDays < 30;
+  // 应用 type + date 过滤
+  const results = rawResults.filter(r => {
+    // type 过滤：按文件扩展名
+    if (selectedType !== "all") {
+      const ext = r.name.includes(".") ? "." + r.name.split(".").pop()!.toLowerCase() : "";
+      if (ext !== selectedType) return false;
     }
+    // date 过滤：按 updatedAt
+    if (dateRange !== "all" && r.updatedAt) {
+      const now = Date.now();
+      const diff = now - r.updatedAt;
+      const day = 1000 * 3600 * 24;
+      if (dateRange === "today" && diff > day) return false;
+      if (dateRange === "week" && diff > day * 7) return false;
+      if (dateRange === "month" && diff > day * 30) return false;
+    }
+    return true;
+  });
 
-    return matchesQuery && matchesType && matchesDate;
+  useEffect(() => {
+    const el = listRef.current?.querySelector(`[data-idx="${selectedIdx}"]`);
+    el?.scrollIntoView({ block: "nearest" });
+  }, [selectedIdx]);
+
+  const handleOpen = useCallback((id: string) => {
+    const node = nodes.find(n => n.id === id);
+    if (node?.type === "file") { onOpenFile(id); onClose(); }
+  }, [nodes, onOpenFile, onClose]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); setSelectedIdx(i => Math.min(i + 1, results.length - 1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setSelectedIdx(i => Math.max(i - 1, 0)); }
+    else if (e.key === "Enter" && results[selectedIdx]) handleOpen(results[selectedIdx].id);
+  };
+
+  const highlight = (text: string, q: string) => {
+    if (!q) return <>{text}</>;
+    const idx = text.toLowerCase().indexOf(q.toLowerCase());
+    if (idx < 0) return <>{text}</>;
+    return (
+      <>
+        {text.slice(0, idx)}
+        <mark className="bg-primary/20 text-primary rounded px-0.5 not-italic">{text.slice(idx, idx + q.length)}</mark>
+        {text.slice(idx + q.length)}
+      </>
+    );
+  };
+
+  const fileNodes = nodes.filter(n => {
+    if (n.type !== "file") return false;
+    if (selectedType !== "all") {
+      const ext = n.name.includes(".") ? "." + n.name.split(".").pop()!.toLowerCase() : "";
+      if (ext !== selectedType) return false;
+    }
+    if (dateRange !== "all" && n.updatedAt) {
+      const now = Date.now();
+      const diff = now - n.updatedAt;
+      const day = 1000 * 3600 * 24;
+      if (dateRange === "today" && diff > day) return false;
+      if (dateRange === "week" && diff > day * 7) return false;
+      if (dateRange === "month" && diff > day * 30) return false;
+    }
+    return true;
   });
 
   return (
@@ -82,8 +145,9 @@ export function SearchModal({ onClose }: SearchModalProps) {
         className="bg-white/70 backdrop-blur-xl w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border border-white/50 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Search input */}
         <div className="p-6 flex items-center gap-4 border-b border-rose-100">
-          <Search className="w-6 h-6 text-slate-400" />
+          <Search className={cn("w-6 h-6 shrink-0 transition-colors", isLoading ? "text-primary animate-pulse" : "text-slate-400")} />
           <input
             ref={inputRef}
             type="text"
@@ -91,7 +155,13 @@ export function SearchModal({ onClose }: SearchModalProps) {
             className="flex-1 bg-transparent border-none outline-none text-lg font-medium text-slate-700 placeholder:text-slate-400"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
+          {query && (
+            <button onClick={() => setQuery("")} className="text-slate-300 hover:text-slate-500 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          )}
           <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[10px] font-black text-slate-400 uppercase">
             ESC
           </div>
@@ -121,7 +191,7 @@ export function SearchModal({ onClose }: SearchModalProps) {
               ))}
             </div>
           </div>
-          <div className="h-4 w-px bg-slate-200"></div>
+          <div className="h-4 w-px bg-slate-200" />
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
               <Calendar className="w-3 h-3" />
@@ -146,60 +216,101 @@ export function SearchModal({ onClose }: SearchModalProps) {
           </div>
         </div>
 
-        <div className="max-h-[60vh] overflow-y-auto p-4">
-          {results.length > 0 ? (
+        {/* Results */}
+        <div ref={listRef} className="max-h-[60vh] overflow-y-auto p-4">
+          {query.trim() === "" ? (
+            /* 空状态：显示所有文件 */
             <div className="space-y-1">
-              {results.map((result, idx) => (
+              {fileNodes.map((node, idx) => (
                 <div
-                  key={idx}
+                  key={node.id}
+                  data-idx={idx}
+                  onClick={() => handleOpen(node.id)}
                   className="group flex items-center gap-4 p-4 rounded-2xl hover:bg-rose-50 cursor-pointer transition-all"
                 >
                   <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-400 group-hover:bg-white group-hover:shadow-sm transition-all">
                     <FileText className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-bold text-slate-800 truncate">
-                      {result.title}
-                    </h3>
+                    <h3 className="text-sm font-bold text-slate-800 truncate">{node.name}</h3>
                     <p className="text-xs text-slate-500 font-medium">
-                      {result.folder} • {result.date}
+                      {new Date(node.updatedAt).toLocaleDateString()}
                     </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-rose-200 opacity-0 group-hover:opacity-100 transition-all" />
                 </div>
               ))}
             </div>
+          ) : results.length > 0 ? (
+            <div className="space-y-1">
+              {results.map((result, idx) => {
+                const node = nodes.find(n => n.id === result.id);
+                const isFolder = node?.type === "folder";
+                return (
+                  <div
+                    key={result.id}
+                    data-idx={idx}
+                    onClick={() => handleOpen(result.id)}
+                    className={cn(
+                      "group flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all",
+                      selectedIdx === idx ? "bg-primary/10 border border-primary/20" : "hover:bg-rose-50",
+                    )}
+                  >
+                    <div className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                      selectedIdx === idx ? "bg-primary/20 text-primary" : "bg-rose-50 text-rose-400 group-hover:bg-white group-hover:shadow-sm",
+                    )}>
+                      {isFolder ? <Folder className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-bold text-slate-800 truncate">
+                        {highlight(result.name, query)}
+                      </h3>
+                      {result.snippet ? (
+                        <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                          {highlight(result.snippet, query)}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-slate-500 font-medium">
+                          {node?.updatedAt ? new Date(node.updatedAt).toLocaleDateString() : ""}
+                        </p>
+                      )}
+                    </div>
+                    <span className={cn(
+                      "text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md shrink-0",
+                      result.matchType === "name" ? "bg-blue-50 text-blue-400" : "bg-amber-50 text-amber-400",
+                    )}>
+                      {result.matchType === "name" ? "NAME" : "CONTENT"}
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-rose-200 opacity-0 group-hover:opacity-100 transition-all" />
+                  </div>
+                );
+              })}
+            </div>
           ) : (
             <div className="py-12 flex flex-col items-center justify-center text-center">
               <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-200 mb-4">
                 <Search className="w-8 h-8" />
               </div>
-              <p className="text-sm font-bold text-slate-400">
-                No results found for "{query}"
-              </p>
-              <p className="text-xs text-slate-400 mt-1">
-                Try searching for something else ✨
-              </p>
+              <p className="text-sm font-bold text-slate-400">No results found for "{query}"</p>
+              <p className="text-xs text-slate-400 mt-1">Try searching for something else ✨</p>
             </div>
           )}
         </div>
 
+        {/* Footer */}
         <div className="p-4 bg-white/30 border-t border-rose-100 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest">
           <div className="flex gap-4">
             <span className="flex items-center gap-1.5">
-              <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-200 shadow-sm">
-                ↑↓
-              </kbd>{" "}
+              <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-200 shadow-sm">↑↓</kbd>
               Navigate
             </span>
             <span className="flex items-center gap-1.5">
-              <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-200 shadow-sm">
-                Enter
-              </kbd>{" "}
+              <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-200 shadow-sm">Enter</kbd>
               Open
             </span>
           </div>
-          <span>{results.length} Results</span>
+          <span>{query.trim() ? `${results.length} Results` : `${fileNodes.length} Files`}</span>
         </div>
       </motion.div>
     </motion.div>
