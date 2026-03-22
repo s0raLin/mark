@@ -38,13 +38,29 @@ async function startServer() {
     };
 
     const proxyReq = http.request(options, (proxyRes) => {
+      // 如果响应已经结束，不再处理
+      if (res.writableEnded) return;
+      
       res.writeHead(proxyRes.statusCode ?? 502, proxyRes.headers);
       proxyRes.pipe(res);
     });
 
+    // 处理代理请求本身的错误（如连接被拒绝）
     proxyReq.on("error", (err) => {
-      console.error("Proxy error:", err.message);
-      if (!res.headersSent) res.status(502).json({ error: "Bad gateway", message: err.message });
+      console.error("Proxy request error:", err.message);
+      if (!res.headersSent && !res.writableEnded) {
+        res.status(502).json({ error: "Bad gateway", message: err.message });
+      }
+    });
+
+    // 处理代理响应结束事件
+    proxyReq.on("response", (proxyRes) => {
+      proxyRes.on("error", (err) => {
+        console.error("Proxy response error:", err.message);
+        if (!res.headersSent && !res.writableEnded) {
+          res.status(502).json({ error: "Bad gateway", message: err.message });
+        }
+      });
     });
 
     req.pipe(proxyReq);

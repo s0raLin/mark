@@ -135,7 +135,7 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[110] flex items-start justify-center bg-slate-900/20 backdrop-blur-sm pt-[15vh] px-4"
+      className="fixed inset-0 flex items-start justify-center bg-slate-900/20 backdrop-blur-sm pt-[15vh] px-4"
       onClick={onClose}
     >
       <motion.div

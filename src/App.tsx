@@ -1,6 +1,11 @@
 import IndexRouter from "./router/IndexRouter";
-import EditorView from "./views/Edit/EditorView";
 
 export default function App() {
-  return <IndexRouter />;
+  return (
+    <div className="h-screen flex flex-col overflow-hidden">
+      <div className="flex-1 overflow-hidden">
+        <IndexRouter />
+      </div>
+    </div>
+  );
 }

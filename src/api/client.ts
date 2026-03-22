@@ -321,16 +321,14 @@ export async function searchFiles(query: string): Promise<Array<{ id: string; na
 export async function uploadImage(file: File): Promise<{ url: string }> {
   const formData = new FormData();
   formData.append("image", file);
-  try {
-    const response = await apiClient.post<ApiResponse<{ url: string }>>(
-      "/upload",
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
-    );
-    return extractData(response);
-  } catch (error) {
-    handleApiError(error);
+  const res = await fetch("/api/upload", { method: "POST", body: formData });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Upload failed: ${res.status} ${text}`);
   }
+  const json: ApiResponse<{ url: string }> = await res.json();
+  if (json.code !== 0) throw new Error(json.message || "Upload failed");
+  return json.data;
 }
 
 /**
@@ -339,16 +337,14 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
 export async function uploadFont(file: File): Promise<{ url: string; fontFamily: string }> {
   const formData = new FormData();
   formData.append("font", file);
-  try {
-    const response = await apiClient.post<ApiResponse<{ url: string; fontFamily: string }>>(
-      "/upload-font",
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
-    );
-    return extractData(response);
-  } catch (error) {
-    handleApiError(error);
+  const res = await fetch("/api/upload-font", { method: "POST", body: formData });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Upload failed: ${res.status} ${text}`);
   }
+  const json: ApiResponse<{ url: string; fontFamily: string }> = await res.json();
+  if (json.code !== 0) throw new Error(json.message || "Upload failed");
+  return json.data;
 }
 
 // ===== 导出 =====

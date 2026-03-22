@@ -10,6 +10,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:electron": "node index.ts",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",

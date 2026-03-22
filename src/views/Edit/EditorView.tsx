@@ -1,4 +1,4 @@
-import Footer from "@/components/Footer";
+// import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import MainContent from "@/components/MainContent/MainContent";
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
@@ -188,6 +188,8 @@ export default function EditorView() {
           onSave={editorState.handleSave}
           onSaveAs={() => openModal(ROUTES.SAVE_AS)}
           onExport={() => openModal(ROUTES.EXPORT)}
+          onSearch={() => openModal(ROUTES.SEARCH)}
+          onSettings={() => openModal(ROUTES.SETTINGS)}
         />
       </header>
 
@@ -223,13 +225,13 @@ export default function EditorView() {
         </main>
       </div>
 
-      <footer className="h-10 bg-white/70 backdrop-blur-xl border-t border-border-soft px-6 flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase tracking-wider shrink-0 relative z-10">
+      {/* <footer className="h-10 bg-white/70 backdrop-blur-xl border-t border-border-soft px-6 flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase tracking-wider shrink-0 relative z-10">
         <Footer
           isSaving={editorState.isSaving}
           lastSaved={editorState.lastSaved}
           markdown={markdownSync.markdown}
         />
-      </footer>
+      </footer> */}
 
       <Modal
         editorTheme={editorTheme.editorTheme}

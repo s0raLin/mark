@@ -1,16 +1,10 @@
-import { useState } from "react";
 import {
-  Eye,
-  Layout,
-  Terminal,
-  Upload,
-  FileText,
-  FolderOpen,
-  Download,
-  Share2,
-  PlusCircle,
+  Eye, Layout, Terminal, Upload,
+  FilePlus, Save, FileDown, Search,
+  Settings, Sparkles, Columns2,
 } from "lucide-react";
 import { cn } from "../utils/cn";
+import WindowControls from "./WindowControls";
 
 interface HeaderProps {
   viewMode?: "split" | "editor" | "preview";
@@ -21,164 +15,105 @@ interface HeaderProps {
   onSave?: () => void;
   onSaveAs?: () => void;
   onExport?: () => void;
+  onSearch?: () => void;
+  onSettings?: () => void;
+}
+
+interface ActionBtn {
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+  active?: boolean;
+  dividerAfter?: boolean;
+}
+
+function QuickBtn({ icon, label, onClick, active }: ActionBtn) {
+  return (
+    <div className="relative group">
+      <button
+        onClick={onClick}
+        className={cn(
+          "h-8 w-8 flex items-center justify-center rounded-lg transition-all",
+          active
+            ? "bg-primary/15 text-primary"
+            : "text-slate-400 hover:bg-slate-100 hover:text-slate-700",
+        )}
+      >
+        {icon}
+      </button>
+      {/* Tooltip */}
+      <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 rounded-md bg-slate-800 text-white text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
+        {label}
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-800" />
+      </div>
+    </div>
+  );
 }
 
 export default function Header({
   viewMode = "split",
   onViewModeChange,
+  particlesOn,
+  onParticlesToggle,
   onNewSparkle,
   onSave,
   onSaveAs,
   onExport,
+  onSearch,
+  onSettings,
 }: HeaderProps) {
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const actions: ActionBtn[] = [
+    { icon: <FilePlus className="w-4 h-4" />, label: "New File  Ctrl+N", onClick: onNewSparkle },
+    { icon: <Save className="w-4 h-4" />, label: "Save  Ctrl+S", onClick: onSave },
+    { icon: <FileDown className="w-4 h-4" />, label: "Save As…", onClick: onSaveAs, dividerAfter: true },
+    { icon: <Search className="w-4 h-4" />, label: "Search  Ctrl+K", onClick: onSearch, dividerAfter: true },
+    { icon: <Sparkles className="w-4 h-4" />, label: "Sparkle Dust", onClick: onParticlesToggle, active: particlesOn },
+    { icon: <Settings className="w-4 h-4" />, label: "Settings", onClick: onSettings },
+  ];
 
   return (
-    <div className="flex items-center justify-between w-full">
-      {/* Left side - VS Code Style Menu Bar */}
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-1 menu-container">
-          <div className="relative">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveMenu(activeMenu === "file" ? null : "file");
-              }}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:bg-slate-100",
-                activeMenu === "file" && "bg-slate-100 text-primary"
+    <div className="flex items-center w-full relative [-webkit-app-region:drag]">
+      {/* Left - Window controls */}
+      <div className="fixed top-4 left-4 z-[1000] [-webkit-app-region:no-drag]">
+        <WindowControls />
+      </div>
+
+      {/* Center - Quick Action Bar */}
+      <div className="absolute left-1/2 -translate-x-1/2 [-webkit-app-region:no-drag]">
+        <div className="flex items-center gap-0.5 bg-white/80 backdrop-blur-sm border border-slate-200/80 rounded-xl px-2 py-1 shadow-sm">
+          {actions.map((action, i) => (
+            <div key={i} className="flex items-center">
+              <QuickBtn {...action} />
+              {action.dividerAfter && (
+                <div className="w-px h-5 bg-slate-200 mx-1.5" />
               )}
-            >
-              File
-            </button>
-            {activeMenu === "file" && (
-              <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-2xl z-[100] p-1.5 animate-in fade-in zoom-in duration-200">
-                <button
-                  onClick={() => {
-                    onNewSparkle?.();
-                    setActiveMenu(null);
-                  }}
-                  className="flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm hover:bg-slate-50 transition-all text-slate-700 font-medium group"
-                >
-                  <div className="flex items-center gap-3">
-                    <PlusCircle className="w-4 h-4 text-primary" />
-                    <span>New Sparkle</span>
-                  </div>
-                  <span className="text-[10px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded">
-                    Ctrl+N
-                  </span>
-                </button>
-                <div className="h-[1px] bg-slate-100 my-1.5 mx-2"></div>
-                <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm hover:bg-slate-50 transition-all text-slate-700 font-medium">
-                  <FolderOpen className="w-4 h-4 text-slate-400" />
-                  Open File...
-                </button>
-                <button
-                  onClick={() => {
-                    onSave?.();
-                    setActiveMenu(null);
-                  }}
-                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm hover:bg-slate-50 transition-all text-slate-700 font-medium"
-                >
-                  <Download className="w-4 h-4 text-slate-400" />
-                  Save
-                </button>
-                <button
-                  onClick={() => {
-                    onSaveAs?.();
-                    setActiveMenu(null);
-                  }}
-                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm hover:bg-slate-50 transition-all text-slate-700 font-medium"
-                >
-                  <FileText className="w-4 h-4 text-slate-400" />
-                  Save As...
-                </button>
-                <div className="h-[1px] bg-slate-100 my-1.5 mx-2"></div>
-                <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm hover:bg-slate-50 transition-all text-slate-700 font-medium">
-                  <Share2 className="w-4 h-4 text-slate-400" />
-                  Share
-                </button>
-              </div>
-            )}
+            </div>
+          ))}
+
+          {/* View mode divider + switcher */}
+          <div className="w-px h-5 bg-slate-200 mx-1.5" />
+          <div className="flex items-center gap-0.5">
+            {(
+              [
+                { mode: "split" as const, icon: <Columns2 className="w-4 h-4" />, label: "Split View" },
+                { mode: "editor" as const, icon: <Terminal className="w-4 h-4" />, label: "Editor Only" },
+                { mode: "preview" as const, icon: <Eye className="w-4 h-4" />, label: "Preview Only" },
+              ] as { mode: "split" | "editor" | "preview"; icon: React.ReactNode; label: string }[]
+            ).map(({ mode, icon, label }) => (
+              <QuickBtn
+                key={mode}
+                icon={icon}
+                label={label}
+                active={viewMode === mode}
+                onClick={() => onViewModeChange?.(mode)}
+              />
+            ))}
           </div>
-          <button className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:bg-slate-100">
-            Edit
-          </button>
-          <button className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:bg-slate-100">
-            Selection
-          </button>
-          <button className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:bg-slate-100">
-            View
-          </button>
-          <button className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:bg-slate-100">
-            Go
-          </button>
-          <button className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:bg-slate-100">
-            Run
-          </button>
-          <button className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:bg-slate-100">
-            Terminal
-          </button>
-          <button className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:bg-slate-100">
-            Help
-          </button>
         </div>
       </div>
 
-      {/* Right side - controls */}
-      <div className="flex items-center gap-4">
-        {/* <button
-          onClick={onParticlesToggle}
-          className={cn(
-            "h-10 flex items-center gap-2 px-4 rounded-xl bg-white hover:bg-slate-50 transition-all border border-slate-200 text-xs font-bold shadow-sm",
-            particlesOn ? "text-primary border-primary/30" : "text-slate-600"
-          )}
-        >
-          <Sparkles
-            className={cn(
-              "w-4 h-4",
-              particlesOn ? "text-primary" : "text-yellow-400"
-            )}
-          />
-          Particles {particlesOn ? "On" : "Off"}
-        </button> */}
-
-        <div className="h-10 flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
-          <button
-            onClick={() => onViewModeChange?.("split")}
-            className={cn(
-              "h-8 w-8 flex items-center justify-center rounded-lg transition-all",
-              viewMode === "split"
-                ? "bg-white text-primary shadow-sm"
-                : "text-slate-400 hover:text-primary"
-            )}
-          >
-            <Layout className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => onViewModeChange?.("editor")}
-            className={cn(
-              "h-8 w-8 flex items-center justify-center rounded-lg transition-all",
-              viewMode === "editor"
-                ? "bg-white text-primary shadow-sm"
-                : "text-slate-400 hover:text-primary"
-            )}
-          >
-            <Terminal className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => onViewModeChange?.("preview")}
-            className={cn(
-              "h-8 w-8 flex items-center justify-center rounded-lg transition-all",
-              viewMode === "preview"
-                ? "bg-white text-primary shadow-sm"
-                : "text-slate-400 hover:text-primary"
-            )}
-          >
-            <Eye className="w-5 h-5" />
-          </button>
-        </div>
-
+      {/* Right - Publish */}
+      <div className="flex items-center ml-auto shrink-0 [-webkit-app-region:no-drag]">
         <button
           onClick={onExport}
           className="h-10 bg-primary hover:bg-primary/90 text-white px-6 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-cute"

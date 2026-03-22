@@ -44,7 +44,6 @@ interface ModalProps {
 
 export default function Modal({
   editorTheme, previewTheme,
-  isExportModalOpen, isSaveAsModalOpen, isSettingsModalOpen, isSearchModalOpen,
   setEditorTheme, setPreviewTheme,
   setIsExportModalOpen, setIsSaveAsModalOpen, setIsSettingsModalOpen, setIsSearchModalOpen,
   markdown, particlesOn, setParticlesOn, fontChoice, setFontChoice,
@@ -56,8 +55,10 @@ export default function Modal({
   const [searchParams] = useSearchParams();
   const modal = searchParams.get('modal') || '';
 
+  const hasModal = modal === 'settings' || modal === 'search' || modal === 'save-as' || modal === 'export';
+
   return (
-    <div>
+    <div className={hasModal ? "fixed inset-0 z-[100]" : "fixed z-[100] pointer-events-none"}>
       <AnimatePresence>
         {modal === 'settings' && (
           <SettingsModal

@@ -6,6 +6,8 @@ interface FooterProps {
   lastSaved: Date;
   markdown: string;
 }
+
+// 已弃用
 export default function Footer({ isSaving, lastSaved, markdown }: FooterProps) {
 
 

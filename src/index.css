@@ -2,6 +2,16 @@
 @import "tailwindcss";
 
 @reference "tailwindcss";
+
+/* 自定义标题栏拖拽区域样式 */
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
 /* Tailwind CSS v4 theme variables - these generate utility classes */
 @theme {
   --color-primary: #ff8fab;
