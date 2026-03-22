@@ -68,6 +68,8 @@ export default function EditorView() {
           fontChoice: editorTheme.fontChoice,
           editorFont: editorTheme.editorFont,
           fontSize: editorTheme.fontSize,
+          editorFontSize: editorTheme.editorFontSize,
+          previewFontSize: editorTheme.previewFontSize,
           accentColor: editorTheme.accentColor,
           blurAmount: editorTheme.blurAmount,
           bgImage: editorTheme.bgImage,
@@ -89,6 +91,8 @@ export default function EditorView() {
     editorTheme.fontChoice,
     editorTheme.editorFont,
     editorTheme.fontSize,
+    editorTheme.editorFontSize,
+    editorTheme.previewFontSize,
     editorTheme.accentColor,
     editorTheme.blurAmount,
     editorTheme.bgImage,
@@ -257,6 +261,10 @@ export default function EditorView() {
         setAccentColor={editorTheme.setAccentColor}
         fontSize={editorTheme.fontSize}
         setFontSize={editorTheme.setFontSize}
+        editorFontSize={editorTheme.editorFontSize}
+        setEditorFontSize={editorTheme.setEditorFontSize}
+        previewFontSize={editorTheme.previewFontSize}
+        setPreviewFontSize={editorTheme.setPreviewFontSize}
         blurAmount={editorTheme.blurAmount}
         setBlurAmount={editorTheme.setBlurAmount}
         bgImage={editorTheme.bgImage}

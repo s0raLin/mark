@@ -32,6 +32,10 @@ interface ModalProps {
   setAccentColor: (color: string) => void;
   fontSize: number;
   setFontSize: (size: number) => void;
+  editorFontSize: number;
+  setEditorFontSize: (size: number) => void;
+  previewFontSize: number;
+  setPreviewFontSize: (size: number) => void;
   blurAmount: number;
   setBlurAmount: (amount: number) => void;
   bgImage: string;
@@ -49,6 +53,7 @@ export default function Modal({
   markdown, particlesOn, setParticlesOn, fontChoice, setFontChoice,
   editorFont, setEditorFont,
   accentColor, setAccentColor, fontSize, setFontSize,
+  editorFontSize, setEditorFontSize, previewFontSize, setPreviewFontSize,
   blurAmount, setBlurAmount, bgImage, setBgImage, customFonts, addCustomFont,
   nodes, onOpenFile,
 }: ModalProps) {
@@ -70,6 +75,8 @@ export default function Modal({
             editorFont={editorFont} setEditorFont={setEditorFont}
             accentColor={accentColor} setAccentColor={setAccentColor}
             fontSize={fontSize} setFontSize={setFontSize}
+            editorFontSize={editorFontSize} setEditorFontSize={setEditorFontSize}
+            previewFontSize={previewFontSize} setPreviewFontSize={setPreviewFontSize}
             blurAmount={blurAmount} setBlurAmount={setBlurAmount}
             bgImage={bgImage} setBgImage={setBgImage}
             customFonts={customFonts} addCustomFont={addCustomFont}

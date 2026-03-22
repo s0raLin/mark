@@ -1,165 +1,159 @@
 import electron from 'electron';
 import express from 'express';
 import path from 'path';
-import {fileURLToPath} from 'url';
-import {spawn, ChildProcess} from 'child_process';
+import { fileURLToPath } from 'url';
+import { spawn, ChildProcess } from 'child_process';
 import http from 'http';
 
 const { app, BrowserWindow, ipcMain } = electron;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// 端口配置
+const isPackaged = app.isPackaged;
 const FRONTEND_PORT = 5173;
 const API_PORT = process.env.API_PORT || 8080;
 
-// 创建前端服务器
-const frontendServer = express();
-
-// 解析 JSON（仅用于非代理路由，代理路由直接 pipe 原始 body）
-// frontendServer.use(express.json());
-
-// 代理 API 请求到 Go 后端
-frontendServer.use('/api', (req, res) => {
-  const apiPath = `/api${req.path}${req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''}`;
-  console.log(`Proxying ${req.method} ${apiPath}`);
-  
-  // 不覆盖 Content-Type，保留原始请求头（multipart/form-data 需要 boundary）
-  const headers = { ...req.headers, host: `localhost:${API_PORT}` };
-  
-  const options = {
+// ── 通用代理函数（直接 pipe，不解析 body）──────────────────
+function proxyToGo(req: express.Request, res: express.Response, targetPath: string) {
+  const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  const options: http.RequestOptions = {
     hostname: 'localhost',
     port: API_PORT,
-    path: apiPath,
+    path: targetPath + query,
     method: req.method,
-    headers,
+    headers: { ...req.headers, host: `localhost:${API_PORT}` },
   };
-  
   const proxyReq = http.request(options, (proxyRes) => {
     if (res.writableEnded) return;
     res.writeHead(proxyRes.statusCode ?? 502, proxyRes.headers);
     proxyRes.pipe(res);
   });
-  
   proxyReq.on('error', (err) => {
-    console.error('Proxy request error:', err.message);
+    console.error('Proxy error:', err.message);
     if (!res.headersSent && !res.writableEnded) {
       res.status(502).json({ code: -1, message: err.message, data: null });
     }
   });
-  
-  // 直接 pipe 原始请求体，不做任何解析或重写
   req.pipe(proxyReq);
-});
+}
 
-// 静态文件
-frontendServer.use(express.static(path.join(__dirname, 'dist')));
-frontendServer.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist/index.html'));
-});
+// ── 构建 Express 服务器 ────────────────────────────────────
+function buildServer(distPath: string) {
+  const server = express();
+  // 注意：不使用任何 body parser 中间件，保持请求体原始流
 
+  server.use('/uploads', (req, res) => {
+    proxyToGo(req, res, `/uploads${req.path}`);
+  });
+
+  server.use('/api', (req, res) => {
+    const apiPath = `/api${req.path}`;
+    console.log(`Proxying ${req.method} ${apiPath}`);
+    proxyToGo(req, res, apiPath);
+  });
+
+  server.use(express.static(distPath));
+  server.get('*', (_req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+
+  return server;
+}
+
+// ── Go 服务器启动 ──────────────────────────────────────────
 let goServer: ChildProcess | null = null;
 
 function startGoServer(): Promise<void> {
   return new Promise((resolve) => {
-    const goSrcPath = path.join(__dirname, 'server', 'cmd', 'server');
-    
-    console.log('Starting Go server with go run...');
-    
-    // Pass PORT environment variable to Go server
-    const env = { ...process.env, PORT: API_PORT.toString() };
-    goServer = spawn('go', ['run', '.'], {cwd: goSrcPath, env});
-    
-    goServer.stdout?.on('data', (data: Buffer) => {
-      console.log(`Go: ${data.toString().trim()}`);
+    const goServerPath = isPackaged
+      ? path.join(process.resourcesPath, 'server')
+      : path.join(__dirname, '..', 'server', 'cmd', 'server');
+
+    console.log('Starting Go server from:', goServerPath);
+
+    const env = { ...process.env, PORT: String(API_PORT) };
+    const serverBinary = path.join(goServerPath, 'server');
+
+    goServer = spawn(serverBinary, [], { cwd: goServerPath, env });
+
+    goServer.on('error', () => {
+      console.log('Binary not found, falling back to go run...');
+      goServer = spawn('go', ['run', '.'], { cwd: goServerPath, env });
+      goServer.stdout?.on('data', (d: Buffer) => console.log(`Go: ${d.toString().trim()}`));
+      goServer.stderr?.on('data', (d: Buffer) => console.log(`Go: ${d.toString().trim()}`));
     });
-    
-    goServer.stderr?.on('data', (data: Buffer) => {
-      console.log(`Go: ${data.toString().trim()}`);
-    });
-    
-    // 给 Go 服务器时间启动
-    setTimeout(() => {
-      resolve();
-    }, 3000);
+
+    goServer.stdout?.on('data', (d: Buffer) => console.log(`Go: ${d.toString().trim()}`));
+    goServer.stderr?.on('data', (d: Buffer) => console.log(`Go: ${d.toString().trim()}`));
+
+    setTimeout(resolve, 3000);
   });
 }
 
+// ── 创建窗口 ───────────────────────────────────────────────
 async function createWindow() {
-    const win = new BrowserWindow({
-        width: 1200,
-        height: 800,
-        frame: false,
-        titleBarStyle: 'hidden',
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
-        }
-    });
+  const win = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    frame: false,
+    titleBarStyle: 'hidden',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+  });
 
-    // 窗口控制 IPC 处理
-    win.on('maximize', () => {
-        win.webContents.send('window-maximized', true);
-    });
-    
-    win.on('unmaximize', () => {
-        win.webContents.send('window-maximized', false);
-    });
+  win.on('maximize', () => win.webContents.send('window-maximized', true));
+  win.on('unmaximize', () => win.webContents.send('window-maximized', false));
 
-    // 加载前端
-    win.loadURL(`http://localhost:${FRONTEND_PORT}`);
-    
-    // 打开开发者工具
+  win.loadURL(`http://localhost:${FRONTEND_PORT}`);
+
+  if (isPackaged) {
+    // 生产模式：禁用 DevTools 及相关快捷键
+    win.webContents.on('before-input-event', (event, input) => {
+      if (
+        input.key === 'F12' ||
+        (input.control && input.shift && (input.key === 'I' || input.key === 'J')) ||
+        (input.control && input.key === 'U')
+      ) {
+        event.preventDefault();
+      }
+    });
+  } else {
     win.webContents.openDevTools();
-    
-    // 监听页面错误
-    win.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
-      console.error(`Failed to load: ${errorCode} - ${errorDescription}`);
-    });
+  }
+
+  win.webContents.on('did-fail-load', (_e, code, desc) => {
+    console.error(`Failed to load: ${code} - ${desc}`);
+  });
 }
 
+// ── 主流程 ─────────────────────────────────────────────────
 app.whenReady().then(async () => {
-    console.log('Starting services...');
-    
-    // 窗口控制 IPC 处理器
-    ipcMain.on('window-minimize', () => {
-        BrowserWindow.getFocusedWindow()?.minimize();
-    });
-    
-    ipcMain.on('window-maximize', () => {
-        const win = BrowserWindow.getFocusedWindow();
-        if (win?.isMaximized()) {
-            win.unmaximize();
-        } else {
-            win?.maximize();
-        }
-    });
-    
-    ipcMain.on('window-close', () => {
-        BrowserWindow.getFocusedWindow()?.close();
-    });
-    
-    // 尝试启动 Go API 服务器
-    await startGoServer();
-    
-    // 启动前端服务器
-    frontendServer.listen(FRONTEND_PORT, () => {
-        console.log(`Frontend: http://localhost:${FRONTEND_PORT}`);
-        console.log(`API: http://localhost:${API_PORT}`);
-        createWindow();
-    });
+  ipcMain.on('window-minimize', () => BrowserWindow.getFocusedWindow()?.minimize());
+  ipcMain.on('window-maximize', () => {
+    const win = BrowserWindow.getFocusedWindow();
+    win?.isMaximized() ? win.unmaximize() : win?.maximize();
+  });
+  ipcMain.on('window-close', () => BrowserWindow.getFocusedWindow()?.close());
+
+  await startGoServer();
+
+  // 生产模式 dist 在 dist-electron 的上一级；开发模式在项目根
+  const distPath = isPackaged
+    ? path.join(__dirname, '..', 'dist')
+    : path.join(__dirname, '..', 'dist');
+
+  const server = buildServer(distPath);
+  server.listen(FRONTEND_PORT, () => {
+    console.log(`Frontend: http://localhost:${FRONTEND_PORT}`);
+    console.log(`API proxy → http://localhost:${API_PORT}`);
+    createWindow();
+  });
 });
 
 app.on('window-all-closed', () => {
-    if (goServer) {
-        goServer.kill();
-    }
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
+  goServer?.kill();
+  if (process.platform !== 'darwin') app.quit();
 });
 
-app.on('before-quit', () => {
-    if (goServer) {
-        goServer.kill();
-    }
-});
+app.on('before-quit', () => goServer?.kill());

@@ -26,6 +26,10 @@ interface SettingsModalProps {
   setAccentColor: (color: string) => void;
   fontSize: number;
   setFontSize: (size: number) => void;
+  editorFontSize: number;
+  setEditorFontSize: (size: number) => void;
+  previewFontSize: number;
+  setPreviewFontSize: (size: number) => void;
   blurAmount: number;
   setBlurAmount: (amount: number) => void;
   bgImage: string;
@@ -43,6 +47,8 @@ export function SettingsModal({
   editorFont, setEditorFont,
   accentColor, setAccentColor,
   fontSize, setFontSize,
+  editorFontSize, setEditorFontSize,
+  previewFontSize, setPreviewFontSize,
   blurAmount, setBlurAmount,
   bgImage, setBgImage,
   customFonts, addCustomFont,
@@ -136,6 +142,10 @@ export function SettingsModal({
                 setAccentColor={setAccentColor}
                 fontSize={fontSize}
                 setFontSize={setFontSize}
+                editorFontSize={editorFontSize}
+                setEditorFontSize={setEditorFontSize}
+                previewFontSize={previewFontSize}
+                setPreviewFontSize={setPreviewFontSize}
                 blurAmount={blurAmount}
                 setBlurAmount={setBlurAmount}
                 bgImage={bgImage}

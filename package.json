@@ -1,8 +1,11 @@
 {
-  "name": "react-example",
+  "name": "studiomark",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "A modern, cute Markdown editor with live preview and custom styling",
+  "author": "StudioMark Team",
   "type": "module",
+  "main": "dist-electron/index.js",
   "pnpm": {
     "onlyBuiltDependencies": [
       "electron"
@@ -12,9 +15,14 @@
     "dev": "vite",
     "dev:electron": "node index.ts",
     "build": "vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "dist": "ELECTRON=true npm run build && npm run build:electron && electron-builder",
+    "dist:win": "ELECTRON=true npm run build && npm run build:electron && electron-builder --win",
+    "dist:mac": "ELECTRON=true npm run build && npm run build:electron && electron-builder --mac",
+    "dist:linux": "ELECTRON=true npm run build && npm run build:electron && electron-builder --linux"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",
@@ -64,9 +72,63 @@
     "@types/showdown": "^2.0.6",
     "autoprefixer": "^10.4.21",
     "electron": "^41.0.3",
+    "electron-builder": "^26.8.1",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
+  },
+  "build": {
+    "appId": "com.studiomark.app",
+    "productName": "StudioMark",
+    "electronDist": "node_modules/electron/dist",
+    "asar": true,
+    "npmRebuild": false,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "node_modules/**/*",
+      "!node_modules/electron/**/*",
+      "!node_modules/.cache/**/*",
+      "!node_modules/**/*.md",
+      "!node_modules/**/*.ts",
+      "!node_modules/**/test/**/*",
+      "!node_modules/**/tests/**/*",
+      "!node_modules/**/__tests__/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "server/cmd/server",
+        "to": "server",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "public/favicon.svg"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "public/favicon.svg"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "public/favicon.svg",
+      "category": "Office"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false
+    }
   }
 }

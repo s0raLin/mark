@@ -2,23 +2,18 @@ import { useState, useEffect, useRef } from "react";
 import { EditorTheme, PreviewTheme, FontChoice } from "@/types/editor";
 import type { StorageEditorConfig } from "../../../api/types";
 
-/**
- * useEditorTheme Hook 参数接口
- */
 export interface UseEditorThemeProps {
-  /** 可选的初始编辑器配置（从存储加载） */
   initialConfig?: StorageEditorConfig | null;
 }
 
-/**
- * useEditorTheme Hook 返回值接口
- */
 export interface UseEditorThemeReturn {
   editorTheme: EditorTheme;
   previewTheme: PreviewTheme;
   fontChoice: FontChoice;
   editorFont: string;
   fontSize: number;
+  editorFontSize: number;
+  previewFontSize: number;
   accentColor: string;
   blurAmount: number;
   bgImage: string;
@@ -29,6 +24,8 @@ export interface UseEditorThemeReturn {
   setFontChoice: React.Dispatch<React.SetStateAction<FontChoice>>;
   setEditorFont: React.Dispatch<React.SetStateAction<string>>;
   setFontSize: React.Dispatch<React.SetStateAction<number>>;
+  setEditorFontSize: React.Dispatch<React.SetStateAction<number>>;
+  setPreviewFontSize: React.Dispatch<React.SetStateAction<number>>;
   setAccentColor: React.Dispatch<React.SetStateAction<string>>;
   setBlurAmount: React.Dispatch<React.SetStateAction<number>>;
   setBgImage: React.Dispatch<React.SetStateAction<string>>;
@@ -37,9 +34,6 @@ export interface UseEditorThemeReturn {
   removeCustomFont: (name: string) => void;
 }
 
-/**
- * 编辑器主题Hook
- */
 export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeReturn {
   const { initialConfig } = props ?? {};
 
@@ -49,6 +43,8 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
     fontChoice: "Quicksand",
     editorFont: "JetBrains Mono",
     fontSize: 16,
+    editorFontSize: 14,
+    previewFontSize: 16,
     accentColor: "#ff9a9e",
     blurAmount: 0,
     bgImage: "",
@@ -63,13 +59,15 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
   const [fontChoice, setFontChoice] = useState<FontChoice>(() => config.fontChoice as FontChoice);
   const [editorFont, setEditorFont] = useState<string>(() => config.editorFont ?? "JetBrains Mono");
   const [fontSize, setFontSize] = useState<number>(() => config.fontSize);
+  // 向后兼容：旧数据没有 editorFontSize/previewFontSize 时，用 fontSize 作为默认值
+  const [editorFontSize, setEditorFontSize] = useState<number>(() => config.editorFontSize ?? config.fontSize ?? 14);
+  const [previewFontSize, setPreviewFontSize] = useState<number>(() => config.previewFontSize ?? config.fontSize ?? 16);
   const [accentColor, setAccentColor] = useState<string>(() => config.accentColor);
   const [blurAmount, setBlurAmount] = useState<number>(() => config.blurAmount);
   const [bgImage, setBgImage] = useState<string>(() => config.bgImage);
   const [particlesOn, setParticlesOn] = useState<boolean>(() => config.particlesOn);
   const [customFonts, setCustomFonts] = useState<Array<{ name: string; url: string }>>(() => config.customFonts ?? []);
 
-  // 当初始配置异步加载完成后，同步到状态
   const hasInitialized = useRef(false);
   useEffect(() => {
     if (hasInitialized.current || !initialConfig) return;
@@ -79,12 +77,13 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
     setFontChoice(initialConfig.fontChoice as FontChoice);
     setEditorFont(initialConfig.editorFont ?? "JetBrains Mono");
     setFontSize(initialConfig.fontSize);
+    setEditorFontSize(initialConfig.editorFontSize ?? initialConfig.fontSize ?? 14);
+    setPreviewFontSize(initialConfig.previewFontSize ?? initialConfig.fontSize ?? 16);
     setAccentColor(initialConfig.accentColor);
     setBlurAmount(initialConfig.blurAmount);
     setBgImage(initialConfig.bgImage);
     setParticlesOn(initialConfig.particlesOn);
     setCustomFonts(initialConfig.customFonts ?? []);
-    // 恢复自定义字体的 @font-face 注入
     for (const font of initialConfig.customFonts ?? []) {
       const styleId = `custom-font-${font.name.replace(/\s/g, "-")}`;
       if (!document.getElementById(styleId)) {
@@ -96,14 +95,17 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
     }
   }, [initialConfig]);
 
-  // 应用 CSS 变量 — 状态变化时立即生效，不依赖 SettingEditor 是否挂载
   useEffect(() => {
     document.documentElement.style.setProperty("--color-primary", accentColor);
   }, [accentColor]);
 
   useEffect(() => {
-    document.documentElement.style.setProperty("--markdown-font-size", `${fontSize}px`);
-  }, [fontSize]);
+    document.documentElement.style.setProperty("--markdown-font-size", `${previewFontSize}px`);
+  }, [previewFontSize]);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty("--editor-font-size", `${editorFontSize}px`);
+  }, [editorFontSize]);
 
   useEffect(() => {
     document.documentElement.style.setProperty("--editor-blur", `${blurAmount}px`);
@@ -144,26 +146,12 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
   };
 
   return {
-    editorTheme,
-    previewTheme,
-    fontChoice,
-    editorFont,
-    fontSize,
-    accentColor,
-    blurAmount,
-    bgImage,
-    particlesOn,
-    customFonts,
-    setEditorTheme,
-    setPreviewTheme,
-    setFontChoice,
-    setEditorFont,
-    setFontSize,
-    setAccentColor,
-    setBlurAmount,
-    setBgImage,
-    setParticlesOn,
-    addCustomFont,
-    removeCustomFont,
+    editorTheme, previewTheme, fontChoice, editorFont,
+    fontSize, editorFontSize, previewFontSize,
+    accentColor, blurAmount, bgImage, particlesOn, customFonts,
+    setEditorTheme, setPreviewTheme, setFontChoice, setEditorFont,
+    setFontSize, setEditorFontSize, setPreviewFontSize,
+    setAccentColor, setBlurAmount, setBgImage, setParticlesOn,
+    addCustomFont, removeCustomFont,
   };
 }

@@ -177,7 +177,7 @@ export default function EditorPane({
             maxHeight: "calc(100vh - 180px)",
             padding: "48px 12px 48px 12px",
           },
-          ".cm-content": { fontFamily: "var(--editor-font, 'JetBrains Mono', monospace)" },
+          ".cm-content": { fontFamily: "var(--editor-font, 'JetBrains Mono', monospace)", fontSize: "var(--editor-font-size, 14px)" },
           ".cm-gutters": { backgroundColor: "transparent !important", border: "none !important" },
         }),
       ];

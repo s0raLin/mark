@@ -52,16 +52,18 @@ type StorageFileSystem struct {
 
 // StorageEditorConfig 編輯器設定
 type StorageEditorConfig struct {
-	EditorTheme  string  `json:"editorTheme"`
-	PreviewTheme string  `json:"previewTheme"`
-	FontChoice   string  `json:"fontChoice"`
-	EditorFont   string  `json:"editorFont"`
-	FontSize     int     `json:"fontSize"`
-	AccentColor  string  `json:"accentColor"`
-	BlurAmount   float64 `json:"blurAmount"`
-	BgImage      string  `json:"bgImage"`
-	ParticlesOn  bool    `json:"particlesOn"`
-	CustomFonts  []struct {
+	EditorTheme     string  `json:"editorTheme"`
+	PreviewTheme    string  `json:"previewTheme"`
+	FontChoice      string  `json:"fontChoice"`
+	EditorFont      string  `json:"editorFont"`
+	FontSize        int     `json:"fontSize"`
+	EditorFontSize  int     `json:"editorFontSize"`
+	PreviewFontSize int     `json:"previewFontSize"`
+	AccentColor     string  `json:"accentColor"`
+	BlurAmount      float64 `json:"blurAmount"`
+	BgImage         string  `json:"bgImage"`
+	ParticlesOn     bool    `json:"particlesOn"`
+	CustomFonts     []struct {
 		Name string `json:"name"`
 		URL  string `json:"url"`
 	} `json:"customFonts"`

@@ -1,5 +1,6 @@
 import {
   CloudUpload,
+  Eye,
   FileText,
   Palette,
   PlusCircle,
@@ -30,6 +31,10 @@ interface SettingEditorProps {
   setAccentColor: (color: string) => void;
   fontSize: number;
   setFontSize: (size: number) => void;
+  editorFontSize: number;
+  setEditorFontSize: (size: number) => void;
+  previewFontSize: number;
+  setPreviewFontSize: (size: number) => void;
   blurAmount: number;
   setBlurAmount: (amount: number) => void;
   bgImage: string;
@@ -46,6 +51,8 @@ export default function SettingEditor({
   editorFont, setEditorFont,
   accentColor, setAccentColor,
   fontSize, setFontSize,
+  editorFontSize, setEditorFontSize,
+  previewFontSize, setPreviewFontSize,
   blurAmount, setBlurAmount,
   bgImage, setBgImage,
   customFonts, addCustomFont,
@@ -101,9 +108,6 @@ export default function SettingEditor({
       e.target.value = "";
     }
   };
-
-  const fontSizeLabel =
-    fontSize <= 13 ? "Tiny" : fontSize <= 16 ? "Normal" : "Comfy";
 
   return (
     <div className="space-y-12">
@@ -396,28 +400,51 @@ export default function SettingEditor({
           </div>
 
           {/* Text Size */}
-          <div className="flex flex-col gap-4">
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-bold text-slate-600">
-                Text Size
-              </label>
-              <span className="text-xs font-bold text-primary">
-                {fontSize}px · {fontSizeLabel}
-              </span>
+          <div className="flex flex-col gap-6">
+            {/* Editor Font Size */}
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-bold text-slate-600 flex items-center gap-2">
+                  <Terminal className="w-4 h-4 text-primary" />
+                  Editor Size
+                </label>
+                <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                  {editorFontSize}px
+                </span>
+              </div>
+              <input
+                type="range"
+                className="w-full pretty-slider"
+                style={{ "--slider-pct": `${((editorFontSize - 12) / 12) * 100}%` } as React.CSSProperties}
+                min={12} max={24} value={editorFontSize}
+                onChange={(e) => setEditorFontSize(Number(e.target.value))}
+              />
+              <div className="flex justify-between text-[10px] text-slate-400 uppercase font-black tracking-widest px-2">
+                <span>12px</span><span>18px</span><span>24px</span>
+              </div>
             </div>
-            <input
-              type="range"
-              className="w-full pretty-slider"
-              style={{ "--slider-pct": `${((fontSize - 12) / 12) * 100}%` } as React.CSSProperties}
-              max={24}
-              min={12}
-              value={fontSize}
-              onChange={(e) => setFontSize(Number(e.target.value))}
-            />
-            <div className="flex justify-between text-[10px] text-slate-400 uppercase font-black tracking-widest px-2">
-              <span>Tiny</span>
-              <span>Normal</span>
-              <span>Comfy</span>
+
+            {/* Preview Font Size */}
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-bold text-slate-600 flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-primary" />
+                  Preview Size
+                </label>
+                <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                  {previewFontSize}px
+                </span>
+              </div>
+              <input
+                type="range"
+                className="w-full pretty-slider"
+                style={{ "--slider-pct": `${((previewFontSize - 12) / 12) * 100}%` } as React.CSSProperties}
+                min={12} max={24} value={previewFontSize}
+                onChange={(e) => setPreviewFontSize(Number(e.target.value))}
+              />
+              <div className="flex justify-between text-[10px] text-slate-400 uppercase font-black tracking-widest px-2">
+                <span>12px</span><span>18px</span><span>24px</span>
+              </div>
             </div>
           </div>
         </div>

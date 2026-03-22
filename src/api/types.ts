@@ -56,7 +56,9 @@ export interface StorageEditorConfig {
   previewTheme: string;
   fontChoice: string;
   editorFont: string;
-  fontSize: number;
+  fontSize: number;        // 保留兼容旧数据
+  editorFontSize: number;
+  previewFontSize: number;
   accentColor: string;
   blurAmount: number;
   bgImage: string;

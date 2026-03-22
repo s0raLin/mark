@@ -70,7 +70,16 @@ export default function PreviewPane({
         previewTheme,
       )}
     >
-      <div className="p-16 max-w-none markdown-body">
+      {/* 磨砂玻璃遮罩，与编辑区保持一致，防止背景图影响可读性 */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          backdropFilter: "blur(var(--editor-blur, 0px))",
+          WebkitBackdropFilter: "blur(var(--editor-blur, 0px))",
+          backgroundColor: "rgba(255,255,255,0.72)",
+        }}
+      />
+      <div className="relative z-10 p-16 max-w-none markdown-body">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{

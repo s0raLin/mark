@@ -3,16 +3,23 @@
   "username": "Demo",
   "email": "demo@example.com",
   "editorConfig": {
-    "editorTheme": "vs-dark",
+    "editorTheme": "oneDark",
     "previewTheme": "github",
-    "fontChoice": "",
-    "editorFont": "",
-    "fontSize": 14,
-    "accentColor": "#ff9a9e",
-    "blurAmount": 0,
-    "bgImage": "/uploads/1774169899153-906473314.jpg",
+    "fontChoice": "BlexMonoNerdFontMono-Regular",
+    "editorFont": "JetBrains Mono",
+    "fontSize": 24,
+    "editorFontSize": 24,
+    "previewFontSize": 24,
+    "accentColor": "#a1c4fd",
+    "blurAmount": 17,
+    "bgImage": "/uploads/1774170749643-436113493.jpg",
     "particlesOn": false,
-    "customFonts": []
+    "customFonts": [
+      {
+        "name": "BlexMonoNerdFontMono-Regular",
+        "url": "/uploads/1774170124307-83579191.ttf"
+      }
+    ]
   },
-  "updatedAt": "2026-03-22T16:58:20.178148713+08:00"
+  "updatedAt": "2026-03-22T17:21:25.782600732+08:00"
 }
