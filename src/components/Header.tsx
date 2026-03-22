@@ -17,6 +17,9 @@ interface HeaderProps {
   onExport?: () => void;
   onSearch?: () => void;
   onSettings?: () => void;
+  sidebarOpen?: boolean;
+  onHome?: () => void;
+  onToggleSidebar?: () => void;
 }
 
 interface ActionBtn {
@@ -61,6 +64,9 @@ export default function Header({
   onExport,
   onSearch,
   onSettings,
+  sidebarOpen,
+  onHome,
+  onToggleSidebar,
 }: HeaderProps) {
   const actions: ActionBtn[] = [
     { icon: <FilePlus className="w-4 h-4" />, label: "New File  Ctrl+N", onClick: onNewSparkle },
@@ -74,8 +80,12 @@ export default function Header({
   return (
     <div className="flex items-center w-full relative [-webkit-app-region:drag]">
       {/* Left - Window controls */}
-      <div className="fixed top-4 left-4 z-[1000] [-webkit-app-region:no-drag]">
-        <WindowControls />
+      <div className="fixed left-6 top-0 h-20 flex items-center z-[1000] [-webkit-app-region:no-drag]">
+        <WindowControls
+          sidebarOpen={sidebarOpen}
+          onHome={onHome}
+          onToggleSidebar={onToggleSidebar}
+        />
       </div>
 
       {/* Center - Quick Action Bar */}

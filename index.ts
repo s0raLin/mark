@@ -135,6 +135,12 @@ app.whenReady().then(async () => {
     win?.isMaximized() ? win.unmaximize() : win?.maximize();
   });
   ipcMain.on('window-close', () => BrowserWindow.getFocusedWindow()?.close());
+  ipcMain.on('window-move', (_e, { x, y }: { x: number; y: number }) => {
+    BrowserWindow.getFocusedWindow()?.setPosition(x, y);
+  });
+  ipcMain.handle('get-window-pos', () => {
+    return BrowserWindow.getFocusedWindow()?.getPosition() ?? [0, 0];
+  });
 
   await startGoServer();
 

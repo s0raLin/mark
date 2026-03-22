@@ -12,11 +12,27 @@ import (
 	"server/internal/model"
 )
 
-// FilesRootDir 文件存储根目录（真实文件系统）
-const FilesRootDir = "./data/files"
+// appDataDir 返回平台对应的应用数据目录
+// Linux:   ~/.config/studiomark
+// Windows: %APPDATA%\studiomark
+// macOS:   ~/Library/Application Support/studiomark
+func appDataDir() string {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		// 降级到当前目录
+		base = "."
+	}
+	return filepath.Join(base, "studiomark")
+}
+
+// FilesRootDir 文件存储根目录
+var FilesRootDir = filepath.Join(appDataDir(), "files")
 
 // configPath 应用配置文件路径
-const configPath = "./data/userdata.json"
+var configPath = filepath.Join(appDataDir(), "userdata.json")
+
+// uploadsDir 上传文件目录
+var UploadsDir = filepath.Join(appDataDir(), "uploads")
 
 // metaFileName 每个目录下存储排序/置顶信息的元数据文件
 const metaFileName = ".meta.json"
@@ -53,7 +69,8 @@ func (r *StorageRepo) load() {
 		return
 	}
 	os.MkdirAll(FilesRootDir, 0755)
-	os.MkdirAll("./data", 0755)
+	os.MkdirAll(UploadsDir, 0755)
+	os.MkdirAll(filepath.Dir(configPath), 0755)
 
 	data, err := os.ReadFile(configPath)
 	if err == nil {
@@ -259,7 +276,7 @@ func (r *StorageRepo) buildFileSystem() model.StorageFileSystem {
 // ─── 配置持久化 ────────────────────────────────────────
 
 func (r *StorageRepo) saveConfig() error {
-	os.MkdirAll("./data", 0755)
+	os.MkdirAll(filepath.Dir(configPath), 0755)
 	data, _ := json.MarshalIndent(r.config, "", "  ")
 	return os.WriteFile(configPath, data, 0644)
 }

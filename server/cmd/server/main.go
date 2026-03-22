@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"server/internal/handler"
+	"server/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -57,7 +58,7 @@ func main() {
 	api.POST("/upload", handler.UploadImage)
 	api.POST("/upload-font", handler.UploadFont)
 
-	r.Static("/uploads", "./public/uploads")
+	r.Static("/uploads", repository.UploadsDir)
 
 	log.Printf("Server starting on :%s", port)
 	if err := r.Run(":" + port); err != nil {

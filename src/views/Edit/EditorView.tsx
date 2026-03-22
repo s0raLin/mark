@@ -5,6 +5,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import Modal from "@/components/Modals/Modal";
 import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import Sidebar from "@/components/Sidebar/Sidebar";
+import { cn } from "@/utils/cn";
 
 // Hooks
 import { useFileSystem } from "./hooks/useFileSystem";
@@ -20,6 +21,7 @@ import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 
 export default function EditorView() {
   const toolbarRef = useRef<ReactCodeMirrorRef>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // 存储同步 Hook - 管理数据加载和保存
   const storageSync = useStorageSync();
@@ -182,7 +184,37 @@ export default function EditorView() {
     <div className="h-screen flex flex-col overflow-hidden font-display text-slate-700 relative">
       <div id="editor-bg-layer" className="absolute inset-0 z-0 pointer-events-none bg-background-light" />
 
-      <header className="h-20 flex items-center justify-between px-8 border-b border-border-soft z-50 shrink-0 relative bg-white/70 backdrop-blur-xl">
+      <header
+        className="h-20 flex items-center justify-between px-8 border-b border-border-soft z-50 shrink-0 relative bg-white/70 backdrop-blur-xl select-none"
+        onMouseDown={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest('button') || target.closest('input')) return;
+          if (e.button !== 0) return;
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const ipc = (window as any).require?.('electron')?.ipcRenderer;
+          if (!ipc) return;
+
+          const startScreenX = e.screenX;
+          const startScreenY = e.screenY;
+
+          // 异步获取窗口初始位置后开始监听拖拽
+          ipc.invoke('get-window-pos').then(([winX, winY]: [number, number]) => {
+            const onMove = (me: MouseEvent) => {
+              ipc.send('window-move', {
+                x: Math.round(winX + me.screenX - startScreenX),
+                y: Math.round(winY + me.screenY - startScreenY),
+              });
+            };
+            const onUp = () => {
+              window.removeEventListener('mousemove', onMove);
+              window.removeEventListener('mouseup', onUp);
+            };
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onUp);
+          });
+        }}
+      >
         <Header
           viewMode={editorState.viewMode}
           onViewModeChange={editorState.handleViewModeChange}
@@ -194,11 +226,17 @@ export default function EditorView() {
           onExport={() => openModal(ROUTES.EXPORT)}
           onSearch={() => openModal(ROUTES.SEARCH)}
           onSettings={() => openModal(ROUTES.SETTINGS)}
+          sidebarOpen={sidebarOpen}
+          onHome={() => fileSystem.setActiveFileId(null)}
+          onToggleSidebar={() => setSidebarOpen((v) => !v)}
         />
       </header>
 
       <div className="flex-1 flex overflow-hidden relative z-10">
-        <aside className="w-80 h-full flex flex-col border-r border-rose-100 bg-white/80 backdrop-blur-2xl shrink-0">
+        <aside className={cn(
+          "h-full flex flex-col border-r border-rose-100 bg-white/80 backdrop-blur-2xl shrink-0 transition-all duration-300 overflow-hidden",
+          sidebarOpen ? "w-80" : "w-0 border-r-0",
+        )}>
           <Sidebar
             fs={{
               ...fileSystem,

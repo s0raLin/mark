@@ -113,6 +113,12 @@ app.whenReady().then(async () => {
         win?.isMaximized() ? win.unmaximize() : win?.maximize();
     });
     ipcMain.on('window-close', () => BrowserWindow.getFocusedWindow()?.close());
+    ipcMain.on('window-move', (_e, { x, y }) => {
+        BrowserWindow.getFocusedWindow()?.setPosition(x, y);
+    });
+    ipcMain.handle('get-window-pos', () => {
+        return BrowserWindow.getFocusedWindow()?.getPosition() ?? [0, 0];
+    });
     await startGoServer();
     // 生产模式 dist 在 dist-electron 的上一级；开发模式在项目根
     const distPath = isPackaged

@@ -19,10 +19,10 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "dist": "ELECTRON=true npm run build && npm run build:electron && electron-builder",
-    "dist:win": "ELECTRON=true npm run build && npm run build:electron && electron-builder --win",
-    "dist:mac": "ELECTRON=true npm run build && npm run build:electron && electron-builder --mac",
-    "dist:linux": "ELECTRON=true npm run build && npm run build:electron && electron-builder --linux"
+    "dist": "cd server && go build -o cmd/server/server ./cmd/server/ && cd .. && ELECTRON=true npm run build && npm run build:electron && electron-builder",
+    "dist:win": "cd server && go build -o cmd/server/server ./cmd/server/ && cd .. && ELECTRON=true npm run build && npm run build:electron && electron-builder --win",
+    "dist:mac": "cd server && go build -o cmd/server/server ./cmd/server/ && cd .. && ELECTRON=true npm run build && npm run build:electron && electron-builder --mac",
+    "dist:linux": "cd server && go build -o cmd/server/server ./cmd/server/ && cd .. && ELECTRON=true npm run build && npm run build:electron && electron-builder --linux"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",
