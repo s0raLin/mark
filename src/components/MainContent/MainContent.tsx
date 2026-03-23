@@ -69,7 +69,7 @@ export default function MainContent({
   }, [fontChoice]);
 
   return (
-    <div className="flex h-full w-full">
+    <div className="flex h-full w-full overflow-hidden">
       {/* Editor Pane */}
       {(viewMode === "split" || viewMode === "editor") && (
         <EditorPane

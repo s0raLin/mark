@@ -60,10 +60,10 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
   const [previewTheme, setPreviewTheme] = useState<PreviewTheme>(() => config.previewTheme as PreviewTheme);
   const [fontChoice, setFontChoice] = useState<FontChoice>(() => config.fontChoice as FontChoice);
   const [editorFont, setEditorFont] = useState<string>(() => config.editorFont ?? "JetBrains Mono");
-  const [fontSize, setFontSize] = useState<number>(() => config.fontSize);
+  const [fontSize, setFontSize] = useState<number>(() => config.fontSize || 16);
   // 向后兼容：旧数据没有 editorFontSize/previewFontSize 时，用 fontSize 作为默认值
-  const [editorFontSize, setEditorFontSize] = useState<number>(() => config.editorFontSize ?? config.fontSize ?? 14);
-  const [previewFontSize, setPreviewFontSize] = useState<number>(() => config.previewFontSize ?? config.fontSize ?? 16);
+  const [editorFontSize, setEditorFontSize] = useState<number>(() => config.editorFontSize || config.fontSize || 14);
+  const [previewFontSize, setPreviewFontSize] = useState<number>(() => config.previewFontSize || config.fontSize || 16);
   const [accentColor, setAccentColor] = useState<string>(() => config.accentColor);
   const [blurAmount, setBlurAmount] = useState<number>(() => config.blurAmount);
   const [bgImage, setBgImage] = useState<string>(() => config.bgImage);
@@ -79,9 +79,9 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
     setPreviewTheme(initialConfig.previewTheme as PreviewTheme);
     setFontChoice(initialConfig.fontChoice as FontChoice);
     setEditorFont(initialConfig.editorFont ?? "JetBrains Mono");
-    setFontSize(initialConfig.fontSize);
-    setEditorFontSize(initialConfig.editorFontSize ?? initialConfig.fontSize ?? 14);
-    setPreviewFontSize(initialConfig.previewFontSize ?? initialConfig.fontSize ?? 16);
+    setFontSize(initialConfig.fontSize || 16);
+    setEditorFontSize(initialConfig.editorFontSize || initialConfig.fontSize || 14);
+    setPreviewFontSize(initialConfig.previewFontSize || initialConfig.fontSize || 16);
     setAccentColor(initialConfig.accentColor);
     setBlurAmount(initialConfig.blurAmount);
     setBgImage(initialConfig.bgImage);

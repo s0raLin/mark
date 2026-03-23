@@ -172,13 +172,7 @@ export default function EditorPane({
         EditorView.lineWrapping,
         EditorView.theme({
           "&": { height: "100%", backgroundColor: "transparent !important" },
-          ".cm-scroller": {
-            overflow: "auto",
-            height: "100%",
-            maxHeight: "100%",
-            padding: "48px 12px 120px 12px",
-          },
-          ".cm-content": { fontFamily: "var(--editor-font, 'JetBrains Mono', monospace)", fontSize: "var(--editor-font-size, 14px)" },
+          ".cm-scroller": { overflow: "auto", height: "100%", paddingBottom: "120px" },
           ".cm-gutters": { backgroundColor: "transparent !important", border: "none !important" },
         }),
       ];
@@ -228,12 +222,12 @@ export default function EditorPane({
       <div className="editor-toolbar h-14 border-b border-border-soft bg-white/40 backdrop-blur-sm flex items-center justify-center px-4 gap-1 shrink-0 relative z-10">
         <Toolbar editorRef={editorRef} />
       </div>
-      <div className="flex-1 overflow-hidden flex flex-col relative z-10">
+      <div className="flex-1 min-h-0 overflow-hidden relative z-10">
         <CodeMirror
           ref={editorRef}
           value={markdown}
           height="100%"
-          className="flex-1 text-sm font-mono"
+          className="h-full text-sm font-mono"
           theme={getThemeExtension(editorTheme)}
           extensions={editorExtensions}
           onChange={(value) => setMarkdown(value)}

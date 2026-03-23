@@ -35,6 +35,15 @@ importers:
       '@codemirror/view':
         specifier: ^6.40.0
         version: 6.40.0
+      '@fontsource/material-symbols-outlined':
+        specifier: ^5.2.38
+        version: 5.2.38
+      '@fontsource/playfair-display':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource/quicksand':
+        specifier: ^5.2.10
+        version: 5.2.10
       '@google/genai':
         specifier: ^1.29.0
         version: 1.46.0
@@ -697,6 +706,15 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@fontsource/material-symbols-outlined@5.2.38':
+    resolution: {integrity: sha512-l5Zi7Kvli6b/470daUpEnS2Ngm19NkNmnk+6kAKRHR9QX+kYTWq1koTFTUELKt4U9tLIfcKaPKPxyxXUuRrSYQ==}
+
+  '@fontsource/playfair-display@5.2.8':
+    resolution: {integrity: sha512-fUEhib70SszNhQVsGbUMSsWJhr7Je0rdeuZdtGpDNu0GKF1xJM8QhpI/y0pckU25GcChXm9TLOmeZupkvvZo2g==}
+
+  '@fontsource/quicksand@5.2.10':
+    resolution: {integrity: sha512-rck0ccT6vJF9RnbSW2ON1grq5qFZvjVOGvYIUixATXF8mNh4KglD+8Sn8QpRgKQBSBJF5yOR3SBYBWPg/Y8YbQ==}
 
   '@google/genai@1.46.0':
     resolution: {integrity: sha512-ewPMN5JkKfgU5/kdco9ZhXBHDPhVqZpMQqIFQhwsHLf8kyZfx1cNpw1pHo1eV6PGEW7EhIBFi3aYZraFndAXqg==}
@@ -3974,6 +3992,12 @@ snapshots:
 
   '@esbuild/win32-x64@0.27.4':
     optional: true
+
+  '@fontsource/material-symbols-outlined@5.2.38': {}
+
+  '@fontsource/playfair-display@5.2.8': {}
+
+  '@fontsource/quicksand@5.2.10': {}
 
   '@google/genai@1.46.0':
     dependencies:

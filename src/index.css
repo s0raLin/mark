@@ -1,4 +1,12 @@
-@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap");
+@import "@fontsource/quicksand/300.css";
+@import "@fontsource/quicksand/400.css";
+@import "@fontsource/quicksand/500.css";
+@import "@fontsource/quicksand/600.css";
+@import "@fontsource/quicksand/700.css";
+@import "@fontsource/playfair-display/400.css";
+@import "@fontsource/playfair-display/400-italic.css";
+@import "@fontsource/playfair-display/700.css";
+@import "@fontsource/material-symbols-outlined/400.css";
 @import "tailwindcss";
 
 @reference "tailwindcss";
@@ -33,6 +41,12 @@ input, textarea, [contenteditable] {
 .cm-content, .cm-line {
   user-select: text;
   -webkit-user-select: text;
+}
+
+/* 编辑器字体和字号通过 CSS 变量全局注入，不在 JS theme 里设置避免行号错位 */
+.cm-editor {
+  font-family: var(--editor-font, 'JetBrains Mono', monospace);
+  font-size: var(--editor-font-size, 14px);
 }
 
 /* Tailwind CSS v4 theme variables - these generate utility classes */

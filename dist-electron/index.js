@@ -88,17 +88,11 @@ async function createWindow() {
     win.on('maximize', () => win.webContents.send('window-maximized', true));
     win.on('unmaximize', () => win.webContents.send('window-maximized', false));
     win.loadURL(`http://localhost:${FRONTEND_PORT}`);
-    if (isPackaged) {
-        // 生产模式：禁用 DevTools 及相关快捷键
-        win.webContents.on('before-input-event', (event, input) => {
-            if (input.key === 'F12' ||
-                (input.control && input.shift && (input.key === 'I' || input.key === 'J')) ||
-                (input.control && input.key === 'U')) {
-                event.preventDefault();
-            }
-        });
+    if (!isPackaged) {
+        win.webContents.openDevTools();
     }
     else {
+        // 临时：打包版也开 DevTools 方便排查
         win.webContents.openDevTools();
     }
     win.webContents.on('did-fail-load', (_e, code, desc) => {
@@ -120,10 +114,8 @@ app.whenReady().then(async () => {
         return BrowserWindow.getFocusedWindow()?.getPosition() ?? [0, 0];
     });
     await startGoServer();
-    // 生产模式 dist 在 dist-electron 的上一级；开发模式在项目根
-    const distPath = isPackaged
-        ? path.join(__dirname, '..', 'dist')
-        : path.join(__dirname, '..', 'dist');
+    // app.getAppPath() 在打包后返回 app.asar 的路径，开发时返回项目根
+    const distPath = path.join(app.getAppPath(), 'dist');
     const server = buildServer(distPath);
     server.listen(FRONTEND_PORT, () => {
         console.log(`Frontend: http://localhost:${FRONTEND_PORT}`);
