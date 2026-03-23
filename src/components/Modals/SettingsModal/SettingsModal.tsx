@@ -76,7 +76,7 @@ export function SettingsModal({
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 20 }}
-        className="bg-white/70 backdrop-blur-xl w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl border border-white/50 flex flex-col h-[85vh]"
+        className="bg-white/70 backdrop-blur-xl w-full max-w-5xl rounded-3xl overflow-hidden shadow-sm border border-white/50 flex flex-col h-[85vh]"
       >
         <header className="flex items-center justify-between border-b border-dashed border-pink-100 px-8 py-5 shrink-0">
           <div className="flex items-center gap-4">

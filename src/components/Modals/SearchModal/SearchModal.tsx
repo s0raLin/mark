@@ -142,7 +142,7 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
         initial={{ scale: 0.95, y: -20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: -20 }}
-        className="bg-white/70 backdrop-blur-xl w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border border-white/50 flex flex-col"
+        className="bg-white/70 backdrop-blur-xl w-full max-w-2xl rounded-3xl overflow-hidden shadow-sm border border-white/50 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search input */}

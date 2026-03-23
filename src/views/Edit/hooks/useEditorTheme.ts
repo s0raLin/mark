@@ -18,6 +18,7 @@ export interface UseEditorThemeReturn {
   blurAmount: number;
   bgImage: string;
   particlesOn: boolean;
+  darkMode: boolean;
   customFonts: Array<{ name: string; url: string }>;
   setEditorTheme: React.Dispatch<React.SetStateAction<EditorTheme>>;
   setPreviewTheme: React.Dispatch<React.SetStateAction<PreviewTheme>>;
@@ -30,6 +31,7 @@ export interface UseEditorThemeReturn {
   setBlurAmount: React.Dispatch<React.SetStateAction<number>>;
   setBgImage: React.Dispatch<React.SetStateAction<string>>;
   setParticlesOn: React.Dispatch<React.SetStateAction<boolean>>;
+  setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
   addCustomFont: (font: { name: string; url: string }) => void;
   removeCustomFont: (name: string) => void;
 }
@@ -66,6 +68,7 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
   const [blurAmount, setBlurAmount] = useState<number>(() => config.blurAmount);
   const [bgImage, setBgImage] = useState<string>(() => config.bgImage);
   const [particlesOn, setParticlesOn] = useState<boolean>(() => config.particlesOn);
+  const [darkMode, setDarkMode] = useState<boolean>(false);
   const [customFonts, setCustomFonts] = useState<Array<{ name: string; url: string }>>(() => config.customFonts ?? []);
 
   const hasInitialized = useRef(false);
@@ -94,6 +97,14 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
       }
     }
   }, [initialConfig]);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
 
   useEffect(() => {
     document.documentElement.style.setProperty("--color-primary", accentColor);
@@ -148,10 +159,10 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
   return {
     editorTheme, previewTheme, fontChoice, editorFont,
     fontSize, editorFontSize, previewFontSize,
-    accentColor, blurAmount, bgImage, particlesOn, customFonts,
+    accentColor, blurAmount, bgImage, particlesOn, darkMode, customFonts,
     setEditorTheme, setPreviewTheme, setFontChoice, setEditorFont,
     setFontSize, setEditorFontSize, setPreviewFontSize,
-    setAccentColor, setBlurAmount, setBgImage, setParticlesOn,
+    setAccentColor, setBlurAmount, setBgImage, setParticlesOn, setDarkMode,
     addCustomFont, removeCustomFont,
   };
 }

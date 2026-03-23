@@ -8,20 +8,22 @@ export interface UseMarkdownSyncReturn {
 }
 
 export interface UseMarkdownSyncProps {
-  activeFileId: string;
+  activeFileId: string | null;
+  activeFileType?: "file" | "folder" | null;
   setNodes: React.Dispatch<React.SetStateAction<import("@/types/filesystem").FileNode[]>>;
 }
 
 export function useMarkdownSync({
   activeFileId,
+  activeFileType,
   setNodes,
 }: UseMarkdownSyncProps): UseMarkdownSyncReturn {
   const [markdown, setMarkdown] = useState(INITIAL_MARKDOWN);
-  // 内部缓存，避免重复请求后端
   const fileContentsRef = useRef<Record<string, string>>({});
 
   useEffect(() => {
-    if (!activeFileId) return;
+    // 只对文件类型请求内容，文件夹跳过
+    if (!activeFileId || activeFileType === "folder") return;
 
     const load = async () => {
       try {

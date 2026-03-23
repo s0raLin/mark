@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
+import { errorBus } from "@/contexts/errorBus";
 import type {
   ApiResponse,
   ApiError,
@@ -40,11 +41,16 @@ const createAxiosInstance = (): AxiosInstance => {
       return response;
     },
     (error: AxiosError<ApiError>) => {
-      // 处理 HTTP 错误
       if (error.response) {
         const { status, data } = error.response;
+        if (status >= 400) {
+          const message = (data as ApiError)?.message || `请求失败 (${status})`;
+          const detail = status >= 500 ? "服务器内部错误，请稍后重试" : undefined;
+          errorBus.emit(status, message, detail);
+        }
         console.error(`API Error: ${status}`, data);
       } else if (error.request) {
+        errorBus.emit(0, "网络错误", "无法连接到服务器，请检查网络");
         console.error("Network Error: No response received");
       } else {
         console.error("Request Error:", error.message);
@@ -349,3 +355,4 @@ export async function uploadFont(file: File): Promise<{ url: string; fontFamily:
 
 // ===== 导出 =====
 export default apiClient;
+

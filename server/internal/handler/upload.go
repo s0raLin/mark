@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"server/internal/repository"
 	"server/pkg/api"
-)
 
-const uploadDir = "./public/uploads"
+	"github.com/gin-gonic/gin"
+)
 
 // UploadImage 处理图片上传，返回可访问的 URL
 func UploadImage(c *gin.Context) {
@@ -30,13 +30,13 @@ func UploadImage(c *gin.Context) {
 		return
 	}
 
-	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+	if err := os.MkdirAll(repository.UploadsDir, 0755); err != nil {
 		api.InternalError(c, err)
 		return
 	}
 
 	filename := fmt.Sprintf("%d-%d%s", time.Now().UnixMilli(), rand.Intn(1_000_000_000), ext)
-	dst := filepath.Join(uploadDir, filename)
+	dst := filepath.Join(repository.UploadsDir, filename)
 	if err := c.SaveUploadedFile(file, dst); err != nil {
 		api.InternalError(c, err)
 		return
@@ -60,13 +60,13 @@ func UploadFont(c *gin.Context) {
 		return
 	}
 
-	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+	if err := os.MkdirAll(repository.UploadsDir, 0755); err != nil {
 		api.InternalError(c, err)
 		return
 	}
 
 	filename := fmt.Sprintf("%d-%d%s", time.Now().UnixMilli(), rand.Intn(1_000_000_000), ext)
-	dst := filepath.Join(uploadDir, filename)
+	dst := filepath.Join(repository.UploadsDir, filename)
 	if err := c.SaveUploadedFile(file, dst); err != nil {
 		api.InternalError(c, err)
 		return

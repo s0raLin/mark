@@ -3,27 +3,27 @@ import { cn } from "../utils/cn";
 
 interface WindowControlsProps {
   sidebarOpen?: boolean;
-  onHome?: () => void;
+  onLauncher?: () => void;
   onToggleSidebar?: () => void;
 }
 
 export default function WindowControls({
   sidebarOpen = true,
-  onHome,
+  onLauncher,
   onToggleSidebar,
 }: WindowControlsProps) {
   return (
     <div className="flex items-center gap-4">
-      {/* Home */}
+      {/* Launcher */}
       <div className="relative group">
         <button
-          onClick={onHome}
+          onClick={onLauncher}
           className="flex items-center justify-center transition-all duration-150 text-slate-400 hover:text-slate-700 active:scale-90"
         >
           <Home className="w-7 h-7" />
         </button>
         <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 rounded-md bg-slate-800 text-white text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
-          主页
+          启动台
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-800" />
         </div>
       </div>

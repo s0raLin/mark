@@ -39,7 +39,7 @@ export function SaveAsModal({ markdown, onClose }: SaveAsModalProps) {
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 20 }}
-        className="bg-white/70 backdrop-blur-xl w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-white/50 flex flex-col"
+        className="bg-white/70 backdrop-blur-xl w-full max-w-md rounded-3xl overflow-hidden shadow-sm border border-white/50 flex flex-col"
       >
         <header className="flex items-center justify-between border-b border-dashed border-pink-100 px-6 py-5 shrink-0">
           <div className="flex items-center gap-4">

@@ -174,8 +174,9 @@ export default function EditorPane({
           "&": { height: "100%", backgroundColor: "transparent !important" },
           ".cm-scroller": {
             overflow: "auto",
-            maxHeight: "calc(100vh - 180px)",
-            padding: "48px 12px 48px 12px",
+            height: "100%",
+            maxHeight: "100%",
+            padding: "48px 12px 120px 12px",
           },
           ".cm-content": { fontFamily: "var(--editor-font, 'JetBrains Mono', monospace)", fontSize: "var(--editor-font-size, 14px)" },
           ".cm-gutters": { backgroundColor: "transparent !important", border: "none !important" },
@@ -216,7 +217,7 @@ export default function EditorPane({
     <section className="flex-1 border-r border-border-soft flex flex-col relative overflow-hidden">
       {/* Frosted glass layer over the global background — blur controlled by CSS var */}
       <div
-        className="absolute inset-0 pointer-events-none z-0"
+        className="editor-glass-overlay absolute inset-0 pointer-events-none z-0"
         style={{
           backdropFilter: "blur(var(--editor-blur, 0px))",
           WebkitBackdropFilter: "blur(var(--editor-blur, 0px))",
@@ -224,7 +225,7 @@ export default function EditorPane({
         }}
       />
       {/* Toolbar */}
-      <div className="h-14 border-b border-border-soft bg-white/40 backdrop-blur-sm flex items-center justify-center px-4 gap-1 shrink-0 relative z-10">
+      <div className="editor-toolbar h-14 border-b border-border-soft bg-white/40 backdrop-blur-sm flex items-center justify-center px-4 gap-1 shrink-0 relative z-10">
         <Toolbar editorRef={editorRef} />
       </div>
       <div className="flex-1 overflow-hidden flex flex-col relative z-10">

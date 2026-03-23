@@ -126,6 +126,7 @@ export default function EditorView() {
   // Markdown 同步 Hook
   const markdownSync = useMarkdownSync({
     activeFileId: fileSystem.activeFileId,
+    activeFileType: fileSystem.nodes.find(n => n.id === fileSystem.activeFileId)?.type ?? null,
     setNodes: fileSystem.setNodes,
   });
 
@@ -185,7 +186,7 @@ export default function EditorView() {
       <div id="editor-bg-layer" className="absolute inset-0 z-0 pointer-events-none bg-background-light" />
 
       <header
-        className="h-20 flex items-center justify-between px-8 border-b border-border-soft z-50 shrink-0 relative bg-white/70 backdrop-blur-xl select-none"
+        className="app-header h-20 flex items-center justify-between px-8 border-b border-border-soft z-50 shrink-0 relative bg-white/70 backdrop-blur-xl select-none"
         onMouseDown={(e) => {
           const target = e.target as HTMLElement;
           if (target.closest('button') || target.closest('input')) return;
@@ -227,7 +228,7 @@ export default function EditorView() {
           onSearch={() => openModal(ROUTES.SEARCH)}
           onSettings={() => openModal(ROUTES.SETTINGS)}
           sidebarOpen={sidebarOpen}
-          onHome={() => fileSystem.setActiveFileId(null)}
+          onLauncher={() => openModal(ROUTES.LAUNCHER)}
           onToggleSidebar={() => setSidebarOpen((v) => !v)}
         />
       </header>
@@ -311,6 +312,13 @@ export default function EditorView() {
         addCustomFont={editorTheme.addCustomFont}
         nodes={fileSystem.nodes}
         onOpenFile={handleOpenFile}
+        onLauncherSearch={() => openModal(ROUTES.SEARCH)}
+        onLauncherSettings={() => openModal(ROUTES.SETTINGS)}
+        onLauncherExport={() => openModal(ROUTES.EXPORT)}
+        onLauncherViewMode={editorState.handleViewModeChange}
+        onLauncherParticlesToggle={() => editorTheme.setParticlesOn((prev) => !prev)}
+        darkMode={editorTheme.darkMode}
+        onDarkModeToggle={() => editorTheme.setDarkMode((prev) => !prev)}
       />
     </div>
   );

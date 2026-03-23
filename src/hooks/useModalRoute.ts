@@ -9,6 +9,7 @@ export const ROUTES = {
   EXPORT: 'export',
   SAVE_AS: 'save-as',
   SPARKLE: 'sparkle',
+  LAUNCHER: 'launcher',
 } as const;
 
 // 从 ROUTES 动态推断出的模态框类型

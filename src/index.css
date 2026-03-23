@@ -50,6 +50,127 @@ input, textarea, [contenteditable] {
   --radius-full: 9999px;
 }
 
+/* Dark mode */
+.dark {
+  color-scheme: dark;
+  --color-background-light: #2d2d2d;
+  --color-soft-bg: #252525;
+  --color-border-soft: #444444;
+}
+
+/* ── 全局背景 & 文字 ── */
+.dark body {
+  background-color: #2d2d2d;
+  color: #cccccc;
+}
+
+/* ── 背景色覆盖 ── */
+.dark .bg-white { background-color: #2d2d2d !important; }
+.dark .bg-white\/70 { background-color: rgba(45, 45, 45, 0.95) !important; }
+.dark .bg-white\/80 { background-color: rgba(45, 45, 45, 0.95) !important; }
+.dark .bg-white\/40 { background-color: rgba(45, 45, 45, 0.6) !important; }
+.dark .bg-white\/60 { background-color: rgba(45, 45, 45, 0.8) !important; }
+.dark .bg-slate-50\/50 { background-color: rgba(37, 37, 37, 0.8) !important; }
+.dark .bg-slate-100 { background-color: #3a3a3a !important; }
+.dark .bg-slate-50 { background-color: #2d2d2d !important; }
+.dark .bg-background-light { background-color: #2d2d2d !important; }
+
+/* ── 文字色覆盖 ── */
+.dark .text-slate-800 { color: #e0e0e0 !important; }
+.dark .text-slate-700 { color: #cccccc !important; }
+.dark .text-slate-600 { color: #aaaaaa !important; }
+.dark .text-slate-500 { color: #888888 !important; }
+.dark .text-slate-400 { color: #666666 !important; }
+.dark .text-slate-300 { color: #555555 !important; }
+
+/* ── 边框色覆盖 ── */
+.dark .border-slate-200 { border-color: #444444 !important; }
+.dark .border-slate-200\/80 { border-color: rgba(68, 68, 68, 0.8) !important; }
+.dark .border-rose-100 { border-color: #3a3a3a !important; }
+.dark .border-pink-100 { border-color: #3a3a3a !important; }
+.dark .border-border-soft { border-color: #444444 !important; }
+.dark .border-white\/50 { border-color: rgba(80, 80, 80, 0.5) !important; }
+
+/* ── hover 状态 ── */
+.dark .hover\:bg-slate-100:hover { background-color: #3a3a3a !important; }
+.dark .hover\:bg-slate-100\/80:hover { background-color: rgba(58, 58, 58, 0.8) !important; }
+.dark .hover\:bg-rose-50:hover { background-color: #3a2a2a !important; }
+.dark .hover\:bg-primary\/10:hover { background-color: rgba(255, 143, 171, 0.12) !important; }
+.dark .hover\:bg-primary\/20:hover { background-color: rgba(255, 143, 171, 0.2) !important; }
+.dark .hover\:text-slate-700:hover { color: #e0e0e0 !important; }
+.dark .hover\:text-slate-800:hover { color: #e0e0e0 !important; }
+
+/* ── Header 顶部栏 ── */
+.dark .app-header {
+  background-color: rgba(37, 37, 37, 0.98) !important;
+  border-color: #444444 !important;
+}
+
+/* ── 中间 QuickBtn 工具栏 ── */
+.dark .header-quickbar {
+  background-color: rgba(45, 45, 45, 0.95) !important;
+  border-color: #444444 !important;
+  box-shadow: none !important;
+}
+
+/* ── 侧边栏 ── */
+.dark aside.w-80 {
+  background-color: rgba(45, 45, 45, 0.95) !important;
+  border-color: #444444 !important;
+}
+
+/* ── Outline 右侧栏 ── */
+.dark aside.w-56 {
+  background-color: rgba(58, 58, 58, 0.95) !important;
+  border-color: #444444 !important;
+}
+
+/* ── 编辑器区域 frosted glass ── */
+.dark .cm-editor,
+.dark .cm-scroller {
+  background-color: #3a3a3a !important;
+}
+
+/* ── Toolbar 工具栏 ── */
+.dark .editor-toolbar {
+  background-color: rgba(50, 50, 50, 0.9) !important;
+  border-color: #444444 !important;
+}
+
+/* ── 分隔线 ── */
+.dark .bg-slate-200 { background-color: #444444 !important; }
+.dark .w-px.h-5.bg-slate-200 { background-color: #444444 !important; }
+.dark .w-\[1px\].h-6.bg-slate-200 { background-color: #444444 !important; }
+
+/* ── 滚动条 ── */
+.dark ::-webkit-scrollbar-track { background: #2d2d2d; }
+.dark ::-webkit-scrollbar-thumb { background: #555555; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #666666; }
+.dark .cm-scroller::-webkit-scrollbar-track { background: #3a3a3a; }
+.dark .cm-scroller::-webkit-scrollbar-thumb { background: #555555; }
+
+/* ── 模态框 ── */
+.dark .bg-white\/70.backdrop-blur-xl {
+  background-color: rgba(40, 40, 40, 0.95) !important;
+}
+.dark .bg-slate-50\/50 { background-color: rgba(37, 37, 37, 0.8) !important; }
+
+/* ── Sidebar 文件项 active 状态 ── */
+.dark .bg-primary\/10 { background-color: rgba(255, 143, 171, 0.12) !important; }
+.dark .bg-primary\/15 { background-color: rgba(255, 143, 171, 0.15) !important; }
+.dark .bg-primary\/20 { background-color: rgba(255, 143, 171, 0.2) !important; }
+
+/* ── 字数统计 badge ── */
+.dark .bg-slate-100.px-2 { background-color: #3a3a3a !important; }
+
+/* ── 进度条轨道 ── */
+.dark .bg-slate-100.rounded-full { background-color: #3a3a3a !important; }
+
+/* ── EditorPane frosted glass overlay ── */
+.dark .editor-glass-overlay {
+  background-color: rgba(58, 58, 58, 0.7) !important;
+}
+
 /* 优化后的列表样式 */
 /* 优化后的列表样式 */
 /* --- 优化后的统一列表与复选框样式 --- */

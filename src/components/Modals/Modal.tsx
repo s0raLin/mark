@@ -4,8 +4,9 @@ import { ExportModal } from "./ExportModal/ExportModal";
 import { SaveAsModal } from "./SaveAsModal/SaveAsModal";
 import { SettingsModal } from "./SettingsModal/SettingsModal";
 import { SearchModal } from "./SearchModal/SearchModal";
+import { LauncherModal } from "./LauncherModal/LauncherModal";
 import { SparkleDust } from "../../components/Modals/SparkleDust/SparkleDust";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import type { FileNode } from "@/types/filesystem";
 
 interface ModalProps {
@@ -44,58 +45,131 @@ interface ModalProps {
   addCustomFont: (font: { name: string; url: string }) => void;
   nodes: FileNode[];
   onOpenFile: (id: string) => void;
+  onLauncherSearch?: () => void;
+  onLauncherSettings?: () => void;
+  onLauncherExport?: () => void;
+  onLauncherViewMode?: (mode: "split" | "editor" | "preview") => void;
+  onLauncherParticlesToggle?: () => void;
+  darkMode?: boolean;
+  onDarkModeToggle?: () => void;
 }
 
 export default function Modal({
-  editorTheme, previewTheme,
-  setEditorTheme, setPreviewTheme,
-  setIsExportModalOpen, setIsSaveAsModalOpen, setIsSettingsModalOpen, setIsSearchModalOpen,
-  markdown, particlesOn, setParticlesOn, fontChoice, setFontChoice,
-  editorFont, setEditorFont,
-  accentColor, setAccentColor, fontSize, setFontSize,
-  editorFontSize, setEditorFontSize, previewFontSize, setPreviewFontSize,
-  blurAmount, setBlurAmount, bgImage, setBgImage, customFonts, addCustomFont,
-  nodes, onOpenFile,
+  editorTheme,
+  previewTheme,
+  setEditorTheme,
+  setPreviewTheme,
+  setIsExportModalOpen,
+  setIsSaveAsModalOpen,
+  setIsSettingsModalOpen,
+  setIsSearchModalOpen,
+  markdown,
+  particlesOn,
+  setParticlesOn,
+  fontChoice,
+  setFontChoice,
+  editorFont,
+  setEditorFont,
+  accentColor,
+  setAccentColor,
+  fontSize,
+  setFontSize,
+  editorFontSize,
+  setEditorFontSize,
+  previewFontSize,
+  setPreviewFontSize,
+  blurAmount,
+  setBlurAmount,
+  bgImage,
+  setBgImage,
+  customFonts,
+  addCustomFont,
+  nodes,
+  onOpenFile,
+  onLauncherSearch,
+  onLauncherSettings,
+  onLauncherExport,
+  onLauncherViewMode,
+  onLauncherParticlesToggle,
+  darkMode,
+  onDarkModeToggle,
 }: ModalProps) {
   const [searchParams] = useSearchParams();
-  const modal = searchParams.get('modal') || '';
+  const navigate = useNavigate();
+  const modal = searchParams.get("modal") || "";
 
-  const hasModal = modal === 'settings' || modal === 'search' || modal === 'save-as' || modal === 'export';
+  const hasModal =
+    modal === "settings" ||
+    modal === "search" ||
+    modal === "save-as" ||
+    modal === "export" ||
+    modal === "launcher";
 
   return (
-    <div className={hasModal ? "fixed inset-0 z-[100]" : "fixed z-[100] pointer-events-none"}>
+    <div
+      className={
+        hasModal ? "fixed inset-0 z-[100]" : "fixed z-[100] pointer-events-none"
+      }
+    >
       <AnimatePresence>
-        {modal === 'settings' && (
-          <SettingsModal
-            onClose={() => setIsSettingsModalOpen(false)}
-            editorTheme={editorTheme} setEditorTheme={setEditorTheme}
-            previewTheme={previewTheme} setPreviewTheme={setPreviewTheme}
-            particlesOn={particlesOn} setParticlesOn={setParticlesOn}
-            fontChoice={fontChoice} setFontChoice={setFontChoice}
-            editorFont={editorFont} setEditorFont={setEditorFont}
-            accentColor={accentColor} setAccentColor={setAccentColor}
-            fontSize={fontSize} setFontSize={setFontSize}
-            editorFontSize={editorFontSize} setEditorFontSize={setEditorFontSize}
-            previewFontSize={previewFontSize} setPreviewFontSize={setPreviewFontSize}
-            blurAmount={blurAmount} setBlurAmount={setBlurAmount}
-            bgImage={bgImage} setBgImage={setBgImage}
-            customFonts={customFonts} addCustomFont={addCustomFont}
+        {modal === "launcher" && (
+          <LauncherModal
+            onClose={() => navigate("/")}
+            onSearch={onLauncherSearch}
+            onSettings={onLauncherSettings}
+            onExport={onLauncherExport}
+            onParticlesToggle={onLauncherParticlesToggle}
+            particlesOn={particlesOn}
+            darkMode={darkMode}
+            onDarkModeToggle={onDarkModeToggle}
           />
         )}
-        {modal === 'search' && (
+        {modal === "settings" && (
+          <SettingsModal
+            onClose={() => setIsSettingsModalOpen(false)}
+            editorTheme={editorTheme}
+            setEditorTheme={setEditorTheme}
+            previewTheme={previewTheme}
+            setPreviewTheme={setPreviewTheme}
+            particlesOn={particlesOn}
+            setParticlesOn={setParticlesOn}
+            fontChoice={fontChoice}
+            setFontChoice={setFontChoice}
+            editorFont={editorFont}
+            setEditorFont={setEditorFont}
+            accentColor={accentColor}
+            setAccentColor={setAccentColor}
+            fontSize={fontSize}
+            setFontSize={setFontSize}
+            editorFontSize={editorFontSize}
+            setEditorFontSize={setEditorFontSize}
+            previewFontSize={previewFontSize}
+            setPreviewFontSize={setPreviewFontSize}
+            blurAmount={blurAmount}
+            setBlurAmount={setBlurAmount}
+            bgImage={bgImage}
+            setBgImage={setBgImage}
+            customFonts={customFonts}
+            addCustomFont={addCustomFont}
+          />
+        )}
+        {modal === "search" && (
           <SearchModal
             onClose={() => setIsSearchModalOpen(false)}
             nodes={nodes}
-            onOpenFile={(id) => { onOpenFile(id); setIsSearchModalOpen(false); }}
+            onOpenFile={(id) => {
+              onOpenFile(id);
+              setIsSearchModalOpen(false);
+            }}
           />
         )}
-        {modal === 'save-as' && (
+        {modal === "save-as" && (
           <SaveAsModal
             markdown={markdown}
             onClose={() => setIsSaveAsModalOpen(false)}
           />
         )}
-        {modal === 'export' && (
+        {modal === "export" && (
           <ExportModal
             markdown={markdown}
             onClose={() => setIsExportModalOpen(false)}

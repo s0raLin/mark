@@ -18,7 +18,7 @@ interface HeaderProps {
   onSearch?: () => void;
   onSettings?: () => void;
   sidebarOpen?: boolean;
-  onHome?: () => void;
+  onLauncher?: () => void;
   onToggleSidebar?: () => void;
 }
 
@@ -65,7 +65,7 @@ export default function Header({
   onSearch,
   onSettings,
   sidebarOpen,
-  onHome,
+  onLauncher,
   onToggleSidebar,
 }: HeaderProps) {
   const actions: ActionBtn[] = [
@@ -83,14 +83,14 @@ export default function Header({
       <div className="fixed left-6 top-0 h-20 flex items-center z-[1000] [-webkit-app-region:no-drag]">
         <WindowControls
           sidebarOpen={sidebarOpen}
-          onHome={onHome}
+          onLauncher={onLauncher}
           onToggleSidebar={onToggleSidebar}
         />
       </div>
 
       {/* Center - Quick Action Bar */}
       <div className="absolute left-1/2 -translate-x-1/2 [-webkit-app-region:no-drag]">
-        <div className="flex items-center gap-0.5 bg-white/80 backdrop-blur-sm border border-slate-200/80 rounded-xl px-2 py-1 shadow-sm">
+        <div className="header-quickbar flex items-center gap-0.5 bg-white/80 backdrop-blur-sm border border-slate-200/80 rounded-xl px-2 py-1 shadow-sm">
           {actions.map((action, i) => (
             <div key={i} className="flex items-center">
               <QuickBtn {...action} />
