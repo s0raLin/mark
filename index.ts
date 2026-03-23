@@ -110,7 +110,7 @@ async function createWindow() {
   if (!isPackaged) {
     win.webContents.openDevTools();
   } else {
-    win.webContents.openDevTools();
+    // win.webContents.openDevTools();
   }
 
   win.webContents.on('did-fail-load', (_e, code, desc) => {
