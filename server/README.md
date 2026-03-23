@@ -1,3 +1,5 @@
+# MD编辑器后端
+
 ```text
 project-root/
 ├── cmd/
@@ -7,6 +9,7 @@ project-root/
 │   ├── handler/
 │   │   └── user.go
 │   │   └── file.go
+│   │   └── upload.go
 │   ├── model/          ← 對應前端的 types
 │   │   └── types.go
 │   ├── service/
@@ -18,4 +21,3 @@ project-root/
 │       └── response.go    ← 統一 ApiResponse / ApiError
 └── go.mod
 ```
-

@@ -9,3 +9,4 @@ coverage/
 
 release/
 public/
+server/cmd/server/server
