@@ -44,6 +44,7 @@ export function LauncherModal({
   darkMode,
   onDarkModeToggle,
 }: LauncherModalProps) {
+  
   const groups: LauncherGroup[] = [
     {
       title: "工具",
@@ -54,21 +55,21 @@ export function LauncherModal({
           iconBg: "bg-cyan-100 text-cyan-600",
           label: "搜索",
           desc: "Ctrl+K",
-          onClick: () => { onSearch?.(); onClose(); },
+          onClick: () => { onSearch?.(); },
         },
         {
           id: "settings",
           icon: <Settings className="w-6 h-6" />,
           iconBg: "bg-slate-100 text-slate-600",
           label: "设置",
-          onClick: () => { onSettings?.(); onClose(); },
+          onClick: () => { onSettings?.(); },
         },
         {
           id: "export",
           icon: <Download className="w-6 h-6" />,
           iconBg: "bg-orange-100 text-orange-600",
           label: "导出",
-          onClick: () => { onExport?.(); onClose(); },
+          onClick: () => { onExport?.(); },
         },
       ],
     },
