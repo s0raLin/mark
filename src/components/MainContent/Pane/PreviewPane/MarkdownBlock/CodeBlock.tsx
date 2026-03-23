@@ -1,31 +1,79 @@
 /**
- * CodeBlock — 按需加载语言的语法高亮
- * 只在该语言第一次出现时动态 import，避免打包全量 prism 语言包
+ * CodeBlock — 静态注册常用语言的语法高亮（兼容 Electron 打包）
  */
-import { useState, useEffect, memo } from "react";
+import { useState, memo } from "react";
 import { Download, CheckCircle2 } from "lucide-react";
 import { cn } from "@/utils/cn";
+import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/prism-light";
+import oneLight from "react-syntax-highlighter/dist/esm/styles/prism/one-light";
 
-// 已加载的语言缓存（模块级，跨组件共享）
-const loadedLanguages = new Map<string, any>();
+// 静态注册常用语言，避免 Electron 打包后动态 import 失败
+import javascript from "react-syntax-highlighter/dist/esm/languages/prism/javascript";
+import typescript from "react-syntax-highlighter/dist/esm/languages/prism/typescript";
+import jsx from "react-syntax-highlighter/dist/esm/languages/prism/jsx";
+import tsx from "react-syntax-highlighter/dist/esm/languages/prism/tsx";
+import python from "react-syntax-highlighter/dist/esm/languages/prism/python";
+import go from "react-syntax-highlighter/dist/esm/languages/prism/go";
+import rust from "react-syntax-highlighter/dist/esm/languages/prism/rust";
+import java from "react-syntax-highlighter/dist/esm/languages/prism/java";
+import c from "react-syntax-highlighter/dist/esm/languages/prism/c";
+import cpp from "react-syntax-highlighter/dist/esm/languages/prism/cpp";
+import csharp from "react-syntax-highlighter/dist/esm/languages/prism/csharp";
+import css from "react-syntax-highlighter/dist/esm/languages/prism/css";
+import bash from "react-syntax-highlighter/dist/esm/languages/prism/bash";
+import json from "react-syntax-highlighter/dist/esm/languages/prism/json";
+import yaml from "react-syntax-highlighter/dist/esm/languages/prism/yaml";
+import sql from "react-syntax-highlighter/dist/esm/languages/prism/sql";
+import php from "react-syntax-highlighter/dist/esm/languages/prism/php";
+import ruby from "react-syntax-highlighter/dist/esm/languages/prism/ruby";
+import swift from "react-syntax-highlighter/dist/esm/languages/prism/swift";
+import kotlin from "react-syntax-highlighter/dist/esm/languages/prism/kotlin";
+import scala from "react-syntax-highlighter/dist/esm/languages/prism/scala";
+import xml from "react-syntax-highlighter/dist/esm/languages/prism/xml-doc";
+import markdown from "react-syntax-highlighter/dist/esm/languages/prism/markdown";
+import toml from "react-syntax-highlighter/dist/esm/languages/prism/toml";
+import docker from "react-syntax-highlighter/dist/esm/languages/prism/docker";
+import nginx from "react-syntax-highlighter/dist/esm/languages/prism/nginx";
 
-async function loadLanguage(lang: string): Promise<any> {
-  if (loadedLanguages.has(lang)) return loadedLanguages.get(lang);
-
-  try {
-    // 动态按需加载 prism 语言
-    const mod = await import(
-      /* @vite-ignore */
-      `react-syntax-highlighter/dist/esm/languages/prism/${lang}`
-    );
-    loadedLanguages.set(lang, mod.default ?? mod);
-    return loadedLanguages.get(lang);
-  } catch {
-    // 语言不存在时降级为纯文本
-    loadedLanguages.set(lang, null);
-    return null;
-  }
-}
+SyntaxHighlighter.registerLanguage("javascript", javascript);
+SyntaxHighlighter.registerLanguage("js", javascript);
+SyntaxHighlighter.registerLanguage("typescript", typescript);
+SyntaxHighlighter.registerLanguage("ts", typescript);
+SyntaxHighlighter.registerLanguage("jsx", jsx);
+SyntaxHighlighter.registerLanguage("tsx", tsx);
+SyntaxHighlighter.registerLanguage("python", python);
+SyntaxHighlighter.registerLanguage("py", python);
+SyntaxHighlighter.registerLanguage("go", go);
+SyntaxHighlighter.registerLanguage("rust", rust);
+SyntaxHighlighter.registerLanguage("rs", rust);
+SyntaxHighlighter.registerLanguage("java", java);
+SyntaxHighlighter.registerLanguage("c", c);
+SyntaxHighlighter.registerLanguage("cpp", cpp);
+SyntaxHighlighter.registerLanguage("csharp", csharp);
+SyntaxHighlighter.registerLanguage("cs", csharp);
+SyntaxHighlighter.registerLanguage("css", css);
+SyntaxHighlighter.registerLanguage("bash", bash);
+SyntaxHighlighter.registerLanguage("sh", bash);
+SyntaxHighlighter.registerLanguage("shell", bash);
+SyntaxHighlighter.registerLanguage("json", json);
+SyntaxHighlighter.registerLanguage("yaml", yaml);
+SyntaxHighlighter.registerLanguage("yml", yaml);
+SyntaxHighlighter.registerLanguage("sql", sql);
+SyntaxHighlighter.registerLanguage("php", php);
+SyntaxHighlighter.registerLanguage("ruby", ruby);
+SyntaxHighlighter.registerLanguage("rb", ruby);
+SyntaxHighlighter.registerLanguage("swift", swift);
+SyntaxHighlighter.registerLanguage("kotlin", kotlin);
+SyntaxHighlighter.registerLanguage("kt", kotlin);
+SyntaxHighlighter.registerLanguage("scala", scala);
+SyntaxHighlighter.registerLanguage("xml", xml);
+SyntaxHighlighter.registerLanguage("html", xml);
+SyntaxHighlighter.registerLanguage("markdown", markdown);
+SyntaxHighlighter.registerLanguage("md", markdown);
+SyntaxHighlighter.registerLanguage("toml", toml);
+SyntaxHighlighter.registerLanguage("docker", docker);
+SyntaxHighlighter.registerLanguage("dockerfile", docker);
+SyntaxHighlighter.registerLanguage("nginx", nginx);
 
 function CopyButton({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
@@ -61,36 +109,6 @@ interface CodeBlockProps {
 }
 
 export const CodeBlock = memo(function CodeBlock({ language, code }: CodeBlockProps) {
-  const [SyntaxHighlighter, setSyntaxHighlighter] = useState<any>(null);
-  const [style, setStyle] = useState<any>(null);
-  const [, setLangDef] = useState<any>(undefined);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      // 并行加载 highlighter core + 语言定义
-      const [{ PrismLight }, { oneLight }, langModule] = await Promise.all([
-        import("react-syntax-highlighter/dist/esm/prism-light"),
-        import("react-syntax-highlighter/dist/esm/styles/prism/one-light"),
-        loadLanguage(language),
-      ]);
-
-      if (cancelled) return;
-
-      if (langModule) {
-        PrismLight.registerLanguage(language, langModule);
-      }
-
-      setSyntaxHighlighter(() => PrismLight);
-      setStyle(oneLight);
-      setLangDef(langModule);
-    }
-
-    load();
-    return () => { cancelled = true; };
-  }, [language]);
-
   return (
     <div className="relative group my-8">
       <div className="rounded-3xl overflow-hidden border-2 border-border-soft shadow-xl bg-slate-50">
@@ -106,36 +124,33 @@ export const CodeBlock = memo(function CodeBlock({ language, code }: CodeBlockPr
           <CopyButton code={code} />
         </div>
 
-        {SyntaxHighlighter && style ? (
-          <SyntaxHighlighter
-            style={style}
-            language={language}
-            PreTag="div"
-            customStyle={{
-              margin: 0,
-              padding: "1rem",
-              fontSize: "0.875rem",
-              lineHeight: "1.7",
+        <SyntaxHighlighter
+          style={{
+            ...oneLight,
+            'pre[class*="language-"]': {
+              ...oneLight['pre[class*="language-"]'],
               background: "#f8fafc",
-            }}
-          >
-            {code}
-          </SyntaxHighlighter>
-        ) : (
-          // 加载中：纯文本占位，避免 layout shift
-          <pre
-            style={{
-              margin: 0,
-              padding: "1rem",
-              fontSize: "0.875rem",
-              lineHeight: "1.7",
-              background: "#f8fafc",
-              overflowX: "auto",
-            }}
-          >
-            <code>{code}</code>
-          </pre>
-        )}
+            },
+            'code[class*="language-"]': {
+              ...oneLight['code[class*="language-"]'],
+              background: "none",
+              textShadow: "none",
+            },
+          }}
+          language={language}
+          PreTag="div"
+          customStyle={{
+            margin: 0,
+            padding: "1rem",
+            fontSize: "0.875rem",
+            lineHeight: "1.7",
+            background: "#f8fafc",
+            textIndent: 0,
+          }}
+          codeTagProps={{ style: { display: "block", background: "none" } }}
+        >
+          {code}
+        </SyntaxHighlighter>
       </div>
     </div>
   );

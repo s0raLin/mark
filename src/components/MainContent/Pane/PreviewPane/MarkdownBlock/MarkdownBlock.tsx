@@ -16,13 +16,14 @@ export function extractCodeBlocks(html: string): {
     /<pre[^>]*><code(?:\s+class="language-([^"]*)")?>([\s\S]*?)<\/code><\/pre>/g,
     (_, lang, rawCode) => {
       const language = lang || "text";
-      // 反转义 HTML 实体
+      // 反转义 HTML 实体，去除首尾空白（markdown 解析器会在 <code> 内容前后加换行）
       const code = rawCode
         .replace(/&lt;/g, "<")
         .replace(/&gt;/g, ">")
         .replace(/&amp;/g, "&")
         .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'");
+        .replace(/&#39;/g, "'")
+        .trim();
       const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
       codeBlocks.push({ lang: language, code, placeholder });
       return `<div data-code-placeholder="${placeholder}"></div>`;
