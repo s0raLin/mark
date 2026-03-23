@@ -139,6 +139,15 @@ const markdownCompletions = (context: CompletionContext) => {
   };
 };
 
+// 可编辑的文本扩展名白名单（与 useMarkdownSync 保持一致）
+const EDITABLE_EXTENSIONS = new Set([
+  "md", "txt", "markdown", "mdown", "mkd",
+  "json", "yaml", "yml", "toml", "xml",
+  "js", "ts", "jsx", "tsx", "css", "html", "htm",
+  "sh", "bash", "py", "go", "rs", "java", "c", "cpp", "h",
+  "csv", "log", "env", "gitignore",
+]);
+
 export default function EditorPane({
   markdown,
   setMarkdown,
@@ -151,6 +160,7 @@ export default function EditorPane({
 
   // 根据文件扩展名选择语言扩展
   const ext = (fileName ?? "").includes(".") ? fileName.split(".").pop()!.toLowerCase() : "md";
+  const isBinary = fileName ? !EDITABLE_EXTENSIONS.has(ext) : false;
 
   const editorExtensions = useMemo(
     () => {
@@ -223,7 +233,14 @@ export default function EditorPane({
         <Toolbar editorRef={editorRef} />
       </div>
       <div className="flex-1 min-h-0 overflow-hidden relative z-10">
-        <CodeMirror
+        {isBinary ? (
+          <div className="h-full flex flex-col items-center justify-center gap-3 text-slate-400 select-none">
+            <span className="text-4xl">🗂️</span>
+            <p className="text-sm font-medium">不支持预览此文件类型</p>
+            <p className="text-xs opacity-60">{fileName}</p>
+          </div>
+        ) : (
+          <CodeMirror
           ref={editorRef}
           value={markdown}
           height="100%"
@@ -257,6 +274,7 @@ export default function EditorPane({
             lintKeymap: true,
           }}
         />
+        )}
       </div>
     </section>
   );

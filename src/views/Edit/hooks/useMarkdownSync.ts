@@ -13,6 +13,20 @@ export interface UseMarkdownSyncProps {
   setNodes: React.Dispatch<React.SetStateAction<import("@/types/filesystem").FileNode[]>>;
 }
 
+// 可编辑的文本扩展名白名单
+const TEXT_EXTENSIONS = new Set([
+  "md", "txt", "markdown", "mdown", "mkd",
+  "json", "yaml", "yml", "toml", "xml",
+  "js", "ts", "jsx", "tsx", "css", "html", "htm",
+  "sh", "bash", "py", "go", "rs", "java", "c", "cpp", "h",
+  "csv", "log", "env", "gitignore",
+]);
+
+function isTextFile(fileId: string): boolean {
+  const ext = fileId.split(".").pop()?.toLowerCase() ?? "";
+  return TEXT_EXTENSIONS.has(ext);
+}
+
 export function useMarkdownSync({
   activeFileId,
   activeFileType,
@@ -22,8 +36,13 @@ export function useMarkdownSync({
   const fileContentsRef = useRef<Record<string, string>>({});
 
   useEffect(() => {
-    // 只对文件类型请求内容，文件夹跳过
     if (!activeFileId || activeFileType === "folder") return;
+
+    // 二进制/不支持的文件类型直接跳过，不发请求
+    if (!isTextFile(activeFileId)) {
+      setMarkdown("");
+      return;
+    }
 
     const load = async () => {
       try {
@@ -48,6 +67,8 @@ export function useMarkdownSync({
   const saveToBackend = useCallback(
     (newMarkdown: string) => {
       if (!activeFileId) return;
+      // 非文本文件不写回
+      if (!isTextFile(activeFileId)) return;
       fileContentsRef.current[activeFileId] = newMarkdown;
       setNodes((prev) =>
         prev.map((n) =>

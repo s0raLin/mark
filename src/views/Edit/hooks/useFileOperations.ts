@@ -313,60 +313,73 @@ export function useFileOperations({
       if (!node) return;
       const name = node.name;
       const newId = newParentId ? `${newParentId}/${name}` : name;
-      const oldParentId = node.parentId;
 
-      // 乐观更新所有受影响的 ID
-      const updateIds = (oldPrefix: string, newPrefix: string, newParent: string | null) => {
-        setNodes(prev => prev.map(n => {
-          if (n.id === oldPrefix) return { ...n, id: newPrefix, parentId: newParent, updatedAt: Date.now() };
-          if (n.id.startsWith(oldPrefix + "/")) return { ...n, id: newPrefix + n.id.slice(oldPrefix.length) };
-          if (n.parentId === oldPrefix) return { ...n, parentId: newPrefix };
-          if (n.parentId?.startsWith(oldPrefix + "/")) return { ...n, parentId: newPrefix + n.parentId.slice(oldPrefix.length) };
-          return n;
-        }));
-        setPinnedIds(prev => prev.map(p => p === oldPrefix ? newPrefix : p.startsWith(oldPrefix + "/") ? newPrefix + p.slice(oldPrefix.length) : p));
-        setExpandedFolders(prev => {
-          const next = new Set<string>();
-          for (const f of prev) next.add(f === oldPrefix ? newPrefix : f.startsWith(oldPrefix + "/") ? newPrefix + f.slice(oldPrefix.length) : f);
-          return next;
-        });
-        if (activeFileId === oldPrefix || activeFileId.startsWith(oldPrefix + "/")) {
-          setActiveFileId(activeFileId === oldPrefix ? newPrefix : newPrefix + activeFileId.slice(oldPrefix.length));
-        }
+      // helper: remap a single id string
+      const remapId = (s: string, oldPrefix: string, newPrefix: string) => {
+        if (s === oldPrefix) return newPrefix;
+        if (s.startsWith(oldPrefix + "/")) return newPrefix + s.slice(oldPrefix.length);
+        return s;
       };
 
-      // 从原位置移除
-      setExplorerOrder(prev => prev.filter(e => e !== id));
-      setFolderOrder(prev => {
-        const next: Record<string, string[]> = {};
-        for (const [k, v] of Object.entries(prev)) next[k] = v.filter(e => e !== id);
+      // 一次性完成所有状态更新，避免多次 setState 之间的竞态
+      setNodes(prev => prev.map(n => {
+        if (n.id === id) return { ...n, id: newId, parentId: newParentId, updatedAt: Date.now() };
+        if (n.id.startsWith(id + "/")) return { ...n, id: newId + n.id.slice(id.length), parentId: n.parentId === id ? newId : remapId(n.parentId!, id, newId) };
+        return n;
+      }));
+
+      setPinnedIds(prev => prev.map(p => remapId(p, id, newId)));
+
+      setExpandedFolders(prev => {
+        const next = new Set<string>();
+        for (const f of prev) next.add(remapId(f, id, newId));
+        if (newParentId) next.add(newParentId);
         return next;
       });
 
-      updateIds(id, newId, newParentId);
+      if (activeFileId === id || activeFileId.startsWith(id + "/")) {
+        setActiveFileId(remapId(activeFileId, id, newId));
+      }
 
-      // 插入到新位置
-      if (newParentId === null) {
-        setExplorerOrder(prev => {
-          const next = prev.filter(e => e !== newId);
+      // 更新排序表：同时处理 key 重命名和条目移除/插入
+      setExplorerOrder(prev => {
+        // 先把旧 id 从根列表移除
+        let next = prev.filter(e => e !== id);
+        // 如果目标是根级别，插入到正确位置
+        if (newParentId === null) {
+          next = next.filter(e => e !== newId);
           if (insertBeforeId) {
             const idx = next.indexOf(insertBeforeId);
             if (idx >= 0) { next.splice(idx, 0, newId); return next; }
           }
           return [...next, newId];
-        });
-      } else {
-        setFolderOrder(prev => {
-          const list = (prev[newParentId] ?? []).filter(e => e !== newId);
+        }
+        return next;
+      });
+
+      setFolderOrder(prev => {
+        const next: Record<string, string[]> = {};
+        for (const [k, v] of Object.entries(prev)) {
+          // 重命名 key（被移动的文件夹自身及其子文件夹的 key）
+          const newKey = remapId(k, id, newId);
+          // 从原父级列表中移除旧 id
+          const filtered = v.filter(e => e !== id);
+          next[newKey] = filtered;
+        }
+        // 插入到目标文件夹
+        if (newParentId !== null) {
+          const list = (next[newParentId] ?? []).filter(e => e !== newId);
           if (insertBeforeId) {
             const idx = list.indexOf(insertBeforeId);
             if (idx >= 0) list.splice(idx, 0, newId);
             else list.push(newId);
-          } else list.push(newId);
-          return { ...prev, [newParentId]: list };
-        });
-        setExpandedFolders(prev => new Set([...prev, newParentId]));
-      }
+          } else {
+            list.push(newId);
+          }
+          next[newParentId] = list;
+        }
+        return next;
+      });
 
       // 调用后端
       moveNodeOnServer(id, newParentId ?? "").catch(err => {

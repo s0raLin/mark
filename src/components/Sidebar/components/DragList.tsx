@@ -171,8 +171,9 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
     if (!container) return;
     const cRect = container.getBoundingClientRect();
 
-    // Extend bounds: 28px above, 48px below (to catch "append to end" zone), 32px sides
-    const inBounds = clientY >= cRect.top - 28 && clientY <= cRect.bottom + 48 &&
+    // Strict bounds check (no extension) — ensures parent DragList can reclaim ownership
+    // when cursor moves outside a nested container
+    const inBounds = clientY >= cRect.top && clientY <= cRect.bottom &&
                      clientX >= cRect.left - 32 && clientX <= cRect.right + 64;
 
     if (!inBounds) {
@@ -215,9 +216,29 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
       return;
     }
 
-    // Hover over folder row → drop into
+    // Hover over folder row → drop into (only middle 50% of row triggers "into", edges trigger reorder)
     for (const info of rects) {
       if (info.node.type === "folder" && clientY >= info.top && clientY <= info.bottom) {
+        const rowHeight = info.bottom - info.top;
+        const edgeZone = Math.min(rowHeight * 0.28, 10); // top/bottom 28% or 10px triggers reorder
+        if (clientY < info.top + edgeZone) {
+          // top edge → insert before this folder
+          applyInto(null);
+          applyMargin(info.idx, "top");
+          localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: info.node.id };
+          return;
+        }
+        if (clientY > info.bottom - edgeZone) {
+          // bottom edge → insert after this folder
+          applyInto(null);
+          applyMargin(info.idx, "bottom");
+          // find the next sibling in rects (skip the dragged node)
+          const rectsIdx = rects.findIndex(r => r.idx === info.idx);
+          const nextRect = rects[rectsIdx + 1];
+          localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: nextRect?.node.id ?? null };
+          return;
+        }
+        // middle → drop into folder
         applyMargin(null, null);
         applyInto(info.idx);
         localDropRef.current = { kind: "into", folderId: info.node.id };

@@ -87,13 +87,7 @@ export default function MainContent({
         <PreviewPane
           previewRef={previewRef}
           markdown={markdown}
-          headings={headings}
-          checkStates={checkStates}
-          checkIndexRef={checkIndexRef}
-          renderHeadingIndexRef={renderHeadingIndexRef}
-          updateCheckState={updateCheckState}
           previewTheme={previewTheme}
-          registerHeadingRef={registerHeadingRef}
         />
       )}
 
