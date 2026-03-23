@@ -1,4 +1,4 @@
-export const INITIAL_MARKDOWN = `# Getting Started with StudioMark
+export const INITIAL_MARKDOWN = `# Getting Started with NoteMark
 
 This is a modern markdown editor with live preview capabilities.
 

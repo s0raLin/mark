@@ -1,9 +1,9 @@
 {
-  "name": "studiomark",
+  "name": "note_mark",
   "private": true,
   "version": "1.0.0",
   "description": "A modern, cute Markdown editor with live preview and custom styling",
-  "author": "StudioMark Team",
+  "author": "CangLi",
   "type": "module",
   "main": "dist-electron/index.js",
   "pnpm": {
@@ -79,8 +79,8 @@
     "vite": "^6.2.0"
   },
   "build": {
-    "appId": "com.studiomark.app",
-    "productName": "StudioMark",
+    "appId": "com.notemark.app",
+    "productName": "NoteMark",
     "electronDist": "node_modules/electron/dist",
     "asar": true,
     "npmRebuild": false,

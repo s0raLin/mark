@@ -13,6 +13,8 @@ export default function MainContent({
   editorTheme,
   previewTheme,
   fontChoice,
+  editorFont,
+  activeFileName,
 }: MainContentProps) {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [activeOutlineId, setActiveOutlineId] = useState<string | null>(null);
@@ -49,15 +51,15 @@ export default function MainContent({
 
   // 保存主题设置到 localStorage
   useEffect(() => {
-    localStorage.setItem("studiomark_editor_theme", editorTheme);
+    localStorage.setItem("notemark_editor_theme", editorTheme);
   }, [editorTheme]);
 
   useEffect(() => {
-    localStorage.setItem("studiomark_preview_theme", previewTheme);
+    localStorage.setItem("notemark_preview_theme", previewTheme);
   }, [previewTheme]);
 
   useEffect(() => {
-    localStorage.setItem("studiomark_font_choice", fontChoice);
+    localStorage.setItem("notemark_font_choice", fontChoice);
     document.documentElement.style.setProperty(
       "--font-display",
       fontChoice === "Quicksand"
@@ -75,6 +77,8 @@ export default function MainContent({
           setMarkdown={setMarkdown}
           editorTheme={editorTheme}
           editorRef={editorRef}
+          editorFont={editorFont}
+          fileName={activeFileName}
         />
       )}
 

@@ -13,16 +13,16 @@ import (
 )
 
 // appDataDir 返回平台对应的应用数据目录
-// Linux:   ~/.config/studiomark
-// Windows: %APPDATA%\studiomark
-// macOS:   ~/Library/Application Support/studiomark
+// Linux:   ~/.config/notemark
+// Windows: %APPDATA%\notemark
+// macOS:   ~/Library/Application Support/notemark
 func appDataDir() string {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		// 降级到当前目录
 		base = "."
 	}
-	return filepath.Join(base, "studiomark")
+	return filepath.Join(base, "notemark")
 }
 
 // FilesRootDir 文件存储根目录

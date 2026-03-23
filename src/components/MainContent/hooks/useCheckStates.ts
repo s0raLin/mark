@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { CheckStates } from "../types";
 
-const CHECKS_KEY = "studiomark_checks_global";
+const CHECKS_KEY = "notemark_checks_global";
 
 export function useCheckStates() {
   const [checkStates, setCheckStates] = useState<CheckStates>(() => {

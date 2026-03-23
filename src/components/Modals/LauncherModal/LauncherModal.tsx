@@ -181,7 +181,7 @@ export function LauncherModal({
             <span className="w-5 h-5 flex items-center justify-center bg-slate-200 rounded text-[9px] font-bold">Esc</span>
             关闭
           </span>
-          <span className="text-xs font-bold text-primary">StudioMark</span>
+          <span className="text-xs font-bold text-primary">NoteMark</span>
         </footer>
       </motion.div>
     </motion.div>

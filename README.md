@@ -1,4 +1,4 @@
-# StudioMark ✨
+# NoteMark ✨
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-19.0.0-61DAFB?style=flat&logo=react" alt="React">
@@ -9,18 +9,18 @@
 </p>
 
 <p align="center">
-  <strong>StudioMark</strong> — 一个现代化、可爱风格的 Markdown 编辑器，支持实时预览、自动同步和自定义主题。
+  <strong>NoteMark</strong> — 一个现代化、可爱风格的 Markdown 编辑器，支持实时预览、自动同步和自定义主题。
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/StudioMark/studiomark/main/public/favicon.svg" width="128" height="128" alt="StudioMark Logo">
+  <img src="https://raw.githubusercontent.com/notemark/notemark/main/public/favicon.svg" width="128" height="128" alt="notemark Logo">
 </p>
 
 ---
 
 ## 📺 演示
 
-![StudioMark Editor](https://via.placeholder.com/800x450/f8fafc/e2e8f0?text=StudioMark+Editor+Demo)
+![NoteMark Editor](https://via.placeholder.com/800x450/f8fafc/e2e8f0?text=notemark+Editor+Demo)
 
 ---
 
@@ -142,7 +142,7 @@ pnpm build
 ## 📁 项目结构
 
 ```
-studiomark/
+notemark/
 ├── public/                 # 静态资源
 │   └── uploads/           # 上传的图片
 ├── server/                # Go 后端

@@ -33,7 +33,7 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: https:;">
     <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
-    <title>StudioMark Export</title>
+    <title>NoteMark Export</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -75,7 +75,7 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "studiomark-export.html";
+      a.download = "notemark-export.html";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
