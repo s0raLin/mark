@@ -71,7 +71,7 @@ function startGoServer(): Promise<void> {
     console.log('Starting Go server from:', goServerPath);
 
     const env = { ...process.env, PORT: String(API_PORT) };
-    const serverBinary = path.join(goServerPath, 'server');
+    const serverBinary = path.join(goServerPath, process.platform === 'win32' ? 'server.exe' : 'server');
 
     goServer = spawn(serverBinary, [], { cwd: goServerPath, env });
 
