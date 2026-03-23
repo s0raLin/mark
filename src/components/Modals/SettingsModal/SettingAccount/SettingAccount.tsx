@@ -8,13 +8,13 @@ const LANGUAGES = [
   { code: "ja", labelKey: "account.langJa" },
 ] as const;
 
-export default function SettingAccount() {
-  const { t, i18n } = useTranslation();
+interface SettingAccountProps {
+  draftLang: string;
+  setDraftLang: (lang: string) => void;
+}
 
-  const handleLangChange = (code: string) => {
-    i18n.changeLanguage(code);
-    localStorage.setItem("notemark-lang", code);
-  };
+export default function SettingAccount({ draftLang, setDraftLang }: SettingAccountProps) {
+  const { t } = useTranslation();
 
   return (
     <div className="space-y-12">
@@ -61,10 +61,10 @@ export default function SettingAccount() {
             {LANGUAGES.map(({ code, labelKey }) => (
               <button
                 key={code}
-                onClick={() => handleLangChange(code)}
+                onClick={() => setDraftLang(code)}
                 className={cn(
                   "flex-1 py-3 rounded-2xl text-sm font-bold transition-all border-2",
-                  i18n.language === code
+                  draftLang === code
                     ? "bg-primary text-white border-primary shadow-lg shadow-primary/30"
                     : "bg-white text-slate-500 border-pink-100 hover:border-primary/40 hover:text-primary",
                 )}
@@ -80,15 +80,11 @@ export default function SettingAccount() {
         <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white shadow-xl shadow-primary/30 mb-4">
           <Edit3 className="w-8 h-8" />
         </div>
-        <h2 className="text-xl font-black text-slate-800 mb-1">
-          NoteBuddy Pro
-        </h2>
+        <h2 className="text-xl font-black text-slate-800 mb-1">NoteBuddy Pro</h2>
         <p className="text-primary font-bold uppercase tracking-[0.3em] text-[10px] mb-4">
           {t("account.version")}
         </p>
-        <p className="text-xs text-slate-400 max-w-xs">
-          {t("account.tagline")}
-        </p>
+        <p className="text-xs text-slate-400 max-w-xs">{t("account.tagline")}</p>
       </section>
     </div>
   );

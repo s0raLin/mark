@@ -10,7 +10,6 @@ import SettingEditor from "./SettingEditor/SettingEditor";
 import SettingExport from "./SettingExport/SettingExport";
 import SettingAccount from "./SettingAccount/SettingAccount";
 
-// 所有可设置项的快照类型
 interface SettingsSnapshot {
   editorTheme: string;
   previewTheme: string;
@@ -24,6 +23,7 @@ interface SettingsSnapshot {
   blurAmount: number;
   bgImage: string;
   customFonts: { name: string; url: string }[];
+  lang: string;
 }
 
 const DEFAULT_SETTINGS: SettingsSnapshot = {
@@ -39,6 +39,7 @@ const DEFAULT_SETTINGS: SettingsSnapshot = {
   bgImage: "",
   particlesOn: false,
   customFonts: [],
+  lang: "en",
 };
 
 interface SettingsModalProps {
@@ -67,6 +68,8 @@ interface SettingsModalProps {
   setBgImage: (url: string) => void;
   customFonts: { name: string; url: string }[];
   addCustomFont: (font: { name: string; url: string }) => void;
+  lang: string;
+  setLang: (lang: string) => void;
 }
 
 export function SettingsModal({
@@ -83,33 +86,35 @@ export function SettingsModal({
   blurAmount, setBlurAmount,
   bgImage, setBgImage,
   customFonts, addCustomFont,
+  lang, setLang,
 }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState("general");
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
-  // 草稿 state：打开时快照当前值，操作只改草稿，不影响父级
   const [draft, setDraft] = useState<SettingsSnapshot>(() => ({
     editorTheme, previewTheme, particlesOn,
     fontChoice, editorFont, accentColor,
     fontSize, editorFontSize, previewFontSize,
     blurAmount, bgImage, customFonts,
+    lang,
   }));
 
-  // 已保存的快照，用于判断是否有未保存的改动
   const [saved, setSaved] = useState<SettingsSnapshot>(() => ({
     editorTheme, previewTheme, particlesOn,
     fontChoice, editorFont, accentColor,
     fontSize, editorFontSize, previewFontSize,
     blurAmount, bgImage, customFonts,
+    lang,
   }));
 
+  // isDirty：draft 与上次保存的值比较
   const isDirty = JSON.stringify(draft) !== JSON.stringify(saved);
 
   // 草稿 setter 工厂
   const set = <K extends keyof SettingsSnapshot>(key: K) =>
     (val: SettingsSnapshot[K]) => setDraft(prev => ({ ...prev, [key]: val }));
 
-  // 保存：把草稿 commit 到父级，不关闭
+  // 保存：把草稿 commit 到父级
   const handleSave = () => {
     setEditorTheme(draft.editorTheme);
     setPreviewTheme(draft.previewTheme);
@@ -125,13 +130,17 @@ export function SettingsModal({
     for (const font of draft.customFonts) {
       if (!customFonts.find(f => f.name === font.name)) addCustomFont(font);
     }
+    // 语言切换在保存时生效
+    if (draft.lang !== i18n.language) {
+      i18n.changeLanguage(draft.lang);
+    }
+    setLang(draft.lang);
     setSaved({ ...draft });
   };
 
-  // 恢复默认：把草稿重置为默认值
+  // 恢复默认：只改草稿，需要点保存才生效
   const handleReset = () => setDraft({ ...DEFAULT_SETTINGS });
 
-  // 关闭（不保存）：直接关，草稿丢弃，父级 state 未变
   const handleClose = () => onClose();
 
   const tabs = useMemo(
@@ -178,7 +187,6 @@ export function SettingsModal({
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar */}
           <aside className="w-64 border-r border-dashed border-pink-100 bg-white/30 p-6 flex flex-col gap-2">
             {tabs.map((tab) => (
               <button
@@ -197,7 +205,6 @@ export function SettingsModal({
             ))}
           </aside>
 
-          {/* Content — 全部操作草稿 draft */}
           <div className="flex-1 overflow-y-auto p-10">
             {activeTab === "general" && <General />}
 
@@ -234,12 +241,16 @@ export function SettingsModal({
             )}
 
             {activeTab === "export" && <SettingExport />}
-            {activeTab === "account" && <SettingAccount />}
+            {activeTab === "account" && (
+              <SettingAccount
+                draftLang={draft.lang}
+                setDraftLang={set("lang")}
+              />
+            )}
           </div>
         </div>
 
         <footer className="flex items-center justify-between gap-4 p-6 bg-slate-50/50 border-t border-dashed border-pink-100 shrink-0">
-          {/* 左侧：恢复默认 */}
           <button
             onClick={handleReset}
             className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-400 hover:text-rose-400 transition-colors rounded-2xl hover:bg-rose-50"
@@ -248,7 +259,6 @@ export function SettingsModal({
             {t("settings.resetSpace")}
           </button>
 
-          {/* 右侧：取消 + 保存 */}
           <div className="flex items-center gap-3">
             <button
               onClick={handleClose}

@@ -1,19 +1,20 @@
 import { useState } from "react";
 import { FileText, X, AlertCircle } from "lucide-react";
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 
 interface SaveAsModalProps {
   markdown: string;
   onClose: () => void;
 }
+
 export function SaveAsModal({ markdown, onClose }: SaveAsModalProps) {
+  const { t } = useTranslation();
   const [fileName, setFileName] = useState("Documentation");
   const [fileType, setFileType] = useState(".md");
 
   const handleSave = () => {
-    const fullFileName = fileName.endsWith(fileType)
-      ? fileName
-      : `${fileName}${fileType}`;
+    const fullFileName = fileName.endsWith(fileType) ? fileName : `${fileName}${fileType}`;
     const blob = new Blob([markdown], {
       type: fileType === ".md" ? "text/markdown" : "text/plain",
     });
@@ -47,7 +48,7 @@ export function SaveAsModal({ markdown, onClose }: SaveAsModalProps) {
               <FileText className="w-5 h-5" />
             </div>
             <h2 className="text-lg font-bold tracking-tight text-slate-800">
-              Save As...
+              {t("saveAs.title")}
             </h2>
           </div>
           <button
@@ -61,7 +62,7 @@ export function SaveAsModal({ markdown, onClose }: SaveAsModalProps) {
         <div className="p-8 space-y-6">
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">
-              File Name
+              {t("saveAs.fileName")}
             </label>
             <div className="flex gap-2">
               <input
@@ -69,7 +70,7 @@ export function SaveAsModal({ markdown, onClose }: SaveAsModalProps) {
                 value={fileName}
                 onChange={(e) => setFileName(e.target.value)}
                 className="flex-1 bg-white border-2 border-border-soft rounded-xl px-4 py-3 text-sm font-bold focus:ring-primary focus:border-primary transition-all outline-none"
-                placeholder="Enter filename..."
+                placeholder={t("saveAs.fileNamePlaceholder")}
                 autoFocus
               />
               <select
@@ -87,12 +88,11 @@ export function SaveAsModal({ markdown, onClose }: SaveAsModalProps) {
             <div className="flex items-center gap-3 text-primary">
               <AlertCircle className="w-4 h-4" />
               <p className="text-[11px] font-bold uppercase tracking-wider">
-                Storage Info
+                {t("saveAs.storageInfo")}
               </p>
             </div>
             <p className="text-xs text-slate-500 mt-2 font-medium leading-relaxed">
-              Saving will download a copy to your device. The cloud version will
-              remain synced to your current session.
+              {t("saveAs.storageDesc")}
             </p>
           </div>
         </div>
@@ -102,13 +102,13 @@ export function SaveAsModal({ markdown, onClose }: SaveAsModalProps) {
             onClick={onClose}
             className="flex-1 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-all"
           >
-            Cancel
+            {t("saveAs.cancel")}
           </button>
           <button
             onClick={handleSave}
             className="flex-1 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-pink-200/50 hover:brightness-105 active:scale-[0.98] transition-all"
           >
-            Save File
+            {t("saveAs.save")}
           </button>
         </div>
       </motion.div>

@@ -20,10 +20,9 @@ export default function MainContent({
   const [activeOutlineId, setActiveOutlineId] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // 使用拆分出来的 hooks
   const headings = useHeadings(markdown);
-  const { checkStates, checkIndexRef, updateCheckState } = useCheckStates();
-  const { registerHeadingRef, scrollToSection } = useScrollSync({
+  const { checkIndexRef } = useCheckStates();
+  const { scrollToSection } = useScrollSync({
     headings,
     viewMode,
     previewRef,
@@ -31,14 +30,12 @@ export default function MainContent({
   });
 
   const renderHeadingIndexRef = useRef(0);
-  renderHeadingIndexRef.current = 0; // 每次 render 重置
+  renderHeadingIndexRef.current = 0;
 
   const editorRef = useRef<ReactCodeMirrorRef>(null);
 
-  // Expose editorRef to parent toolbarRef
   useImperativeHandle(toolbarRef, () => editorRef.current!, []);
 
-  // 点击外部关闭菜单
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (activeMenu && !(e.target as HTMLElement).closest(".menu-container")) {
@@ -49,28 +46,8 @@ export default function MainContent({
     return () => window.removeEventListener("click", handleClickOutside);
   }, [activeMenu]);
 
-  // 保存主题设置到 localStorage
-  useEffect(() => {
-    localStorage.setItem("notemark_editor_theme", editorTheme);
-  }, [editorTheme]);
-
-  useEffect(() => {
-    localStorage.setItem("notemark_preview_theme", previewTheme);
-  }, [previewTheme]);
-
-  useEffect(() => {
-    localStorage.setItem("notemark_font_choice", fontChoice);
-    document.documentElement.style.setProperty(
-      "--font-display",
-      fontChoice === "Quicksand"
-        ? '"Quicksand", sans-serif'
-        : `"${fontChoice}", sans-serif`,
-    );
-  }, [fontChoice]);
-
   return (
     <div className="flex h-full w-full overflow-hidden">
-      {/* Editor Pane */}
       {(viewMode === "split" || viewMode === "editor") && (
         <EditorPane
           markdown={markdown}
@@ -82,7 +59,6 @@ export default function MainContent({
         />
       )}
 
-      {/* Preview Pane */}
       {(viewMode === "split" || viewMode === "preview") && (
         <PreviewPane
           previewRef={previewRef}
@@ -91,7 +67,6 @@ export default function MainContent({
         />
       )}
 
-      {/* Outline Sidebar */}
       <Outline
         headings={headings}
         activeOutlineId={activeOutlineId}

@@ -110,8 +110,7 @@ async function createWindow() {
   if (!isPackaged) {
     win.webContents.openDevTools();
   } else {
-    // 临时：打包版也开 DevTools 方便排查
-    // win.webContents.openDevTools();
+    win.webContents.openDevTools();
   }
 
   win.webContents.on('did-fail-load', (_e, code, desc) => {

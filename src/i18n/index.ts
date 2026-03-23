@@ -4,15 +4,13 @@ import en from "./locales/en";
 import zh from "./locales/zh";
 import ja from "./locales/ja";
 
-const savedLang = localStorage.getItem("notemark-lang") || "en";
-
 i18n.use(initReactI18next).init({
   resources: {
     en: { translation: en },
     zh: { translation: zh },
     ja: { translation: ja },
   },
-  lng: savedLang,
+  lng: "en",
   fallbackLng: "en",
   interpolation: { escapeValue: false },
 });

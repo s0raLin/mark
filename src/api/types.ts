@@ -63,6 +63,7 @@ export interface StorageEditorConfig {
   blurAmount: number;
   bgImage: string;
   particlesOn: boolean;
+  lang: string;
   customFonts: Array<{ name: string; url: string }>;
 }
 

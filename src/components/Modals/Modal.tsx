@@ -43,6 +43,8 @@ interface ModalProps {
   setBgImage: (url: string) => void;
   customFonts: { name: string; url: string }[];
   addCustomFont: (font: { name: string; url: string }) => void;
+  lang: string;
+  setLang: React.Dispatch<React.SetStateAction<string>>;
   nodes: FileNode[];
   onOpenFile: (id: string) => void;
   onLauncherSearch?: () => void;
@@ -84,6 +86,8 @@ export default function Modal({
   setBgImage,
   customFonts,
   addCustomFont,
+  lang,
+  setLang,
   nodes,
   onOpenFile,
   onLauncherSearch,
@@ -151,6 +155,8 @@ export default function Modal({
             setBgImage={setBgImage}
             customFonts={customFonts}
             addCustomFont={addCustomFont}
+            lang={lang}
+            setLang={setLang}
           />
         )}
         {modal === "search" && (

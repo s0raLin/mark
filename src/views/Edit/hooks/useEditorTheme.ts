@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { EditorTheme, PreviewTheme, FontChoice } from "@/types/editor";
 import type { StorageEditorConfig } from "../../../api/types";
+import i18n from "../../../i18n";
 
 export interface UseEditorThemeProps {
   initialConfig?: StorageEditorConfig | null;
@@ -19,6 +20,7 @@ export interface UseEditorThemeReturn {
   bgImage: string;
   particlesOn: boolean;
   darkMode: boolean;
+  lang: string;
   customFonts: Array<{ name: string; url: string }>;
   setEditorTheme: React.Dispatch<React.SetStateAction<EditorTheme>>;
   setPreviewTheme: React.Dispatch<React.SetStateAction<PreviewTheme>>;
@@ -32,6 +34,7 @@ export interface UseEditorThemeReturn {
   setBgImage: React.Dispatch<React.SetStateAction<string>>;
   setParticlesOn: React.Dispatch<React.SetStateAction<boolean>>;
   setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+  setLang: React.Dispatch<React.SetStateAction<string>>;
   addCustomFont: (font: { name: string; url: string }) => void;
   removeCustomFont: (name: string) => void;
 }
@@ -51,6 +54,7 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
     blurAmount: 0,
     bgImage: "",
     particlesOn: false,
+    lang: "en",
     customFonts: [],
   };
 
@@ -61,7 +65,6 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
   const [fontChoice, setFontChoice] = useState<FontChoice>(() => config.fontChoice as FontChoice);
   const [editorFont, setEditorFont] = useState<string>(() => config.editorFont ?? "JetBrains Mono");
   const [fontSize, setFontSize] = useState<number>(() => config.fontSize || 16);
-  // 向后兼容：旧数据没有 editorFontSize/previewFontSize 时，用 fontSize 作为默认值
   const [editorFontSize, setEditorFontSize] = useState<number>(() => config.editorFontSize || config.fontSize || 14);
   const [previewFontSize, setPreviewFontSize] = useState<number>(() => config.previewFontSize || config.fontSize || 16);
   const [accentColor, setAccentColor] = useState<string>(() => config.accentColor);
@@ -69,6 +72,7 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
   const [bgImage, setBgImage] = useState<string>(() => config.bgImage);
   const [particlesOn, setParticlesOn] = useState<boolean>(() => config.particlesOn);
   const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [lang, setLang] = useState<string>(() => config.lang || "en");
   const [customFonts, setCustomFonts] = useState<Array<{ name: string; url: string }>>(() => config.customFonts ?? []);
 
   const hasInitialized = useRef(false);
@@ -86,6 +90,9 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
     setBlurAmount(initialConfig.blurAmount);
     setBgImage(initialConfig.bgImage);
     setParticlesOn(initialConfig.particlesOn);
+    const savedLang = initialConfig.lang || "en";
+    setLang(savedLang);
+    i18n.changeLanguage(savedLang);
     setCustomFonts(initialConfig.customFonts ?? []);
     for (const font of initialConfig.customFonts ?? []) {
       const styleId = `custom-font-${font.name.replace(/\s/g, "-")}`;
@@ -159,10 +166,10 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
   return {
     editorTheme, previewTheme, fontChoice, editorFont,
     fontSize, editorFontSize, previewFontSize,
-    accentColor, blurAmount, bgImage, particlesOn, darkMode, customFonts,
+    accentColor, blurAmount, bgImage, particlesOn, darkMode, lang, customFonts,
     setEditorTheme, setPreviewTheme, setFontChoice, setEditorFont,
     setFontSize, setEditorFontSize, setPreviewFontSize,
-    setAccentColor, setBlurAmount, setBgImage, setParticlesOn, setDarkMode,
+    setAccentColor, setBlurAmount, setBgImage, setParticlesOn, setDarkMode, setLang,
     addCustomFont, removeCustomFont,
   };
 }

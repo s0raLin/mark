@@ -63,6 +63,7 @@ type StorageEditorConfig struct {
 	BlurAmount      float64 `json:"blurAmount"`
 	BgImage         string  `json:"bgImage"`
 	ParticlesOn     bool    `json:"particlesOn"`
+	Lang            string  `json:"lang"`
 	CustomFonts     []struct {
 		Name string `json:"name"`
 		URL  string `json:"url"`

@@ -3,6 +3,7 @@ import { ChevronRight, FileText, Folder, Search, X, Filter, Calendar } from "luc
 import { motion } from "motion/react";
 import { cn } from "@/utils/cn";
 import { searchFiles } from "@/api";
+import { useTranslation } from "react-i18next";
 import type { FileNode } from "@/types/filesystem";
 
 interface SearchResult {
@@ -20,6 +21,7 @@ interface SearchModalProps {
 }
 
 export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [rawResults, setRawResults] = useState<SearchResult[]>([]);
   const [selectedIdx, setSelectedIdx] = useState(0);
@@ -38,7 +40,6 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // 防抖搜索
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!query.trim()) { setRawResults([]); setSelectedIdx(0); return; }
@@ -46,7 +47,6 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
       setIsLoading(true);
       try {
         const data = await searchFiles(query.trim());
-        // 把 nodes 里的 updatedAt 合并进来，用于日期过滤
         const enriched = data.map(r => ({
           ...r,
           updatedAt: nodes.find(n => n.id === r.id)?.updatedAt,
@@ -62,17 +62,13 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query, nodes]);
 
-  // 重置选中索引当过滤条件变化
   useEffect(() => { setSelectedIdx(0); }, [selectedType, dateRange]);
 
-  // 应用 type + date 过滤
   const results = rawResults.filter(r => {
-    // type 过滤：按文件扩展名
     if (selectedType !== "all") {
       const ext = r.name.includes(".") ? "." + r.name.split(".").pop()!.toLowerCase() : "";
       if (ext !== selectedType) return false;
     }
-    // date 过滤：按 updatedAt
     if (dateRange !== "all" && r.updatedAt) {
       const now = Date.now();
       const diff = now - r.updatedAt;
@@ -130,6 +126,13 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
     return true;
   });
 
+  const dateLabels: Record<string, string> = {
+    all: t("search.dateAll"),
+    today: t("search.dateToday"),
+    week: t("search.dateWeek"),
+    month: t("search.dateMonth"),
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -151,7 +154,7 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
           <input
             ref={inputRef}
             type="text"
-            placeholder="Search notes, files, or commands..."
+            placeholder={t("search.placeholder")}
             className="flex-1 bg-transparent border-none outline-none text-lg font-medium text-slate-700 placeholder:text-slate-400"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -172,7 +175,7 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
               <Filter className="w-3 h-3" />
-              Type
+              {t("search.filterType")}
             </div>
             <div className="flex gap-1">
               {["all", ".md", ".txt", ".json"].map((type) => (
@@ -186,7 +189,7 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
                       : "bg-white text-slate-500 hover:bg-rose-50 border border-slate-200",
                   )}
                 >
-                  {type === "all" ? "ALL" : type.toUpperCase()}
+                  {type === "all" ? t("search.dateAll") : type.toUpperCase()}
                 </button>
               ))}
             </div>
@@ -195,7 +198,7 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
               <Calendar className="w-3 h-3" />
-              Date
+              {t("search.filterDate")}
             </div>
             <div className="flex gap-1">
               {["all", "today", "week", "month"].map((range) => (
@@ -209,7 +212,7 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
                       : "bg-white text-slate-500 hover:bg-rose-50 border border-slate-200",
                   )}
                 >
-                  {range.toUpperCase()}
+                  {dateLabels[range]}
                 </button>
               ))}
             </div>
@@ -219,7 +222,6 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
         {/* Results */}
         <div ref={listRef} className="max-h-[60vh] overflow-y-auto p-4">
           {query.trim() === "" ? (
-            /* 空状态：显示所有文件 */
             <div className="space-y-1">
               {fileNodes.map((node, idx) => (
                 <div
@@ -280,7 +282,7 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
                       "text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md shrink-0",
                       result.matchType === "name" ? "bg-blue-50 text-blue-400" : "bg-amber-50 text-amber-400",
                     )}>
-                      {result.matchType === "name" ? "NAME" : "CONTENT"}
+                      {result.matchType === "name" ? t("search.matchName") : t("search.matchContent")}
                     </span>
                     <ChevronRight className="w-4 h-4 text-rose-200 opacity-0 group-hover:opacity-100 transition-all" />
                   </div>
@@ -292,8 +294,8 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
               <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-200 mb-4">
                 <Search className="w-8 h-8" />
               </div>
-              <p className="text-sm font-bold text-slate-400">No results found for "{query}"</p>
-              <p className="text-xs text-slate-400 mt-1">Try searching for something else ✨</p>
+              <p className="text-sm font-bold text-slate-400">{t("search.noResults", { query })}</p>
+              <p className="text-xs text-slate-400 mt-1">{t("search.noResultsHint")}</p>
             </div>
           )}
         </div>
@@ -303,14 +305,18 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
           <div className="flex gap-4">
             <span className="flex items-center gap-1.5">
               <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-200 shadow-sm">↑↓</kbd>
-              Navigate
+              {t("search.navigate")}
             </span>
             <span className="flex items-center gap-1.5">
               <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-200 shadow-sm">Enter</kbd>
-              Open
+              {t("search.open")}
             </span>
           </div>
-          <span>{query.trim() ? `${results.length} Results` : `${fileNodes.length} Files`}</span>
+          <span>
+            {query.trim()
+              ? `${results.length} ${t("search.results")}`
+              : `${fileNodes.length} ${t("search.files")}`}
+          </span>
         </div>
       </motion.div>
     </motion.div>

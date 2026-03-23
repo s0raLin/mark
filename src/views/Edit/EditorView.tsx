@@ -76,6 +76,7 @@ export default function EditorView() {
           blurAmount: editorTheme.blurAmount,
           bgImage: editorTheme.bgImage,
           particlesOn: editorTheme.particlesOn,
+          lang: editorTheme.lang,
           customFonts: editorTheme.customFonts,
         },
       });
@@ -99,6 +100,7 @@ export default function EditorView() {
     editorTheme.blurAmount,
     editorTheme.bgImage,
     editorTheme.particlesOn,
+    editorTheme.lang,
     editorTheme.customFonts,
   ]);
 
@@ -310,6 +312,8 @@ export default function EditorView() {
         setBgImage={editorTheme.setBgImage}
         customFonts={editorTheme.customFonts}
         addCustomFont={editorTheme.addCustomFont}
+        lang={editorTheme.lang}
+        setLang={editorTheme.setLang}
         nodes={fileSystem.nodes}
         onOpenFile={handleOpenFile}
         onLauncherSearch={() => openModal(ROUTES.SEARCH)}

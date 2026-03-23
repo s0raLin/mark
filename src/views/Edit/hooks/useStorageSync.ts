@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getUserData, saveUserData } from "../../../api";
 import type { StorageFileSystem, StorageEditorConfig, StorageUserSettings } from "../../../api/types";
+import { errorBus } from "../../../contexts/errorBus";
+import i18n from "../../../i18n";
 
 /**
  * useStorageSync Hook - 负责数据加载和保存
@@ -60,6 +62,7 @@ export function useStorageSync() {
         await saveUserData(data);
       } catch (err) {
         console.error("保存数据失败:", err);
+        errorBus.emit(500, i18n.t("toast.saveFailed"));
       }
     }, 1000);
   }, [clearSaveTimer]);
@@ -75,6 +78,7 @@ export function useStorageSync() {
       });
     } catch (err) {
       console.error("保存数据失败:", err);
+      errorBus.emit(500, i18n.t("toast.saveFailed"));
     }
   }, [userData, clearSaveTimer]);
 
