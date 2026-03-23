@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "@/utils/cn";
+import { useTranslation } from "react-i18next";
 import General from "./SettingGeneral/SettingGeneral";
 import SettingEditor from "./SettingEditor/SettingEditor";
 import SettingExport from "./SettingExport/SettingExport";
@@ -84,6 +85,7 @@ export function SettingsModal({
   customFonts, addCustomFont,
 }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState("general");
+  const { t } = useTranslation();
 
   // 草稿 state：打开时快照当前值，操作只改草稿，不影响父级
   const [draft, setDraft] = useState<SettingsSnapshot>(() => ({
@@ -134,12 +136,12 @@ export function SettingsModal({
 
   const tabs = useMemo(
     () => [
-      { id: "general", label: "General", icon: <Layout className="w-4 h-4" /> },
-      { id: "editor", label: "Editor", icon: <Palette className="w-4 h-4" /> },
-      { id: "export", label: "Export", icon: <Download className="w-4 h-4" /> },
-      { id: "account", label: "Account", icon: <Smile className="w-4 h-4" /> },
+      { id: "general", label: t("settings.tabs.general"), icon: <Layout className="w-4 h-4" /> },
+      { id: "editor", label: t("settings.tabs.editor"), icon: <Palette className="w-4 h-4" /> },
+      { id: "export", label: t("settings.tabs.export"), icon: <Download className="w-4 h-4" /> },
+      { id: "account", label: t("settings.tabs.account"), icon: <Smile className="w-4 h-4" /> },
     ],
-    [],
+    [t],
   );
 
   return (
@@ -161,9 +163,9 @@ export function SettingsModal({
               <Settings className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold leading-tight tracking-tight text-slate-800">Settings</h2>
+              <h2 className="text-xl font-bold leading-tight tracking-tight text-slate-800">{t("settings.title")}</h2>
               <p className="text-[10px] text-primary font-bold uppercase tracking-widest">
-                Personalize your Sparkle space
+                {t("settings.subtitle")}
               </p>
             </div>
           </div>
@@ -243,7 +245,7 @@ export function SettingsModal({
             className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-400 hover:text-rose-400 transition-colors rounded-2xl hover:bg-rose-50"
           >
             <RotateCcw className="w-4 h-4" />
-            Reset Space
+            {t("settings.resetSpace")}
           </button>
 
           {/* 右侧：取消 + 保存 */}
@@ -252,7 +254,7 @@ export function SettingsModal({
               onClick={handleClose}
               className="px-6 py-2.5 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors rounded-2xl hover:bg-slate-100"
             >
-              Cancel
+              {t("settings.cancel")}
             </button>
             <button
               onClick={handleSave}
@@ -265,7 +267,7 @@ export function SettingsModal({
               )}
             >
               <Sparkles className="w-4 h-4" />
-              Sparkle & Save
+              {t("settings.save")}
             </button>
           </div>
         </footer>

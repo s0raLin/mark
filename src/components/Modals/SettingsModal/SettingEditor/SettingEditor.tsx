@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import React, { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { ThemeOption } from "./ThemeOption";
 import { PreviewThemeCard } from "./PreviewThemeCard";
 import { AccentCircle } from "./AccentCircle";
@@ -57,6 +58,7 @@ export default function SettingEditor({
   bgImage, setBgImage,
   customFonts, addCustomFont,
 }: SettingEditorProps) {
+  const { t } = useTranslation();
   const [bgUploading, setBgUploading] = useState(false);
   const [fontUploading, setFontUploading] = useState(false);
 
@@ -87,9 +89,7 @@ export default function SettingEditor({
     }
   };
 
-  const handleClearBg = () => {
-    setBgImage("");
-  };
+  const handleClearBg = () => setBgImage("");
 
   const handleFontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -115,18 +115,18 @@ export default function SettingEditor({
       <section>
         <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
           <Terminal className="w-5 h-5 text-primary" />
-          Editor Theme
+          {t("editor.editorTheme")}
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {EDITOR_THEMES.map((t) => (
+          {EDITOR_THEMES.map((theme) => (
             <ThemeOption
-              key={t.value}
-              label={t.label}
-              value={t.value}
-              active={editorTheme === t.value}
-              onClick={() => setEditorTheme(t.value)}
-              colors={t.colors}
-              isDark={"isDark" in t ? t.isDark : false}
+              key={theme.value}
+              label={theme.label}
+              value={theme.value}
+              active={editorTheme === theme.value}
+              onClick={() => setEditorTheme(theme.value)}
+              colors={theme.colors}
+              isDark={"isDark" in theme ? theme.isDark : false}
             />
           ))}
         </div>
@@ -136,18 +136,18 @@ export default function SettingEditor({
       <section>
         <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
           <Palette className="w-5 h-5 text-primary" />
-          Preview Theme
+          {t("editor.previewTheme")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {PREVIEW_THEMES.map((t) => (
+          {PREVIEW_THEMES.map((theme) => (
             <PreviewThemeCard
-              key={t.value}
-              title={t.title}
-              subtitle={t.subtitle}
-              colors={t.colors}
-              isDark={t.isDark}
-              active={previewTheme === t.value}
-              onClick={() => setPreviewTheme(t.value)}
+              key={theme.value}
+              title={theme.title}
+              subtitle={theme.subtitle}
+              colors={theme.colors}
+              isDark={theme.isDark}
+              active={previewTheme === theme.value}
+              onClick={() => setPreviewTheme(theme.value)}
             />
           ))}
         </div>
@@ -156,9 +156,9 @@ export default function SettingEditor({
       {/* ── Accent Color ── */}
       <section className="bg-white/60 border border-pink-100 rounded-2xl p-6">
         <h3 className="text-sm font-bold mb-1 uppercase tracking-widest text-slate-400">
-          Sweet Accents
+          {t("editor.sweetAccents")}
         </h3>
-        <p className="text-xs text-slate-400 mb-5">选择主题强调色，即时应用到整个界面</p>
+        <p className="text-xs text-slate-400 mb-5">{t("editor.accentDesc")}</p>
         <div className="flex flex-wrap gap-4 items-center mb-5">
           {ACCENT_COLORS.map((color) => (
             <AccentCircle
@@ -174,7 +174,7 @@ export default function SettingEditor({
             title="Pick custom accent color"
           >
             <Palette className="w-4 h-4" />
-            Custom Mix
+            {t("editor.customMix")}
             <input
               type="color"
               value={accentColor}
@@ -197,7 +197,7 @@ export default function SettingEditor({
             className="px-3 py-1.5 rounded-full text-white text-[10px] font-bold uppercase tracking-wider shadow-sm transition-all duration-300"
             style={{ backgroundColor: accentColor }}
           >
-            Preview
+            {t("editor.preview")}
           </div>
           <span className="text-[10px] font-mono text-slate-400 uppercase">{accentColor}</span>
         </div>
@@ -207,13 +207,13 @@ export default function SettingEditor({
       <section className="bg-pink-50/50 p-6 rounded-xl border border-pink-100">
         <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
           <Sparkles className="w-5 h-5 text-primary" />
-          Magical Effects
+          {t("editor.magicalEffects")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Left: Atmosphere background */}
           <div className="flex flex-col gap-4">
             <label className="text-sm font-bold text-slate-600">
-              Atmosphere
+              {t("editor.atmosphere")}
             </label>
             <div
               className="group relative aspect-video rounded-xl overflow-hidden bg-white border-4 border-white shadow-xl flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-[1.02]"
@@ -241,7 +241,7 @@ export default function SettingEditor({
                   <CloudUpload className="w-8 h-8 text-primary" />
                 )}
                 <span className="text-[10px] font-bold uppercase tracking-widest text-slate-800">
-                  {bgUploading ? "Uploading…" : "Choose Background"}
+                  {bgUploading ? t("editor.uploading") : t("editor.chooseBg")}
                 </span>
               </div>
             </div>
@@ -259,7 +259,7 @@ export default function SettingEditor({
             <div className="flex flex-col gap-3">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-bold text-slate-600">
-                  Softness (Blur)
+                  {t("editor.softness")}
                 </label>
                 <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">
                   {blurAmount}px
@@ -278,10 +278,8 @@ export default function SettingEditor({
 
             <div className="flex items-center justify-between p-5 rounded-xl bg-white shadow-sm border border-pink-50">
               <div className="flex flex-col">
-                <p className="text-sm font-bold">Sparkle Dust</p>
-                <p className="text-xs text-slate-400">
-                  Tiny floating stars & hearts
-                </p>
+                <p className="text-sm font-bold">{t("editor.sparkleDust")}</p>
+                <p className="text-xs text-slate-400">{t("editor.sparkleDustDesc")}</p>
               </div>
               <div
                 onClick={() => setParticlesOn(!particlesOn)}
@@ -295,7 +293,7 @@ export default function SettingEditor({
                     "absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all",
                     particlesOn ? "right-1" : "left-1",
                   )}
-                ></div>
+                />
               </div>
             </div>
           </div>
@@ -306,14 +304,14 @@ export default function SettingEditor({
       <section className="bg-blue-50/40 p-6 rounded-xl border border-blue-100/60">
         <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
           <FileText className="w-5 h-5 text-primary" />
-          Lettering
+          {t("editor.lettering")}
         </h2>
         <div className="flex flex-col gap-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Font Choice */}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-slate-600 px-1">
-                Font Choice
+                {t("editor.fontChoice")}
               </label>
               <select
                 value={fontChoice}
@@ -327,7 +325,7 @@ export default function SettingEditor({
                 <option value="Playfair Display">Playfair Display</option>
                 {customFonts.map((f) => (
                   <option key={f.name} value={f.name}>
-                    {f.name} (Custom)
+                    {f.name} ({t("editor.custom")})
                   </option>
                 ))}
               </select>
@@ -336,7 +334,7 @@ export default function SettingEditor({
             {/* Editor Font */}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-slate-600 px-1">
-                Editor Font
+                {t("editor.editorFont")}
               </label>
               <select
                 value={editorFont}
@@ -351,7 +349,7 @@ export default function SettingEditor({
                 <option value="monospace">System Monospace</option>
                 {customFonts.map((f) => (
                   <option key={f.name} value={f.name}>
-                    {f.name} (Custom)
+                    {f.name} ({t("editor.custom")})
                   </option>
                 ))}
               </select>
@@ -360,7 +358,7 @@ export default function SettingEditor({
             {/* Import Custom Font */}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-slate-600 px-1">
-                Import Custom
+                {t("editor.importCustom")}
               </label>
               <button
                 onClick={() => fontInputRef.current?.click()}
@@ -368,7 +366,7 @@ export default function SettingEditor({
                 className="flex items-center justify-between w-full bg-pink-50/30 border-2 border-pink-100 border-dashed rounded-xl text-sm py-3 px-4 hover:bg-pink-50 transition-all group disabled:opacity-60"
               >
                 <span className="text-slate-400">
-                  {fontUploading ? "Uploading…" : "Upload .ttf / .woff2"}
+                  {fontUploading ? t("editor.uploading") : t("editor.uploadFont")}
                 </span>
                 {fontUploading ? (
                   <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -406,7 +404,7 @@ export default function SettingEditor({
               <div className="flex justify-between items-center">
                 <label className="text-sm font-bold text-slate-600 flex items-center gap-2">
                   <Terminal className="w-4 h-4 text-primary" />
-                  Editor Size
+                  {t("editor.editorSize")}
                 </label>
                 <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                   {editorFontSize}px
@@ -429,7 +427,7 @@ export default function SettingEditor({
               <div className="flex justify-between items-center">
                 <label className="text-sm font-bold text-slate-600 flex items-center gap-2">
                   <Eye className="w-4 h-4 text-primary" />
-                  Preview Size
+                  {t("editor.previewSize")}
                 </label>
                 <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                   {previewFontSize}px
