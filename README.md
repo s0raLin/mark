@@ -384,5 +384,3 @@ MIT License - 查看 [LICENSE](LICENSE) 了解详情。
 - [Electron](https://www.electronjs.org/) - 跨平台桌面应用框架
 
 ---
-
-<p align="center">Made with ❤️ by CangLi</p>
