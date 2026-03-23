@@ -23,17 +23,39 @@
 
 ![NoteMark Editor](https://via.placeholder.com/800x450/f8fafc/e2e8f0?text=notemark+Editor+Demo)
 
+### 主页
+
+![alt text](images/image-4.png)
+
+### 启动台
+
+![alt text](images/image.png)
+
+### 导出
+
+![alt text](images/image-1.png)
+
+### 主题设置
+
+![alt text](images/image-2.png)
+
+### 查找文件
+
+![alt text](images/image-3.png)
+
 ---
 
 ## ✨ 特性
 
 ### 🎯 核心功能
+
 - 📝 **实时预览** - 双栏实时渲染，所见即所得
 - 🎨 **语法高亮** - 支持 Markdown 源码语法高亮
 - 🖥️ **多视图模式** - 支持分屏、仅编辑器和仅预览三种模式
 - ⌨️ **键盘快捷键** - 高效编辑，支持自定义快捷键
 
 ### 🎨 主题定制
+
 - 🎭 **编辑器主题** - 支持 One Dark、Dracula、GitHub、Nord、Sublime、VS Code 等多种主题
 - 🖼️ **预览主题** - 多种预览样式可选
 - 🎪 **自定义强调色** - 自由选择您喜欢的强调色
@@ -41,18 +63,21 @@
 - 🔤 **自定义字体** - 支持上传自定义字体
 
 ### 📁 文件管理
+
 - 🌲 **文件树** - 侧边栏显示文件结构
 - 📄 **文件操作** - 支持新建、重命名、移动、删除文件
 - 🔍 **全文搜索** - 快速搜索文件内容
 - 📌 **固定文件** - 支持将常用文件固定到顶部
 
 ### 📤 导出功能
+
 - 📄 **导出为 PDF** - 生成精美的 PDF 文档
 - 🌐 **导出为 HTML** - 生成独立的 HTML 页面
 - 🖼️ **导出为 PNG** - 将 Markdown 渲染为图片
 - 📦 **导出为 ZIP** - 打包所有资源
 
 ### 🖥️ 桌面应用
+
 - 🚀 **Electron 桌面端** - 跨平台桌面应用
 - 🎯 **自定义标题栏** - 自研窗口控制组件（最小化、最大化、关闭），无原生菜单栏
 - 💾 **本地数据存储** - 数据保存在本地，支持用户数据管理
@@ -62,29 +87,32 @@
 ## 🛠️ 技术栈
 
 ### 前端
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| React | 19.0.0 | UI 框架 |
-| TypeScript | 5.8.2 | 类型安全 |
-| Vite | 6.2.0 | 快速构建工具 |
-| Tailwind CSS | 4.1.14 | 原子化 CSS 框架 |
-| CodeMirror | 6.x | 代码编辑器 |
-| React Markdown | 10.1.0 | Markdown 渲染 |
-| Motion | 12.x | 动画库 |
-| Lucide React | 0.546.0 | 图标库 |
+
+| 技术           | 版本    | 用途            |
+| -------------- | ------- | --------------- |
+| React          | 19.0.0  | UI 框架         |
+| TypeScript     | 5.8.2   | 类型安全        |
+| Vite           | 6.2.0   | 快速构建工具    |
+| Tailwind CSS   | 4.1.14  | 原子化 CSS 框架 |
+| CodeMirror     | 6.x     | 代码编辑器      |
+| React Markdown | 10.1.0  | Markdown 渲染   |
+| Motion         | 12.x    | 动画库          |
+| Lucide React   | 0.546.0 | 图标库          |
 
 ### 后端
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| Go | 1.21 | 后端语言 |
-| Gin | - | Web 框架 |
-| REST API | - | 前后端分离架构 |
+
+| 技术     | 版本 | 用途           |
+| -------- | ---- | -------------- |
+| Go       | 1.21 | 后端语言       |
+| Gin      | -    | Web 框架       |
+| REST API | -    | 前后端分离架构 |
 
 ### 桌面端
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| Electron | 41.0.3 | 跨平台桌面应用框架 |
-| electron-builder | 26.8.1 | 应用打包工具 |
+
+| 技术             | 版本   | 用途               |
+| ---------------- | ------ | ------------------ |
+| Electron         | 41.0.3 | 跨平台桌面应用框架 |
+| electron-builder | 26.8.1 | 应用打包工具       |
 
 ---
 
@@ -123,6 +151,7 @@ node index.ts
 ```
 
 Electron 应用会：
+
 1. 启动 Go 后端服务器（默认端口 8080）
 2. 启动前端开发服务器（默认端口 5173）
 3. 打开桌面窗口，使用自定义标题栏（无原生菜单栏）
@@ -310,8 +339,8 @@ cp .env.example .env
 
 ### 后端配置
 
-| 变量 | 默认值 | 描述 |
-|------|--------|------|
+| 变量   | 默认值 | 描述       |
+| ------ | ------ | ---------- |
 | `PORT` | `8080` | 服务器端口 |
 
 ---
@@ -319,10 +348,12 @@ cp .env.example .env
 ## 📡 API 端点
 
 ### 用户数据
+
 - `GET /api/user/data` - 获取用户数据
 - `POST /api/user/data` - 保存用户数据
 
 ### 文件操作
+
 - `GET /api/files/search` - 搜索文件
 - `POST /api/files/create` - 创建文件
 - `POST /api/files/mkdir` - 创建文件夹
@@ -333,6 +364,7 @@ cp .env.example .env
 - `DELETE /api/file/*fileId` - 删除文件/文件夹
 
 ### 上传
+
 - `POST /api/upload` - 上传图片
 - `POST /api/upload-font` - 上传字体
 
@@ -340,14 +372,14 @@ cp .env.example .env
 
 ## ⌨️ 键盘快捷键
 
-| 快捷键 | 功能 |
-|--------|------|
-| `Ctrl+N` | 新建文件 |
-| `Ctrl+S` | 保存文件 |
-| `Ctrl+Shift+S` | 另存为 |
-| `Ctrl+F` | 搜索 |
-| `Ctrl+,` | 打开设置 |
-| `Ctrl+P` | 快速打开文件 |
+| 快捷键         | 功能         |
+| -------------- | ------------ |
+| `Ctrl+N`       | 新建文件     |
+| `Ctrl+S`       | 保存文件     |
+| `Ctrl+Shift+S` | 另存为       |
+| `Ctrl+F`       | 搜索         |
+| `Ctrl+,`       | 打开设置     |
+| `Ctrl+P`       | 快速打开文件 |
 | `Ctrl+Shift+P` | 打开命令面板 |
 
 ---
@@ -356,14 +388,14 @@ cp .env.example .env
 
 ### 编辑器主题
 
-| 主题 | 描述 |
-|------|------|
+| 主题     | 描述                |
+| -------- | ------------------- |
 | One Dark | Atom 经典的暗色主题 |
-| Dracula | 流行的暗色主题 |
-| GitHub | GitHub 风格主题 |
-| Nord | 北欧风格主题 |
-| Sublime | Sublime Text 风格 |
-| VS Code | VS Code 暗色主题 |
+| Dracula  | 流行的暗色主题      |
+| GitHub   | GitHub 风格主题     |
+| Nord     | 北欧风格主题        |
+| Sublime  | Sublime Text 风格   |
+| VS Code  | VS Code 暗色主题    |
 
 ---
 
