@@ -134,6 +134,7 @@ const ja = {
     particlesOn: "オン",
     particlesOff: "オフ",
     quit: "アプリを終了",
+    reload: "再読み込み",
   },
   header: {
     newFile: "新規ファイル Ctrl+N",

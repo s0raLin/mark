@@ -134,6 +134,7 @@ const en = {
     particlesOn: "On",
     particlesOff: "Off",
     quit: "Quit App",
+    reload: "Reload",
   },
   header: {
     newFile: "New File Ctrl+N",

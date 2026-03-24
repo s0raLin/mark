@@ -1,4 +1,4 @@
-import { LayoutGrid, Search, Settings, Download, Sparkles, Power, Moon, Sun } from "lucide-react";
+import { LayoutGrid, Search, Settings, Download, Sparkles, Power, Moon, Sun, RotateCw } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "@/utils/cn";
 import { useTranslation } from "react-i18next";
@@ -87,6 +87,13 @@ export function LauncherModal({
     {
       title: t("launcher.groupSystem"),
       items: [
+        {
+          id: "reload",
+          icon: <RotateCw className="w-6 h-6" />,
+          iconBg: "bg-blue-100 text-blue-500",
+          label: t("launcher.reload"),
+          onClick: () => { window.location.reload(); },
+        },
         {
           id: "quit",
           icon: <Power className="w-6 h-6" />,

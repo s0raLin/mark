@@ -134,6 +134,7 @@ const zh = {
     particlesOn: "已开启",
     particlesOff: "已关闭",
     quit: "退出应用",
+    reload: "重新加载",
   },
   header: {
     newFile: "新建文件 Ctrl+N",
