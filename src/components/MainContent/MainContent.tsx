@@ -4,6 +4,7 @@ import Outline from "@/components/MainContent/Outline/Outline";
 import { EditorPane, PreviewPane } from "./Pane";
 import { useHeadings, useCheckStates, useScrollSync } from "./hooks";
 import { MainContentProps } from "./types";
+import { cn } from "@/utils/cn";
 
 export default function MainContent({
   toolbarRef,
@@ -59,13 +60,15 @@ export default function MainContent({
         />
       )}
 
-      {(viewMode === "split" || viewMode === "preview") && (
-        <PreviewPane
-          previewRef={previewRef}
-          markdown={markdown}
-          previewTheme={previewTheme}
-        />
-      )}
+      <PreviewPane
+        previewRef={previewRef}
+        markdown={markdown}
+        previewTheme={previewTheme}
+        className={cn(
+          viewMode === "editor" && "hidden",
+          viewMode === "preview" && "flex-[1_1_100%]",
+        )}
+      />
 
       <Outline
         headings={headings}

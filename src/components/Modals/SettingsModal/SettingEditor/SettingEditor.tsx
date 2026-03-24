@@ -64,7 +64,7 @@ function SliderField({ icon, label, value, min, max, pct, onChange }: {
         min={min} max={max} value={value}
         onChange={(e) => onChange(Number(e.target.value))}
       />
-      <div className="flex justify-between text-[10px] text-slate-300 px-1">
+      <div className="flex justify-between text-[10px] text-slate-400 px-1">
         <span>{min}px</span><span>{max}px</span>
       </div>
     </div>
@@ -360,14 +360,14 @@ export default function SettingEditor({
       <section>
         <SectionTitle icon={<FileText className="w-4 h-4" />} label={t("editor.lettering")} />
         <div className="settings-m3-card rounded-2xl p-5 flex flex-col gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(240px,0.9fr)] items-start">
             {/* Font Choice */}
-            <div className="flex flex-col gap-1.5">
+            <div className="settings-m3-inline-surface rounded-2xl p-4 flex flex-col gap-3 min-w-0">
               <FieldLabel>{t("editor.fontChoice")}</FieldLabel>
               <select
                 value={fontChoice}
                 onChange={(e) => setFontChoice(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl text-sm py-2.5 px-3 focus:ring-primary focus:border-primary appearance-none text-slate-700"
+                className="w-full min-w-0 bg-white border border-slate-200 rounded-xl text-sm py-2.5 px-3 focus:ring-primary focus:border-primary appearance-none text-slate-700 font-display"
               >
                 <option value="Quicksand">Quicksand (Default)</option>
                 <option value="Bubblegum Sans">Bubblegum Sans</option>
@@ -378,15 +378,19 @@ export default function SettingEditor({
                   <option key={f.name} value={f.name}>{f.name} ({t("editor.custom")})</option>
                 ))}
               </select>
+              <p className="text-xs text-slate-400 truncate">
+                <span className="font-medium text-slate-500">{t("editor.preview")}:</span>{" "}
+                <span style={{ fontFamily: fontChoice }}>{fontChoice}</span>
+              </p>
             </div>
 
             {/* Editor Font */}
-            <div className="flex flex-col gap-1.5">
+            <div className="settings-m3-inline-surface rounded-2xl p-4 flex flex-col gap-3 min-w-0">
               <FieldLabel>{t("editor.editorFont")}</FieldLabel>
               <select
                 value={editorFont}
                 onChange={(e) => setEditorFont(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl text-sm py-2.5 px-3 focus:ring-primary focus:border-primary appearance-none font-mono text-slate-700"
+                className="w-full min-w-0 bg-white border border-slate-200 rounded-xl text-sm py-2.5 px-3 focus:ring-primary focus:border-primary appearance-none font-display text-slate-700"
               >
                 <option value="JetBrains Mono">JetBrains Mono (Default)</option>
                 <option value="Fira Code">Fira Code</option>
@@ -398,17 +402,21 @@ export default function SettingEditor({
                   <option key={f.name} value={f.name}>{f.name} ({t("editor.custom")})</option>
                 ))}
               </select>
+              <p className="text-xs text-slate-400 truncate">
+                <span className="font-medium text-slate-500">{t("editor.preview")}:</span>{" "}
+                <span style={{ fontFamily: editorFont }}>Aa Bb Cc 123</span>
+              </p>
             </div>
 
             {/* Import Custom Font */}
-            <div className="flex flex-col gap-1.5">
+            <div className="settings-m3-inline-surface rounded-2xl p-4 flex flex-col gap-3 min-w-0">
               <FieldLabel>{t("editor.importCustom")}</FieldLabel>
               <button
                 onClick={() => fontInputRef.current?.click()}
                 disabled={fontUploading}
-                className="settings-m3-outlined-button flex items-center justify-between w-full border-2 border-dashed rounded-xl text-sm py-2.5 px-3 transition-all group disabled:opacity-60"
+                className="settings-m3-outlined-button flex items-center justify-between w-full min-h-11 border-2 border-dashed rounded-xl text-sm py-2.5 px-3 transition-all group disabled:opacity-60 font-display shrink-0"
               >
-                <span className="text-slate-400 text-sm">
+                <span className="text-slate-400 text-sm truncate pr-3">
                   {fontUploading ? t("editor.uploading") : t("editor.uploadFont")}
                 </span>
                 {fontUploading
@@ -416,17 +424,32 @@ export default function SettingEditor({
                   : <PlusCircle className="w-4 h-4 text-primary/60 group-hover:text-primary group-hover:rotate-90 transition-all" />}
               </button>
               <input ref={fontInputRef} type="file" accept=".ttf,.woff,.woff2,.otf" className="sr-only" onChange={handleFontUpload} />
-              {customFonts.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {customFonts.map((f) => (
-                    <span key={f.name} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary" style={{ fontFamily: f.name }}>
-                      {f.name}
-                    </span>
-                  ))}
-                </div>
-              )}
+              <p className="text-xs text-slate-400 leading-relaxed">
+                {customFonts.length > 0 ? `${customFonts.length} ${t("editor.custom")}` : t("editor.uploadFont")}
+              </p>
             </div>
           </div>
+
+          {customFonts.length > 0 && (
+            <div className="settings-m3-inline-surface rounded-2xl p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <FieldLabel>{t("editor.importCustom")}</FieldLabel>
+                <span className="text-[11px] font-medium text-slate-400">{customFonts.length}</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {customFonts.map((f) => (
+                  <span
+                    key={f.name}
+                    className="max-w-full text-[11px] px-3 py-1 rounded-full bg-primary/10 text-primary truncate"
+                    style={{ fontFamily: f.name }}
+                    title={f.name}
+                  >
+                    {f.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Font Sizes */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

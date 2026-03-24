@@ -37,9 +37,12 @@ export default function GripHandle({ nodeId }: GripHandleProps) {
   };
 
   return (
-    <GripVertical
+    <div
       onPointerDown={onPointerDown}
-      className="w-3.5 h-3.5 text-slate-300 shrink-0 cursor-grab ml-auto"
-    />
+      title="Drag to reorder"
+      className="ml-auto shrink-0 flex h-6 w-6 items-center justify-center text-slate-400 opacity-0 pointer-events-none transition-all duration-150 group-hover/sidebar-row:opacity-100 group-hover/sidebar-row:pointer-events-auto group-hover/sidebar-row:text-slate-400 hover:text-primary hover:cursor-grab active:cursor-grabbing"
+    >
+      <GripVertical className="w-3.5 h-3.5" />
+    </div>
   );
 }

@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect, useLayoutEffect } from "react";
-import { Pin, Pencil, Trash2, FilePlus, FolderPlus } from "lucide-react";
+import { FilePlus, FolderPlus, Pencil, Pin, Trash2 } from "lucide-react";
 import { FileNode } from "@/types/filesystem";
+import ContextMenuSurface, { ContextMenuAction } from "@/components/ContextMenuSurface";
 
 interface ContextMenuProps {
   x: number;
@@ -27,100 +27,48 @@ export default function ContextMenu({
   onNewFile,
   onNewFolder,
 }: ContextMenuProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
-
-  useLayoutEffect(() => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    setPos({
-      top:
-        y + rect.height > window.innerHeight
-          ? Math.max(0, window.innerHeight - rect.height - 8)
-          : y,
-      left:
-        x + rect.width > window.innerWidth
-          ? Math.max(0, window.innerWidth - rect.width - 8)
-          : x,
-    });
-  }, [x, y]);
-
-  // 初始位置设为 null，直到计算出正确位置
-  const displayPos = pos ?? { top: y, left: x };
-
-  useEffect(() => {
-    const h = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) onClose();
-    };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, [onClose]);
-
   const isFolder = node.type === "folder";
+  const actions: ContextMenuAction[] = [];
 
-  return (
-    <div
-      ref={ref}
-      style={{ top: displayPos.top, left: displayPos.left }}
-      className="fixed z-50 bg-white rounded-xl shadow-lg border border-rose-100 py-1 min-w-[140px] text-sm"
-    >
-      {/* New File - only shown for folders */}
-      {isFolder && onNewFile && (
-        <button
-          onClick={() => {
-            onNewFile();
-            onClose();
-          }}
-          className="w-full flex items-center gap-2 px-3 py-2 hover:bg-rose-50 text-slate-600"
-        >
-          <FilePlus className="w-3.5 h-3.5 text-primary" />
-          New File
-        </button>
-      )}
-      {/* New Folder - only shown for folders */}
-      {isFolder && onNewFolder && (
-        <button
-          onClick={() => {
-            onNewFolder();
-            onClose();
-          }}
-          className="w-full flex items-center gap-2 px-3 py-2 hover:bg-rose-50 text-slate-600"
-        >
-          <FolderPlus className="w-3.5 h-3.5 text-secondary" />
-          New Folder
-        </button>
-      )}
-      {(isFolder && (onNewFile || onNewFolder)) && <div className="border-t border-rose-100 my-1" />}
-      <button
-        onClick={() => {
-          onTogglePin();
-          onClose();
-        }}
-        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-rose-50 text-slate-600"
-      >
-        <Pin className="w-3.5 h-3.5 text-primary" />
-        {isPinned ? "Unpin" : "Pin"}
-      </button>
-      <button
-        onClick={() => {
-          onRename();
-          onClose();
-        }}
-        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-rose-50 text-slate-600"
-      >
-        <Pencil className="w-3.5 h-3.5 text-slate-400" />
-        Rename
-      </button>
-      <button
-        onClick={() => {
-          onDelete();
-          onClose();
-        }}
-        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-red-50 text-red-400"
-      >
-        <Trash2 className="w-3.5 h-3.5" />
-        Delete
-      </button>
-    </div>
+  if (isFolder && onNewFile) {
+    actions.push({
+      id: "new-file",
+      label: "New File",
+      icon: <FilePlus className="w-3.5 h-3.5 text-primary" />,
+      onSelect: onNewFile,
+    });
+  }
+  if (isFolder && onNewFolder) {
+    actions.push({
+      id: "new-folder",
+      label: "New Folder",
+      icon: <FolderPlus className="w-3.5 h-3.5 text-secondary" />,
+      onSelect: onNewFolder,
+    });
+  }
+
+  actions.push(
+    {
+      id: "pin",
+      label: isPinned ? "Unpin" : "Pin",
+      icon: <Pin className="w-3.5 h-3.5 text-primary" />,
+      onSelect: onTogglePin,
+      separatorBefore: isFolder && (Boolean(onNewFile) || Boolean(onNewFolder)),
+    },
+    {
+      id: "rename",
+      label: "Rename",
+      icon: <Pencil className="w-3.5 h-3.5 text-slate-400" />,
+      onSelect: onRename,
+    },
+    {
+      id: "delete",
+      label: "Delete",
+      icon: <Trash2 className="w-3.5 h-3.5" />,
+      onSelect: onDelete,
+      danger: true,
+    },
   );
+
+  return <ContextMenuSurface x={x} y={y} actions={actions} onClose={onClose} minWidthClassName="min-w-[148px]" />;
 }

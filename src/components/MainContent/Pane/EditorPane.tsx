@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import CodeMirror, { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import {
   markdown as markdownLang,
@@ -17,7 +17,9 @@ import { dracula } from "@uiw/codemirror-theme-dracula";
 import { nord } from "@uiw/codemirror-theme-nord";
 import { sublime } from "@uiw/codemirror-theme-sublime";
 import { EditorView, scrollPastEnd } from "@codemirror/view";
+import { EyeOff, FileType2, Info } from "lucide-react";
 import Toolbar from "@/components/MainContent/Toolbar/Toolbar";
+import EditorContextMenu from "./EditorContextMenu";
 
 interface EditorPaneProps {
   markdown: string;
@@ -157,10 +159,12 @@ export default function EditorPane({
   editorRef,
 }: EditorPaneProps) {
   const applyMarkdownRef = useRef<((prefix: string, suffix?: string) => void) | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
   // 根据文件扩展名选择语言扩展
   const ext = (fileName ?? "").includes(".") ? fileName.split(".").pop()!.toLowerCase() : "md";
   const isBinary = fileName ? !EDITABLE_EXTENSIONS.has(ext) : false;
+  const fileTypeLabel = ext ? ext.toUpperCase() : "FILE";
 
   const editorExtensions = useMemo(
     () => {
@@ -212,6 +216,56 @@ export default function EditorPane({
     view.focus();
   };
 
+  const getSelectionText = () => {
+    const view = editorRef.current?.view;
+    if (!view) return "";
+    const { from, to } = view.state.selection.main;
+    return view.state.doc.sliceString(from, to);
+  };
+
+  const replaceSelection = (text: string) => {
+    const view = editorRef.current?.view;
+    if (!view) return;
+    const { from, to } = view.state.selection.main;
+    view.dispatch({
+      changes: { from, to, insert: text },
+      selection: { anchor: from + text.length, head: from + text.length },
+    });
+    view.focus();
+  };
+
+  const handleCopy = async () => {
+    const selection = getSelectionText();
+    if (!selection) return;
+    await navigator.clipboard.writeText(selection);
+  };
+
+  const handleCut = async () => {
+    const selection = getSelectionText();
+    if (!selection) return;
+    await navigator.clipboard.writeText(selection);
+    replaceSelection("");
+  };
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) return;
+      replaceSelection(text);
+    } catch (err) {
+      console.error("Paste failed", err);
+    }
+  };
+
+  const handleSelectAll = () => {
+    const view = editorRef.current?.view;
+    if (!view) return;
+    view.dispatch({
+      selection: { anchor: 0, head: view.state.doc.length },
+    });
+    view.focus();
+  };
+
   // Expose applyMarkdown to parent via ref callback
   if (editorRef.current) {
     (editorRef as any).current?.view?.dispatch;
@@ -232,12 +286,52 @@ export default function EditorPane({
       <div className="app-m3-toolbar editor-toolbar h-14 border-b border-border-soft flex items-center justify-center px-4 gap-1 shrink-0 relative z-10">
         <Toolbar editorRef={editorRef} />
       </div>
-      <div className="flex-1 min-h-0 overflow-hidden relative z-10">
+      <div
+        className="flex-1 min-h-0 overflow-hidden relative z-10"
+        onContextMenu={(e) => {
+          if (isBinary) return;
+          e.preventDefault();
+          setContextMenu({ x: e.clientX, y: e.clientY });
+        }}
+      >
         {isBinary ? (
-          <div className="h-full flex flex-col items-center justify-center gap-3 text-slate-400 select-none">
-            <span className="text-4xl">🗂️</span>
-            <p className="text-sm font-medium">不支持预览此文件类型</p>
-            <p className="text-xs opacity-60">{fileName}</p>
+          <div className="h-full flex items-center justify-center p-8 md:p-12">
+            <div className="app-m3-binary-card w-full max-w-xl rounded-[28px] backdrop-blur-xl">
+              <div className="flex items-start gap-4 p-6 md:p-7">
+                <div className="app-m3-binary-icon flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl">
+                  <EyeOff className="h-6 w-6" />
+                </div>
+                <div className="app-m3-binary-content min-w-0 flex-1 space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="app-m3-binary-badge inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em]">
+                      <FileType2 className="h-3.5 w-3.5" />
+                      {fileTypeLabel}
+                    </span>
+                    <span className="app-m3-binary-muted-badge inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium">
+                      Binary / Unsupported
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="app-m3-binary-title text-lg font-semibold tracking-tight">
+                      这个文件类型暂不支持编辑器预览
+                    </p>
+                    <p className="app-m3-binary-description text-sm leading-6">
+                      当前文件更适合用外部应用打开，或者作为附件保存在项目中。
+                    </p>
+                  </div>
+                  <div className="app-m3-binary-file rounded-2xl px-4 py-3">
+                    <p className="app-m3-binary-file-name truncate text-sm font-medium">{fileName}</p>
+                    <p className="app-m3-binary-file-description mt-1 text-xs">
+                      已检测到不可编辑或非文本内容，因此不会在这里渲染源码或预览结果。
+                    </p>
+                  </div>
+                  <div className="app-m3-binary-note flex items-start gap-2 rounded-2xl px-4 py-3 text-sm">
+                    <Info className="app-m3-binary-note-icon mt-0.5 h-4 w-4 shrink-0" />
+                    <p>如果你后续希望支持更多纯文本格式，我们也可以继续扩展可编辑文件白名单。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <CodeMirror
@@ -276,6 +370,21 @@ export default function EditorPane({
         />
         )}
       </div>
+      {contextMenu && (
+        <EditorContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={() => setContextMenu(null)}
+          hasSelection={Boolean(getSelectionText())}
+          onCut={handleCut}
+          onCopy={handleCopy}
+          onPaste={handlePaste}
+          onSelectAll={handleSelectAll}
+          onBold={() => applyMarkdown("**", "**")}
+          onItalic={() => applyMarkdown("*", "*")}
+          onInlineCode={() => applyMarkdown("`", "`")}
+        />
+      )}
     </section>
   );
 }

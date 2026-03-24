@@ -1,4 +1,3 @@
-
 export const EDITOR_THEMES = [
   {
     value: "githubLight",
@@ -47,9 +46,9 @@ export const PREVIEW_THEMES = [
   },
   {
     value: "theme-heart-midnight",
-    title: "Midnight Pulse",
-    subtitle: "Ruby & Charcoal",
-    colors: ["#1a1a1a", "#ff002b", "#800015"],
+    title: "Night Surface",
+    subtitle: "Material Dark",
+    colors: ["#17171c", "#6750a4", "#d0bcff"],
     isDark: true,
   },
   {

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { FileText, Folder, FolderOpen } from "lucide-react";
+import { ChevronRight, FileText, Folder, FolderOpen } from "lucide-react";
 import { FileNode, FileSystemAPI } from "@/types/filesystem";
 import { cn } from "@/utils/cn";
 import RenameInput from "./RenameInput";
@@ -53,9 +53,11 @@ export default function TreeNode({ node, depth, fs }: TreeNodeProps) {
         onContextMenu={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          if (node.type === "file") fs.openFile(node.id);
           setCtxMenu({ x: e.clientX, y: e.clientY });
         }}
         onClick={() => {
+          if (renaming) return;
           if (node.type === "folder") fs.toggleFolder(node.id);
           else fs.openFile(node.id);
         }}
@@ -65,12 +67,15 @@ export default function TreeNode({ node, depth, fs }: TreeNodeProps) {
         data-folder={node.type === "folder" ? "true" : undefined}
         data-node-id={node.id}
         className={cn(
-          "flex items-center gap-2 rounded-xl px-2 py-2 transition-colors select-none cursor-default",
+          "group/sidebar-row flex items-center gap-2 rounded-xl px-2 py-2 transition-colors select-none cursor-pointer",
           isActive ? "bg-primary/[0.12] text-primary font-semibold" : "hover:bg-primary/[0.08] text-slate-600",
           (isDragOverFolder) && "bg-primary/[0.08] ring-1 ring-primary/30",
           isPinned && !isActive && "bg-amber-50/50",
         )}
       >
+        {node.type === "folder" && (
+          <ChevronRight className={cn("w-3.5 h-3.5 shrink-0 text-slate-300 transition-transform", isOpen && "rotate-90")} />
+        )}
         {node.type === "folder" ? (
           isOpen
             ? <FolderOpen className="w-4 h-4 text-accent shrink-0" />

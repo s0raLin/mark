@@ -59,13 +59,15 @@ export function useFileOperations({
   setExpandedFolders,
   setActiveFileId,
 }: UseFileOperationsProps): UseFileOperationsReturn {
-
-  const openFile = useCallback((_id: string) => {}, []);
+  const openFile = useCallback((id: string) => {
+    setActiveFileId(id);
+  }, [setActiveFileId]);
 
   // 创建文件：先乐观更新 UI，再调用后端 API 获取真实 ID（路径）
   const createFile = useCallback(
     (name: string, parentId: string | null = null, opts?: { open?: boolean; initialContent?: string }): string => {
       const fileName = ensureFileExtension(name);
+      if (!fileName.trim()) return "";
       // 乐观 ID：parentId/fileName 或 fileName
       const optimisticId = parentId ? `${parentId}/${fileName}` : fileName;
       const baseName = fileName.replace(/\.[^.]+$/, "");
@@ -81,6 +83,10 @@ export function useFileOperations({
       };
 
       setNodes(prev => [...prev, node]);
+      if (opts?.open !== false) setActiveFileId(optimisticId);
+      if (parentId) {
+        setExpandedFolders(prev => new Set([...prev, parentId]));
+      }
 
       if (parentId === null) {
         setExplorerOrder(prev => [...prev, optimisticId]);
@@ -104,6 +110,7 @@ export function useFileOperations({
               [parentId]: (prev[parentId] ?? []).map(id => id === optimisticId ? res.id : id),
             }));
           }
+          setActiveFileId(prev => prev === optimisticId ? res.id : prev);
         }
       }).catch(err => {
         console.error("创建文件失败:", err);
@@ -124,12 +131,13 @@ export function useFileOperations({
 
       return optimisticId;
     },
-    [setNodes, setExplorerOrder, setFolderOrder],
+    [setNodes, setExplorerOrder, setFolderOrder, setActiveFileId, setExpandedFolders],
   );
 
   // 创建文件夹
   const createFolder = useCallback(
     (name: string, parentId: string | null = null): string => {
+      if (!name.trim()) return "";
       const optimisticId = parentId ? `${parentId}/${name}` : name;
 
       setNodes(prev => [...prev, {
@@ -141,6 +149,9 @@ export function useFileOperations({
         updatedAt: Date.now(),
       }]);
       setExpandedFolders(prev => new Set([...prev, optimisticId]));
+      if (parentId) {
+        setExpandedFolders(prev => new Set([...prev, parentId]));
+      }
 
       if (parentId === null) {
         setExplorerOrder(prev => [...prev, optimisticId]);
@@ -197,6 +208,7 @@ export function useFileOperations({
         nodes.filter(n => n.parentId === nodeId).forEach(n => collect(n.id));
       };
       collect(id);
+      const remainingFiles = nodes.filter(n => n.type === "file" && !toDelete.has(n.id));
 
       setNodes(prev => prev.filter(n => !toDelete.has(n.id)));
       setPinnedIds(prev => prev.filter(p => !toDelete.has(p)));
@@ -207,10 +219,13 @@ export function useFileOperations({
         for (const d of toDelete) delete next[d];
         return next;
       });
+      if (toDelete.has(activeFileId)) {
+        setActiveFileId(remainingFiles[0]?.id ?? "");
+      }
 
       deleteNodeOnServer(id).catch(err => console.error("删除失败:", err));
     },
-    [nodes, setNodes, setPinnedIds, setExplorerOrder, setFolderOrder],
+    [nodes, activeFileId, setNodes, setPinnedIds, setExplorerOrder, setFolderOrder, setActiveFileId],
   );
 
   // 重命名节点：调用后端，更新 ID（因为 ID 是路径）
@@ -219,6 +234,7 @@ export function useFileOperations({
       const node = nodes.find(n => n.id === id);
       if (!node) return;
       const finalName = node.type === "file" ? ensureFileExtension(newName) : newName;
+      if (!finalName.trim() || finalName === node.name) return;
       const parentId = node.parentId;
       const newId = parentId ? `${parentId}/${finalName}` : finalName;
 

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Layout, Settings, Download, Palette, Smile, RotateCcw, Sparkles,
 } from "lucide-react";
@@ -91,6 +91,7 @@ export function SettingsModal({
 }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState("general");
   const { t, i18n } = useTranslation();
+  const originalModalBlurRef = useRef<string | null>(null);
 
   const [draft, setDraft] = useState<SettingsSnapshot>(() => ({
     editorTheme, previewTheme, particlesOn,
@@ -153,6 +154,24 @@ export function SettingsModal({
     ],
     [t],
   );
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (originalModalBlurRef.current === null) {
+      originalModalBlurRef.current = root.style.getPropertyValue("--modal-backdrop-blur");
+    }
+    const baseBlur = root.classList.contains("dark") ? 10 : 8;
+    const blurStrength = baseBlur + draft.blurAmount * 0.5;
+    root.style.setProperty("--modal-backdrop-blur", `${blurStrength}px`);
+
+    return () => {
+      if (originalModalBlurRef.current) {
+        root.style.setProperty("--modal-backdrop-blur", originalModalBlurRef.current);
+      } else {
+        root.style.removeProperty("--modal-backdrop-blur");
+      }
+    };
+  }, [draft.blurAmount]);
 
   return (
     <ModalShell onClose={handleClose} className="w-full max-w-5xl rounded-3xl h-[85vh]">

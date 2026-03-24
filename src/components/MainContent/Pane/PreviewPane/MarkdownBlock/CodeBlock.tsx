@@ -1,11 +1,12 @@
 /**
  * CodeBlock — 静态注册常用语言的语法高亮（兼容 Electron 打包）
  */
-import { useState, memo } from "react";
+import { useMemo, useState, memo, type CSSProperties } from "react";
 import { Download, CheckCircle2 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import SyntaxHighlighter from "react-syntax-highlighter/dist/esm/prism-light";
 import oneLight from "react-syntax-highlighter/dist/esm/styles/prism/one-light";
+import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark";
 
 // 静态注册常用语言，避免 Electron 打包后动态 import 失败
 import javascript from "react-syntax-highlighter/dist/esm/languages/prism/javascript";
@@ -75,8 +76,24 @@ SyntaxHighlighter.registerLanguage("docker", docker);
 SyntaxHighlighter.registerLanguage("dockerfile", docker);
 SyntaxHighlighter.registerLanguage("nginx", nginx);
 
-function CopyButton({ code }: { code: string }) {
+interface ThemePalette {
+  dark: boolean;
+  frame: string;
+  header: string;
+  label: string;
+  button: string;
+  buttonCopied: string;
+  blockBackground: string;
+  frameStyle?: CSSProperties;
+  headerStyle?: CSSProperties;
+  labelStyle?: CSSProperties;
+  buttonStyle?: CSSProperties;
+  buttonCopiedStyle?: CSSProperties;
+}
+
+function CopyButton({ code, palette }: { code: string; palette: ThemePalette }) {
   const [copied, setCopied] = useState(false);
+
   return (
     <button
       onClick={() => {
@@ -86,10 +103,9 @@ function CopyButton({ code }: { code: string }) {
       }}
       className={cn(
         "flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all border-2",
-        copied
-          ? "bg-green-50 border-green-100 text-green-600"
-          : "bg-white border-slate-100 text-slate-400 hover:text-primary hover:border-primary/20 hover:bg-primary/5",
+        copied ? palette.buttonCopied : palette.button,
       )}
+      style={copied ? palette.buttonCopiedStyle : palette.buttonStyle}
     >
       {copied ? (
         <CheckCircle2 className="w-3.5 h-3.5" />
@@ -106,37 +122,125 @@ function CopyButton({ code }: { code: string }) {
 interface CodeBlockProps {
   language: string;
   code: string;
+  previewTheme: string;
 }
 
-export const CodeBlock = memo(function CodeBlock({ language, code }: CodeBlockProps) {
+export const CodeBlock = memo(function CodeBlock({ language, code, previewTheme }: CodeBlockProps) {
+  const palette = useMemo<ThemePalette>(() => {
+    switch (previewTheme) {
+      case "theme-heart-classic":
+        return {
+          dark: false,
+          frame: "border-rose-100 bg-rose-50/90",
+          header: "bg-rose-100/90 border-rose-100",
+          label: "text-rose-400",
+          button: "bg-white border-rose-100 text-rose-300 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50",
+          buttonCopied: "bg-emerald-50 border-emerald-100 text-emerald-600",
+          blockBackground: "#fff8fb",
+        };
+      case "theme-heart-golden":
+        return {
+          dark: false,
+          frame: "border-amber-100 bg-amber-50/90",
+          header: "bg-amber-100/80 border-amber-100",
+          label: "text-amber-700",
+          button: "bg-white border-amber-100 text-amber-500 hover:text-amber-700 hover:border-amber-200 hover:bg-amber-50",
+          buttonCopied: "bg-emerald-50 border-emerald-100 text-emerald-600",
+          blockBackground: "#fffaf0",
+        };
+      case "theme-heart-organic":
+        return {
+          dark: false,
+          frame: "border-emerald-100 bg-emerald-50/90",
+          header: "bg-emerald-100/75 border-emerald-100",
+          label: "text-emerald-700",
+          button: "bg-white border-emerald-100 text-emerald-500 hover:text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50",
+          buttonCopied: "bg-emerald-50 border-emerald-100 text-emerald-700",
+          blockBackground: "#f6fdf9",
+        };
+      case "theme-heart-midnight":
+        return {
+          dark: true,
+          frame: "border-2 shadow-xl",
+          header: "border-b",
+          label: "",
+          button: "",
+          buttonCopied: "",
+          blockBackground: "#111318",
+          frameStyle: {
+            borderColor: "color-mix(in srgb, var(--md-primary-tone-80) 16%, rgba(255,255,255,0.08))",
+            background: "linear-gradient(180deg, rgba(17,19,24,0.98), rgba(23,23,28,0.98))",
+          },
+          headerStyle: {
+            background: "color-mix(in srgb, var(--md-primary-tone-80) 8%, rgba(29,31,37,0.98))",
+            borderColor: "color-mix(in srgb, var(--md-primary-tone-80) 14%, rgba(255,255,255,0.08))",
+          },
+          labelStyle: {
+            color: "var(--md-primary-tone-90)",
+          },
+          buttonStyle: {
+            background: "rgba(29,31,37,0.96)",
+            borderColor: "color-mix(in srgb, var(--md-primary-tone-80) 12%, rgba(255,255,255,0.08))",
+            color: "#f4eff4",
+          },
+          buttonCopiedStyle: {
+            background: "rgba(16, 185, 129, 0.14)",
+            borderColor: "rgba(52, 211, 153, 0.24)",
+            color: "#a7f3d0",
+          },
+        };
+      default:
+        return {
+          dark: false,
+          frame: "border-border-soft bg-slate-50",
+          header: "bg-slate-100 border-border-soft",
+          label: "text-slate-500",
+          button: "bg-white border-slate-100 text-slate-400 hover:text-primary hover:border-primary/20 hover:bg-primary/5",
+          buttonCopied: "bg-green-50 border-green-100 text-green-600",
+          blockBackground: "#f8fafc",
+        };
+    }
+  }, [previewTheme]);
+
+  const syntaxTheme = useMemo(() => {
+    const baseTheme = palette.dark ? oneDark : oneLight;
+    return {
+      ...baseTheme,
+      'pre[class*="language-"]': {
+        ...baseTheme['pre[class*="language-"]'],
+        background: palette.blockBackground,
+      },
+      'code[class*="language-"]': {
+        ...baseTheme['code[class*="language-"]'],
+        background: "none",
+        textShadow: "none",
+      },
+    };
+  }, [palette]);
+
   return (
     <div className="relative group my-8">
-      <div className="rounded-3xl overflow-hidden border-2 border-border-soft shadow-xl bg-slate-50">
-        <div className="flex items-center justify-between px-6 py-3 bg-slate-100 border-b border-border-soft">
+      <div className={cn("rounded-3xl overflow-hidden", palette.frame)} style={palette.frameStyle}>
+        <div
+          className={cn("flex items-center justify-between px-6 py-3", palette.header)}
+          style={palette.headerStyle}
+        >
           <div className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-rose-300" />
             <div className="w-2.5 h-2.5 rounded-full bg-amber-300" />
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-300" />
-            <span className="ml-3 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+            <span
+              className={cn("ml-3 text-[10px] font-black uppercase tracking-[0.2em]", palette.label)}
+              style={palette.labelStyle}
+            >
               {language}
             </span>
           </div>
-          <CopyButton code={code} />
+          <CopyButton code={code} palette={palette} />
         </div>
 
         <SyntaxHighlighter
-          style={{
-            ...oneLight,
-            'pre[class*="language-"]': {
-              ...oneLight['pre[class*="language-"]'],
-              background: "#f8fafc",
-            },
-            'code[class*="language-"]': {
-              ...oneLight['code[class*="language-"]'],
-              background: "none",
-              textShadow: "none",
-            },
-          }}
+          style={syntaxTheme}
           language={language}
           PreTag="div"
           customStyle={{
@@ -144,7 +248,7 @@ export const CodeBlock = memo(function CodeBlock({ language, code }: CodeBlockPr
             padding: "1rem",
             fontSize: "0.875rem",
             lineHeight: "1.7",
-            background: "#f8fafc",
+            background: palette.blockBackground,
             textIndent: 0,
           }}
           codeTagProps={{ style: { display: "block", background: "none" } }}

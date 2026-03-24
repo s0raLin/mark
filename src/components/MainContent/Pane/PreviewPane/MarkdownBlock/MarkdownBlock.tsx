@@ -32,7 +32,13 @@ export function extractCodeBlocks(html: string): {
   return { processed, codeBlocks };
 }
 
-export const MarkdownBlock = memo(function MarkdownBlock({ html }: { html: string }) {
+export const MarkdownBlock = memo(function MarkdownBlock({
+  html,
+  previewTheme,
+}: {
+  html: string;
+  previewTheme: string;
+}) {
   const { processed, codeBlocks } = useMemo(() => extractCodeBlocks(html), [html]);
 
   if (codeBlocks.length === 0) {
@@ -55,7 +61,7 @@ export const MarkdownBlock = memo(function MarkdownBlock({ html }: { html: strin
         if (match) {
           const idx = parseInt(match[2], 10);
           const cb = codeBlocks[idx];
-          return <CodeBlock key={i} language={cb.lang} code={cb.code} />;
+          return <CodeBlock key={i} language={cb.lang} code={cb.code} previewTheme={previewTheme} />;
         }
         if (!part.trim()) return null;
         return <div key={i} dangerouslySetInnerHTML={{ __html: part }} />;

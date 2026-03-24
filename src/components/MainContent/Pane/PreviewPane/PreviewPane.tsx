@@ -12,12 +12,14 @@ interface PreviewPaneProps {
   previewRef: React.RefObject<HTMLDivElement>;
   markdown: string;
   previewTheme: string;
+  className?: string;
 }
 
 export default function PreviewPane({
   previewRef,
   markdown,
   previewTheme,
+  className,
 }: PreviewPaneProps) {
   const { blocks, isParsing } = useMarkdownWorker(markdown);
 
@@ -27,16 +29,16 @@ export default function PreviewPane({
       className={cn(
         "app-m3-preview-surface flex-1 overflow-y-auto relative transition-colors duration-500 preview-scroll",
         previewTheme,
+        className,
       )}
       style={{
         backdropFilter: "blur(var(--editor-blur, 0px))",
         WebkitBackdropFilter: "blur(var(--editor-blur, 0px))",
-        backgroundColor: "rgba(255,255,255,0.72)",
       }}
     >
       <div className="relative z-10 p-16 max-w-none markdown-body">
         {blocks.map((block) => (
-          <MarkdownBlock key={block.index} html={block.html} />
+          <MarkdownBlock key={block.index} html={block.html} previewTheme={previewTheme} />
         ))}
         {/* 首次加载占位，避免空白闪烁 */}
         {blocks.length === 0 && isParsing && (

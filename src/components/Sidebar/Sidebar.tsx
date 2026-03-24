@@ -5,12 +5,14 @@ import { cn } from "@/utils/cn";
 import { SidebarProps, DragContext, ResolvedDrop } from "./types";
 import { NewItemDialog, DragList, TreeNode, PinnedItemRow } from "./components";
 import { importDroppedIntoFs } from "./utils";
+import SidebarAreaMenu from "./components/SidebarAreaMenu";
 
 export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen, fs }: SidebarProps) {
   const [newItem, setNewItem] = useState<"file" | "folder" | null>(null);
   const [draggingId, setDraggingIdState] = useState<string | null>(null);
   const [dropTarget, setDropTargetState] = useState<ResolvedDrop | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [areaMenu, setAreaMenu] = useState<{ x: number; y: number } | null>(null);
 
   const draggingIdRef = useRef<string | null>(null);
   const dropTargetRef = useRef<ResolvedDrop | null>(null);
@@ -105,6 +107,11 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen, 
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onContextMenu={(e) => {
+          if ((e.target as HTMLElement).closest("[data-node-id]")) return;
+          e.preventDefault();
+          setAreaMenu({ x: e.clientX, y: e.clientY });
+        }}
       >
         {isDragOver && (
           <div className="absolute inset-0 border-2 border-primary/30 rounded-none pointer-events-none z-20" />
@@ -148,8 +155,9 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen, 
                   if (newItem === "file") fs.createFile(name);
                   else fs.createFolder(name);
                   setNewItem(null);
+                  setAreaMenu(null);
                 }}
-                onCancel={() => setNewItem(null)}
+                onCancel={() => { setNewItem(null); setAreaMenu(null); }}
               />
             )}
 
@@ -171,6 +179,18 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen, 
           <SidebarItem icon={<Settings className="w-5 h-5 text-primary/50" />} label="Settings"
             onClick={() => setIsSettingsModalOpen(true)} />
         </div>
+
+        {areaMenu && (
+          <SidebarAreaMenu
+            x={areaMenu.x}
+            y={areaMenu.y}
+            onClose={() => setAreaMenu(null)}
+            onNewFile={() => setNewItem("file")}
+            onNewFolder={() => setNewItem("folder")}
+            onSearch={() => setIsSearchModalOpen(true)}
+            onSettings={() => setIsSettingsModalOpen(true)}
+          />
+        )}
       </div>
     </DragContext.Provider>
   );
