@@ -1,9 +1,10 @@
 import {
-  Eye, Layout, Terminal, Upload,
+  Eye, Terminal, Upload,
   FilePlus, Save, FileDown, Search,
   Settings, Sparkles, Columns2,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { useTranslation } from "react-i18next";
 import WindowControls from "./WindowControls";
 
 interface HeaderProps {
@@ -69,13 +70,14 @@ export default function Header({
   onLauncher,
   onToggleSidebar,
 }: HeaderProps) {
+  const { t } = useTranslation();
   const actions: ActionBtn[] = [
-    { icon: <FilePlus className="w-4 h-4" />, label: "New File  Ctrl+N", onClick: onNewSparkle },
-    { icon: <Save className="w-4 h-4" />, label: "Save  Ctrl+S", onClick: onSave },
-    { icon: <FileDown className="w-4 h-4" />, label: "Save As…", onClick: onSaveAs, dividerAfter: true },
-    { icon: <Search className="w-4 h-4" />, label: "Search  Ctrl+K", onClick: onSearch, dividerAfter: true },
-    { icon: <Sparkles className="w-4 h-4" />, label: "Sparkle Dust", onClick: onParticlesToggle, active: particlesOn },
-    { icon: <Settings className="w-4 h-4" />, label: "Settings", onClick: onSettings },
+    { icon: <FilePlus className="w-4 h-4" />, label: t("header.newFile"), onClick: onNewSparkle },
+    { icon: <Save className="w-4 h-4" />, label: t("header.save"), onClick: onSave },
+    { icon: <FileDown className="w-4 h-4" />, label: t("header.saveAs"), onClick: onSaveAs, dividerAfter: true },
+    { icon: <Search className="w-4 h-4" />, label: t("header.search"), onClick: onSearch, dividerAfter: true },
+    { icon: <Sparkles className="w-4 h-4" />, label: t("header.sparkleDust"), onClick: onParticlesToggle, active: particlesOn },
+    { icon: <Settings className="w-4 h-4" />, label: t("header.settings"), onClick: onSettings },
   ];
 
   return (
@@ -106,9 +108,9 @@ export default function Header({
           <div className="flex items-center gap-0.5">
             {(
               [
-                { mode: "split" as const, icon: <Columns2 className="w-4 h-4" />, label: "Split View" },
-                { mode: "editor" as const, icon: <Terminal className="w-4 h-4" />, label: "Editor Only" },
-                { mode: "preview" as const, icon: <Eye className="w-4 h-4" />, label: "Preview Only" },
+                { mode: "split" as const, icon: <Columns2 className="w-4 h-4" />, label: t("header.splitView") },
+                { mode: "editor" as const, icon: <Terminal className="w-4 h-4" />, label: t("header.editorOnly") },
+                { mode: "preview" as const, icon: <Eye className="w-4 h-4" />, label: t("header.previewOnly") },
               ] as { mode: "split" | "editor" | "preview"; icon: React.ReactNode; label: string }[]
             ).map(({ mode, icon, label }) => (
               <QuickBtn
@@ -128,9 +130,10 @@ export default function Header({
         <button
           onClick={onExport}
           className="app-m3-filled-button h-10 px-6 rounded-xl text-sm font-bold transition-all flex items-center gap-2"
+          title={t("header.publish")}
         >
           <Upload className="w-4 h-4" />
-          Publish
+          {t("header.publish")}
         </button>
       </div>
     </div>

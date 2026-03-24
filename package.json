@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "A modern, cute Markdown editor with live preview and custom styling",
-  "author": "CangLi",
+  "author": "CangLi gl0wniapar@gmail.com",
   "type": "module",
   "main": "dist-electron/index.cjs",
   "pnpm": {
@@ -136,6 +136,7 @@
     },
     "linux": {
       "target": [
+        "deb",
         "AppImage"
       ],
       "icon": "build/icon.png",

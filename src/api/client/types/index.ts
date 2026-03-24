@@ -65,6 +65,7 @@ export interface StorageEditorConfig {
   particlesOn: boolean;
   lang: string;
   customFonts: Array<{ name: string; url: string }>;
+  darkMode: boolean;
 }
 
 /**

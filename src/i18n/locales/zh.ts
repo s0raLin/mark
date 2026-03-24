@@ -135,6 +135,41 @@ const zh = {
     particlesOff: "已关闭",
     quit: "退出应用",
   },
+  header: {
+    newFile: "新建文件 Ctrl+N",
+    save: "保存 Ctrl+S",
+    saveAs: "另存为",
+    search: "搜索 Ctrl+K",
+    sparkleDust: "粒子效果",
+    settings: "设置",
+    splitView: "分屏视图",
+    editorOnly: "仅编辑器",
+    previewOnly: "仅预览",
+    publish: "发布",
+  },
+  editorToolbar: {
+    bold: "加粗",
+    italic: "斜体",
+    strikethrough: "删除线",
+    heading1: "一级标题",
+    heading2: "二级标题",
+    bulletList: "无序列表",
+    numberedList: "有序列表",
+    checklist: "任务列表",
+    quote: "引用",
+    codeBlock: "代码块",
+    link: "链接",
+    image: "图片",
+    table: "表格",
+  },
+  sidebar: {
+    title: "侧边栏",
+    collapse: "收起侧边栏",
+    expand: "展开侧边栏",
+  },
+  toast: {
+    saveFailed: "Save failed. Please check your connection and try again.",
+  },
 };
 
 export default zh;

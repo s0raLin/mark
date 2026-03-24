@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { spawn, ChildProcess } from 'child_process';
 import http from 'http';
 
-const { app, BrowserWindow, ipcMain } = electron;
+const { app, BrowserWindow, ipcMain, shell } = electron;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const isPackaged = app.isPackaged;
@@ -131,6 +131,13 @@ app.whenReady().then(async () => {
   });
   ipcMain.handle('get-window-pos', () => {
     return BrowserWindow.getFocusedWindow()?.getPosition() ?? [0, 0];
+  });
+
+  // 打开外部链接
+  ipcMain.on('open-external', (_e, url: string) => {
+    if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+      shell.openExternal(url);
+    }
   });
 
   await startGoServer();

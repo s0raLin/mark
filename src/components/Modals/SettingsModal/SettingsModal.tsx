@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useTranslation } from "react-i18next";
+import { applyM3Theme } from "@/views/Edit/hooks/useEditorTheme";
 import General from "./SettingGeneral/SettingGeneral";
 import SettingEditor from "./SettingEditor/SettingEditor";
 import SettingExport from "./SettingExport/SettingExport";
@@ -92,6 +93,7 @@ export function SettingsModal({
   const [activeTab, setActiveTab] = useState("general");
   const { t, i18n } = useTranslation();
   const originalModalBlurRef = useRef<string | null>(null);
+  const committedAccentColorRef = useRef(accentColor);
 
   const [draft, setDraft] = useState<SettingsSnapshot>(() => ({
     editorTheme, previewTheme, particlesOn,
@@ -118,6 +120,7 @@ export function SettingsModal({
 
   // 保存：把草稿 commit 到父级
   const handleSave = () => {
+    committedAccentColorRef.current = draft.accentColor;
     setEditorTheme(draft.editorTheme);
     setPreviewTheme(draft.previewTheme);
     setParticlesOn(draft.particlesOn);
@@ -143,7 +146,17 @@ export function SettingsModal({
   // 恢复默认：只改草稿，需要点保存才生效
   const handleReset = () => setDraft({ ...DEFAULT_SETTINGS });
 
-  const handleClose = () => onClose();
+  const restoreCommittedAccentColor = () => {
+    applyM3Theme(
+      committedAccentColorRef.current,
+      document.documentElement.classList.contains("dark"),
+    );
+  };
+
+  const handleClose = () => {
+    restoreCommittedAccentColor();
+    onClose();
+  };
 
   const tabs = useMemo(
     () => [
@@ -172,6 +185,12 @@ export function SettingsModal({
       }
     };
   }, [draft.blurAmount]);
+
+  useEffect(() => {
+    committedAccentColorRef.current = accentColor;
+  }, [accentColor]);
+
+  useEffect(() => restoreCommittedAccentColor, []);
 
   return (
     <ModalShell onClose={handleClose} className="w-full max-w-5xl rounded-3xl h-[85vh]">

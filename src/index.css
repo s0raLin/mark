@@ -628,6 +628,28 @@ input, textarea, [contenteditable] {
   color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 88%, transparent);
 }
 
+.editor-toolbar-tooltip {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--md-sys-color-surface-container-high) 98%, white 2%),
+      color-mix(in srgb, var(--md-sys-color-surface-container) 96%, transparent)
+    );
+  color: color-mix(in srgb, var(--md-sys-color-on-surface) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 18%, var(--md-sys-color-outline-variant));
+  box-shadow:
+    0 14px 28px -18px color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent),
+    0 8px 18px -16px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 30%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 40%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.editor-toolbar-tooltip-arrow {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 98%, white 2%);
+  border-top: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 18%, var(--md-sys-color-outline-variant));
+  border-left: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 18%, var(--md-sys-color-outline-variant));
+}
+
 .app-m3-window-btn {
   border-radius: 0.9rem;
 }

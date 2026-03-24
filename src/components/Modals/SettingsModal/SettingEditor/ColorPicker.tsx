@@ -133,7 +133,7 @@ const SWATCHES = [
   "#ff9a9e", "#f48fb1", "#ce93d8", "#9fa8da",
   "#81d4fa", "#80cbc4", "#a5d6a7", "#fff176",
   "#ffcc80", "#ef9a9a", "#6750a4", "#006874",
-  "#386a20", "#b3261e", "#1565c0", "#37474f",
+  "#386a20", "#c76b00", "#1565c0", "#37474f",
 ];
 
 interface ColorPickerProps {

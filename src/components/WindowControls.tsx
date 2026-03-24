@@ -1,5 +1,6 @@
 import { Home, PanelLeft } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { useTranslation } from "react-i18next";
 
 interface WindowControlsProps {
   sidebarOpen?: boolean;
@@ -12,6 +13,7 @@ export default function WindowControls({
   onLauncher,
   onToggleSidebar,
 }: WindowControlsProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-4">
       {/* Launcher */}
@@ -23,7 +25,7 @@ export default function WindowControls({
           <Home className="w-7 h-7" />
         </button>
         <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 rounded-md bg-slate-800 text-white text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
-          启动台
+          {t("launcher.title")}
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-800" />
         </div>
       </div>
@@ -41,7 +43,9 @@ export default function WindowControls({
           <PanelLeft className="w-7 h-7" />
         </button>
         <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 rounded-md bg-slate-800 text-white text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
-          {sidebarOpen ? "收起文件栏" : "展开文件栏"}
+          {sidebarOpen
+            ? t("sidebar.collapse")
+            : t("sidebar.expand")}
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-800" />
         </div>
       </div>

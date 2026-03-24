@@ -72,6 +72,6 @@ export const ACCENT_COLORS = [
   "#6750a4", // Purple
   "#006874", // Teal
   "#386a20", // Green
-  "#b3261e", // Red
+  "#c76b00", // Amber
   "#1565c0", // Blue
 ];

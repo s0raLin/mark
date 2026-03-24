@@ -7,6 +7,7 @@ import {
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { ToolbarButton } from './ToolbarButton';
 import { uploadImage } from '@/api/client';
+import { useTranslation } from 'react-i18next';
 
 interface ToolbarProps {
   editorRef: React.RefObject<ReactCodeMirrorRef>;
@@ -14,6 +15,7 @@ interface ToolbarProps {
 
 export default function Toolbar({ editorRef }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
   
   const applyMarkdown = (prefix: string, suffix: string = '') => {
     if (!editorRef.current?.view) return;
@@ -52,26 +54,26 @@ export default function Toolbar({ editorRef }: ToolbarProps) {
   
   return (
     <div className="flex items-center gap-1">
-      <ToolbarButton title="Bold" icon={<Bold className="w-5 h-5" />} onClick={() => applyMarkdown('**', '**')} />
-      <ToolbarButton title="Italic" icon={<Italic className="w-5 h-5" />} onClick={() => applyMarkdown('*', '*')} />
-      <ToolbarButton title="Strikethrough" icon={<Strikethrough className="w-5 h-5" />} onClick={() => applyMarkdown('~~', '~~')} />
+      <ToolbarButton title={t("editorToolbar.bold")} icon={<Bold className="w-5 h-5" />} onClick={() => applyMarkdown('**', '**')} />
+      <ToolbarButton title={t("editorToolbar.italic")} icon={<Italic className="w-5 h-5" />} onClick={() => applyMarkdown('*', '*')} />
+      <ToolbarButton title={t("editorToolbar.strikethrough")} icon={<Strikethrough className="w-5 h-5" />} onClick={() => applyMarkdown('~~', '~~')} />
       <div className="app-m3-divider w-[1px] h-6 mx-2"></div>
-      <ToolbarButton title="Heading 1" icon={<Heading1 className="w-5 h-5" />} onClick={() => applyMarkdown('# ')} />
-      <ToolbarButton title="Heading 2" icon={<Heading2 className="w-5 h-5" />} onClick={() => applyMarkdown('## ')} />
+      <ToolbarButton title={t("editorToolbar.heading1")} icon={<Heading1 className="w-5 h-5" />} onClick={() => applyMarkdown('# ')} />
+      <ToolbarButton title={t("editorToolbar.heading2")} icon={<Heading2 className="w-5 h-5" />} onClick={() => applyMarkdown('## ')} />
       <div className="app-m3-divider w-[1px] h-6 mx-2"></div>
-      <ToolbarButton title="Bullet List" icon={<List className="w-5 h-5" />} onClick={() => applyMarkdown('- ')} />
-      <ToolbarButton title="Numbered List" icon={<ListOrdered className="w-5 h-5" />} onClick={() => applyMarkdown('1. ')} />
-      <ToolbarButton title="Checklist" icon={<CheckSquare className="w-5 h-5" />} onClick={() => applyMarkdown('- [ ] ')} />
+      <ToolbarButton title={t("editorToolbar.bulletList")} icon={<List className="w-5 h-5" />} onClick={() => applyMarkdown('- ')} />
+      <ToolbarButton title={t("editorToolbar.numberedList")} icon={<ListOrdered className="w-5 h-5" />} onClick={() => applyMarkdown('1. ')} />
+      <ToolbarButton title={t("editorToolbar.checklist")} icon={<CheckSquare className="w-5 h-5" />} onClick={() => applyMarkdown('- [ ] ')} />
       <div className="app-m3-divider w-[1px] h-6 mx-2"></div>
-      <ToolbarButton title="Quote" icon={<Quote className="w-5 h-5" />} onClick={() => applyMarkdown('> ')} />
-      <ToolbarButton title="Code Block" icon={<Code className="w-5 h-5" />} onClick={() => applyMarkdown('```\n', '\n```')} />
-      <ToolbarButton title="Link" icon={<LinkIcon className="w-5 h-5" />} onClick={() => applyMarkdown('[', '](url)')} />
+      <ToolbarButton title={t("editorToolbar.quote")} icon={<Quote className="w-5 h-5" />} onClick={() => applyMarkdown('> ')} />
+      <ToolbarButton title={t("editorToolbar.codeBlock")} icon={<Code className="w-5 h-5" />} onClick={() => applyMarkdown('```\n', '\n```')} />
+      <ToolbarButton title={t("editorToolbar.link")} icon={<LinkIcon className="w-5 h-5" />} onClick={() => applyMarkdown('[', '](url)')} />
       <ToolbarButton 
-        title="Image" 
+        title={t("editorToolbar.image")} 
         icon={<ImageIcon className="w-5 h-5" />} 
         onClick={() => fileInputRef.current?.click()}
       />
-      <ToolbarButton title="Table" icon={<TableIcon className="w-5 h-5" />} onClick={() => applyMarkdown('| Column 1 | Column 2 |\n| -------- | -------- |\n| Cell 1   | Cell 2   |', '')} />
+      <ToolbarButton title={t("editorToolbar.table")} icon={<TableIcon className="w-5 h-5" />} onClick={() => applyMarkdown('| Column 1 | Column 2 |\n| -------- | -------- |\n| Cell 1   | Cell 2   |', '')} />
       <input 
         type="file" 
         ref={fileInputRef} 

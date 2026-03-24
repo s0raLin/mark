@@ -38,6 +38,28 @@ function syncPreviewThemeWithMode(
     : DEFAULT_LIGHT_PREVIEW_THEME;
 }
 
+function mixHex(colorA: string, colorB: string, weightB: number) {
+  const normalizedWeightB = Math.max(0, Math.min(1, weightB));
+  const normalizedWeightA = 1 - normalizedWeightB;
+
+  const parseHex = (hex: string) => {
+    const safeHex = hex.replace("#", "");
+    return {
+      r: parseInt(safeHex.slice(0, 2), 16),
+      g: parseInt(safeHex.slice(2, 4), 16),
+      b: parseInt(safeHex.slice(4, 6), 16),
+    };
+  };
+
+  const toHex = (value: number) => value.toString(16).padStart(2, "0");
+  const a = parseHex(colorA);
+  const b = parseHex(colorB);
+
+  return `#${toHex(Math.round(a.r * normalizedWeightA + b.r * normalizedWeightB))}${toHex(
+    Math.round(a.g * normalizedWeightA + b.g * normalizedWeightB),
+  )}${toHex(Math.round(a.b * normalizedWeightA + b.b * normalizedWeightB))}`;
+}
+
 // ─── M3 Token Generator (Actify-style) ───────────────────────────────────────
 // Key insight: HCT tonal palette shifts hue/chroma during tone mapping, so
 // palette.tone(75) for a pink seed looks brownish. We use the seed hex directly
@@ -54,6 +76,7 @@ export function applyM3Theme(seed: string, isDark: boolean) {
   const root = document.documentElement;
   const palette = theme.palettes.primary;
   const neutralPalette = theme.palettes.neutral;
+  const neutralVariantPalette = theme.palettes.neutralVariant;
   const seedHct = Hct.fromInt(argb);
   const seedTone = seedHct.tone;
 
@@ -84,20 +107,56 @@ export function applyM3Theme(seed: string, isDark: boolean) {
 
   // ── M3 surface container roles (used by dark mode CSS) ──
   // M3 spec: surface=N-6, surface-container=N-12, surface-container-high=N-17
-  if (isDark) {
-    root.style.setProperty("--md-sys-color-surface-container", hexFromArgb(neutralPalette.tone(12)));
-    root.style.setProperty("--md-sys-color-surface-container-high", hexFromArgb(neutralPalette.tone(17)));
-  } else {
-    root.style.setProperty("--md-sys-color-surface-container", hexFromArgb(neutralPalette.tone(94)));
-    root.style.setProperty("--md-sys-color-surface-container-high", hexFromArgb(neutralPalette.tone(92)));
-  }
+  const primaryTintSurface = hexFromArgb(palette.tone(isDark ? 24 : 94));
+  const primaryTintSurfaceHigh = hexFromArgb(palette.tone(isDark ? 30 : 90));
+  const neutralSurfaceContainer = hexFromArgb(
+    neutralPalette.tone(isDark ? 12 : 94),
+  );
+  const neutralSurfaceContainerHigh = hexFromArgb(
+    neutralPalette.tone(isDark ? 17 : 92),
+  );
+  const surfaceContainerHex = mixHex(
+    neutralSurfaceContainer,
+    primaryTintSurface,
+    isDark ? 0.16 : 0.12,
+  );
+  const surfaceContainerHighHex = mixHex(
+    neutralSurfaceContainerHigh,
+    primaryTintSurfaceHigh,
+    isDark ? 0.2 : 0.16,
+  );
+  root.style.setProperty(
+    "--md-sys-color-surface-container",
+    surfaceContainerHex,
+  );
+  root.style.setProperty(
+    "--md-sys-color-surface-container-high",
+    surfaceContainerHighHex,
+  );
 
   // ── Convenience aliases for legacy CSS vars ──
-  const surfaceHex = isDark ? hexFromArgb(neutralPalette.tone(6)) : hexFromArgb(neutralPalette.tone(98));
-  const surfaceVariantHex = isDark ? hexFromArgb(neutralPalette.tone(30)) : hexFromArgb(neutralPalette.tone(90));
-  const borderSoftHex = isDark ? hexFromArgb(neutralPalette.tone(25)) : hexFromArgb(neutralPalette.tone(88));
+  const surfaceHex = mixHex(
+    isDark ? hexFromArgb(neutralPalette.tone(6)) : hexFromArgb(neutralPalette.tone(98)),
+    hexFromArgb(palette.tone(isDark ? 20 : 96)),
+    isDark ? 0.12 : 0.08,
+  );
+  const softBgHex = mixHex(
+    isDark ? hexFromArgb(neutralPalette.tone(10)) : hexFromArgb(neutralPalette.tone(96)),
+    hexFromArgb(palette.tone(isDark ? 24 : 94)),
+    isDark ? 0.16 : 0.12,
+  );
+  const surfaceVariantHex = mixHex(
+    hexFromArgb(neutralVariantPalette.tone(isDark ? 30 : 90)),
+    hexFromArgb(palette.tone(isDark ? 42 : 86)),
+    isDark ? 0.18 : 0.14,
+  );
+  const borderSoftHex = mixHex(
+    hexFromArgb(neutralVariantPalette.tone(isDark ? 26 : 88)),
+    hexFromArgb(palette.tone(isDark ? 55 : 76)),
+    isDark ? 0.22 : 0.18,
+  );
   root.style.setProperty("--color-background-light", surfaceHex);
-  root.style.setProperty("--color-soft-bg", isDark ? hexFromArgb(neutralPalette.tone(10)) : hexFromArgb(neutralPalette.tone(96)));
+  root.style.setProperty("--color-soft-bg", softBgHex);
   root.style.setProperty("--color-border-soft", borderSoftHex);
   root.style.setProperty("--md-sys-color-surface-variant", surfaceVariantHex);
 }
@@ -155,6 +214,7 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
     particlesOn: false,
     lang: "en",
     customFonts: [],
+    darkMode: false
   };
 
   const config = initialConfig ?? defaultConfig;
@@ -170,7 +230,7 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
   const [blurAmount, setBlurAmount] = useState<number>(() => config.blurAmount);
   const [bgImage, setBgImage] = useState<string>(() => config.bgImage);
   const [particlesOn, setParticlesOn] = useState<boolean>(() => config.particlesOn);
-  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [darkMode, setDarkMode] = useState<boolean>(() => config.darkMode);
   const [lang, setLang] = useState<string>(() => config.lang || "en");
   const [customFonts, setCustomFonts] = useState<Array<{ name: string; url: string }>>(() => config.customFonts ?? []);
 
@@ -202,6 +262,7 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
         document.head.appendChild(style);
       }
     }
+    setDarkMode(initialConfig.darkMode || false);
   }, [initialConfig]);
 
   // ── Dark mode class ──

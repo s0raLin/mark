@@ -68,6 +68,7 @@ type StorageEditorConfig struct {
 		Name string `json:"name"`
 		URL  string `json:"url"`
 	} `json:"customFonts"`
+	DarkMode bool `json:"darkMode"`
 }
 
 // StorageAppConfig 仅保存应用配置（持久化到 JSON，不含文件系统数据）

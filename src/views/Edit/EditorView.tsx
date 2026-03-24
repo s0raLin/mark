@@ -84,6 +84,7 @@ export default function EditorView() {
           particlesOn: editorTheme.particlesOn,
           lang: editorTheme.lang,
           customFonts: editorTheme.customFonts,
+          darkMode: editorTheme.darkMode,
         },
       });
     }
@@ -108,6 +109,7 @@ export default function EditorView() {
     editorTheme.particlesOn,
     editorTheme.lang,
     editorTheme.customFonts,
+    editorTheme.darkMode,
   ]);
 
   // 文件操作 Hook

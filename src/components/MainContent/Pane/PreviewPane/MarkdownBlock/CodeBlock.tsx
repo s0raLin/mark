@@ -84,6 +84,7 @@ interface ThemePalette {
   button: string;
   buttonCopied: string;
   blockBackground: string;
+  blockBorder?: string;
   frameStyle?: CSSProperties;
   headerStyle?: CSSProperties;
   labelStyle?: CSSProperties;
@@ -197,7 +198,8 @@ export const CodeBlock = memo(function CodeBlock({ language, code, previewTheme 
           label: "text-slate-500",
           button: "bg-white border-slate-100 text-slate-400 hover:text-primary hover:border-primary/20 hover:bg-primary/5",
           buttonCopied: "bg-green-50 border-green-100 text-green-600",
-          blockBackground: "#f8fafc",
+          blockBackground: "#f1f5f9",
+          blockBorder: "1px solid rgba(148, 163, 184, 0.16)",
         };
     }
   }, [previewTheme]);
@@ -249,9 +251,16 @@ export const CodeBlock = memo(function CodeBlock({ language, code, previewTheme 
             fontSize: "0.875rem",
             lineHeight: "1.7",
             background: palette.blockBackground,
+            borderTop: palette.blockBorder ?? "none",
             textIndent: 0,
           }}
-          codeTagProps={{ style: { display: "block", background: "none" } }}
+          codeTagProps={{
+            style: {
+              display: "block",
+              background: "none",
+              backgroundColor: "transparent",
+            },
+          }}
         >
           {code}
         </SyntaxHighlighter>
