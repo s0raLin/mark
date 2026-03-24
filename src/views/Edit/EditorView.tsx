@@ -33,12 +33,18 @@ export default function EditorView() {
 
   // 用 useMemo 稳定引用，避免每次渲染都生成新对象触发子 hook effect
   const initialFileSystem = useMemo(
-    () => storageSync.isInitialized && storageSync.userData ? storageSync.userData.fileSystem : null,
+    () =>
+      storageSync.isInitialized && storageSync.userData
+        ? storageSync.userData.fileSystem
+        : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [storageSync.isInitialized], // 只在初始化完成时固定，之后不再变
   );
   const initialConfig = useMemo(
-    () => storageSync.isInitialized && storageSync.userData ? storageSync.userData.editorConfig : null,
+    () =>
+      storageSync.isInitialized && storageSync.userData
+        ? storageSync.userData.editorConfig
+        : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [storageSync.isInitialized],
   );
@@ -54,7 +60,7 @@ export default function EditorView() {
     if (storageSync.isInitialized) {
       storageSync.saveData({
         fileSystem: {
-          nodes: fileSystem.nodes.map(n => ({
+          nodes: fileSystem.nodes.map((n) => ({
             ...n,
             createdAt: new Date(n.createdAt).toISOString(),
             updatedAt: new Date(n.updatedAt).toISOString(),
@@ -128,7 +134,9 @@ export default function EditorView() {
   // Markdown 同步 Hook
   const markdownSync = useMarkdownSync({
     activeFileId: fileSystem.activeFileId,
-    activeFileType: fileSystem.nodes.find(n => n.id === fileSystem.activeFileId)?.type ?? null,
+    activeFileType:
+      fileSystem.nodes.find((n) => n.id === fileSystem.activeFileId)?.type ??
+      null,
     setNodes: fileSystem.setNodes,
   });
 
@@ -157,18 +165,25 @@ export default function EditorView() {
     (id: string) => {
       fileSystem.setActiveFileId(id);
       // 展开所有祖先文件夹，确保侧边栏能看到选中项
-      const node = fileSystem.nodes.find(n => n.id === id);
+      const node = fileSystem.nodes.find((n) => n.id === id);
       if (!node) return;
       let parentId = node.parentId;
       while (parentId) {
         if (!fileSystem.expandedFolders.has(parentId)) {
-          fileSystem.setExpandedFolders(prev => new Set([...prev, parentId!]));
+          fileSystem.setExpandedFolders(
+            (prev) => new Set([...prev, parentId!]),
+          );
         }
-        const parent = fileSystem.nodes.find(n => n.id === parentId);
+        const parent = fileSystem.nodes.find((n) => n.id === parentId);
         parentId = parent?.parentId ?? null;
       }
     },
-    [fileSystem.setActiveFileId, fileSystem.nodes, fileSystem.expandedFolders, fileSystem.setExpandedFolders],
+    [
+      fileSystem.setActiveFileId,
+      fileSystem.nodes,
+      fileSystem.expandedFolders,
+      fileSystem.setExpandedFolders,
+    ],
   );
 
   // 加载状态显示
@@ -185,37 +200,42 @@ export default function EditorView() {
 
   return (
     <div className="app-m3-shell h-screen flex flex-col overflow-hidden font-display text-slate-700 relative">
-      <div id="editor-bg-layer" className="app-m3-bg absolute inset-0 z-0 pointer-events-none bg-background-light" />
+      <div
+        id="editor-bg-layer"
+        className="app-m3-bg absolute inset-0 z-0 pointer-events-none bg-background-light"
+      />
 
       <header
         className="app-m3-topbar app-header h-20 flex items-center justify-between px-8 z-50 shrink-0 relative select-none"
         onMouseDown={(e) => {
           const target = e.target as HTMLElement;
-          if (target.closest('button') || target.closest('input')) return;
+          if (target.closest("button") || target.closest("input")) return;
           if (e.button !== 0) return;
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const ipc = (window as any).require?.('electron')?.ipcRenderer;
+          const ipc = (window as any).require?.("electron")?.ipcRenderer;
           if (!ipc) return;
 
           const startScreenX = e.screenX;
           const startScreenY = e.screenY;
 
           // 异步获取窗口初始位置后开始监听拖拽
-          ipc.invoke('get-window-pos').then(([winX, winY]: [number, number]) => {
-            const onMove = (me: MouseEvent) => {
-              ipc.send('window-move', {
-                x: Math.round(winX + me.screenX - startScreenX),
-                y: Math.round(winY + me.screenY - startScreenY),
-              });
-            };
-            const onUp = () => {
-              window.removeEventListener('mousemove', onMove);
-              window.removeEventListener('mouseup', onUp);
-            };
-            window.addEventListener('mousemove', onMove);
-            window.addEventListener('mouseup', onUp);
-          });
+          ipc
+            .invoke("get-window-pos")
+            .then(([winX, winY]: [number, number]) => {
+              const onMove = (me: MouseEvent) => {
+                ipc.send("window-move", {
+                  x: Math.round(winX + me.screenX - startScreenX),
+                  y: Math.round(winY + me.screenY - startScreenY),
+                });
+              };
+              const onUp = () => {
+                window.removeEventListener("mousemove", onMove);
+                window.removeEventListener("mouseup", onUp);
+              };
+              window.addEventListener("mousemove", onMove);
+              window.addEventListener("mouseup", onUp);
+            });
         }}
       >
         <Header
@@ -236,10 +256,12 @@ export default function EditorView() {
       </header>
 
       <div className="flex-1 flex overflow-hidden relative z-10">
-        <aside className={cn(
-          "app-m3-sidebar h-full flex flex-col shrink-0 transition-all duration-300 overflow-hidden",
-          sidebarOpen ? "w-80" : "w-0 border-r-0",
-        )}>
+        <aside
+          className={cn(
+            "app-m3-sidebar h-full flex flex-col shrink-0 transition-all duration-300 overflow-hidden",
+            sidebarOpen ? "w-80" : "w-0 border-r-0",
+          )}
+        >
           <Sidebar
             fs={{
               ...fileSystem,
@@ -247,8 +269,12 @@ export default function EditorView() {
               pinnedFiles: fileSystem.pinnedNodes,
               openFile: handleOpenFile,
             }}
-            setIsSettingsModalOpen={(open) => open ? openModal(ROUTES.SETTINGS) : closeModal()}
-            setIsSearchModalOpen={(open) => open ? openModal(ROUTES.SEARCH) : closeModal()}
+            setIsSettingsModalOpen={(open) =>
+              open ? openModal(ROUTES.SETTINGS) : closeModal()
+            }
+            setIsSearchModalOpen={(open) =>
+              open ? openModal(ROUTES.SEARCH) : closeModal()
+            }
           />
         </aside>
 
@@ -265,7 +291,10 @@ export default function EditorView() {
             fontChoice={editorTheme.fontChoice}
             setFontChoice={editorTheme.setFontChoice}
             editorFont={editorTheme.editorFont}
-            activeFileName={fileSystem.nodes.find(n => n.id === fileSystem.activeFileId)?.name ?? ""}
+            activeFileName={
+              fileSystem.nodes.find((n) => n.id === fileSystem.activeFileId)
+                ?.name ?? ""
+            }
           />
         </main>
       </div>
@@ -287,10 +316,18 @@ export default function EditorView() {
         isSaveAsModalOpen={isModalOpen(ROUTES.SAVE_AS)}
         isSettingsModalOpen={isModalOpen(ROUTES.SETTINGS)}
         isSearchModalOpen={isModalOpen(ROUTES.SEARCH)}
-        setIsExportModalOpen={(open) => open ? openModal(ROUTES.EXPORT) : closeModal()}
-        setIsSaveAsModalOpen={(open) => open ? openModal(ROUTES.SAVE_AS) : closeModal()}
-        setIsSettingsModalOpen={(open) => open ? openModal(ROUTES.SETTINGS) : closeModal()}
-        setIsSearchModalOpen={(open) => open ? openModal(ROUTES.SEARCH) : closeModal()}
+        setIsExportModalOpen={(open) =>
+          open ? openModal(ROUTES.EXPORT) : closeModal()
+        }
+        setIsSaveAsModalOpen={(open) =>
+          open ? openModal(ROUTES.SAVE_AS) : closeModal()
+        }
+        setIsSettingsModalOpen={(open) =>
+          open ? openModal(ROUTES.SETTINGS) : closeModal()
+        }
+        setIsSearchModalOpen={(open) =>
+          open ? openModal(ROUTES.SEARCH) : closeModal()
+        }
         markdown={markdownSync.markdown}
         particlesOn={editorTheme.particlesOn}
         setParticlesOn={editorTheme.setParticlesOn}
@@ -320,9 +357,13 @@ export default function EditorView() {
         onLauncherSettings={() => openModal(ROUTES.SETTINGS)}
         onLauncherExport={() => openModal(ROUTES.EXPORT)}
         onLauncherViewMode={editorState.handleViewModeChange}
-        onLauncherParticlesToggle={() => editorTheme.setParticlesOn((prev) => !prev)}
+        onLauncherParticlesToggle={() =>
+          editorTheme.setParticlesOn((prev) => !prev)
+        }
         darkMode={editorTheme.darkMode}
-        onDarkModeToggle={() => editorTheme.setDarkMode((prev) => !prev)}
+        onDarkModeToggle={() => {
+          editorTheme.setDarkMode((prev) => !prev);
+        }}
       />
     </div>
   );

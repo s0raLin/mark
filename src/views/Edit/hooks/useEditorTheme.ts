@@ -10,6 +10,34 @@ import {
   Hct,
 } from "@material/material-color-utilities";
 
+const DARK_PREVIEW_THEMES: PreviewTheme[] = ["theme-heart-midnight"];
+const LIGHT_PREVIEW_THEMES: PreviewTheme[] = [
+  "theme-heart-classic",
+  "theme-heart-golden",
+  "theme-heart-organic",
+];
+const DEFAULT_DARK_PREVIEW_THEME: PreviewTheme = "theme-heart-midnight";
+const DEFAULT_LIGHT_PREVIEW_THEME: PreviewTheme = "theme-heart-classic";
+
+function isDarkPreviewTheme(theme: PreviewTheme) {
+  return DARK_PREVIEW_THEMES.includes(theme);
+}
+
+function syncPreviewThemeWithMode(
+  nextDarkMode: boolean,
+  currentPreviewTheme: PreviewTheme,
+): PreviewTheme {
+  if (nextDarkMode) {
+    return isDarkPreviewTheme(currentPreviewTheme)
+      ? currentPreviewTheme
+      : DEFAULT_DARK_PREVIEW_THEME;
+  }
+
+  return LIGHT_PREVIEW_THEMES.includes(currentPreviewTheme)
+    ? currentPreviewTheme
+    : DEFAULT_LIGHT_PREVIEW_THEME;
+}
+
 // ─── M3 Token Generator (Actify-style) ───────────────────────────────────────
 // Key insight: HCT tonal palette shifts hue/chroma during tone mapping, so
 // palette.tone(75) for a pink seed looks brownish. We use the seed hex directly
@@ -233,13 +261,28 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
     setCustomFonts(prev => prev.filter(f => f.name !== name));
   };
 
+  const setDarkModeWithPreviewSync: React.Dispatch<
+    React.SetStateAction<boolean>
+  > = (value) => {
+    setDarkMode((prevDarkMode) => {
+      const nextDarkMode =
+        typeof value === "function" ? value(prevDarkMode) : value;
+
+      setPreviewTheme((prevPreviewTheme) =>
+        syncPreviewThemeWithMode(nextDarkMode, prevPreviewTheme),
+      );
+
+      return nextDarkMode;
+    });
+  };
+
   return {
     editorTheme, previewTheme, fontChoice, editorFont,
     fontSize, editorFontSize, previewFontSize,
     accentColor, blurAmount, bgImage, particlesOn, darkMode, lang, customFonts,
     setEditorTheme, setPreviewTheme, setFontChoice, setEditorFont,
     setFontSize, setEditorFontSize, setPreviewFontSize,
-    setAccentColor, setBlurAmount, setBgImage, setParticlesOn, setDarkMode, setLang,
+    setAccentColor, setBlurAmount, setBgImage, setParticlesOn, setDarkMode: setDarkModeWithPreviewSync, setLang,
     addCustomFont, removeCustomFont,
   };
 }
