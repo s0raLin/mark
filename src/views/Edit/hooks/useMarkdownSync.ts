@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { INITIAL_MARKDOWN } from "@/constants";
-import { saveFileContent, getFileContent } from "@/api";
+import { saveFileContent, getFileContent } from "@/api/client";
 
 export interface UseMarkdownSyncReturn {
   markdown: string;

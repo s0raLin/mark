@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { getUserData, saveUserData } from "../../../api";
+import { getUserData, saveUserData } from "../../../api/client";
 import type { StorageFileSystem, StorageEditorConfig, StorageUserSettings } from "../../../api/types";
 import { errorBus } from "../../../contexts/errorBus";
 import i18n from "../../../i18n";

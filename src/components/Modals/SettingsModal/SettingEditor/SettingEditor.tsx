@@ -15,7 +15,7 @@ import { PreviewThemeCard } from "./PreviewThemeCard";
 import { AccentCircle } from "./AccentCircle";
 import { cn } from "@/utils/cn";
 import { ACCENT_COLORS, EDITOR_THEMES, PREVIEW_THEMES } from "@/constants/theme";
-import { uploadImage, uploadFont } from "@/api";
+import { uploadFont, uploadImage } from "@/api/client";
 
 interface SettingEditorProps {
   editorTheme: string;
@@ -58,6 +58,7 @@ export default function SettingEditor({
   bgImage, setBgImage,
   customFonts, addCustomFont,
 }: SettingEditorProps) {
+  // const settingEditorService = new SettingEditorService();
   const { t } = useTranslation();
   const [bgUploading, setBgUploading] = useState(false);
   const [fontUploading, setFontUploading] = useState(false);

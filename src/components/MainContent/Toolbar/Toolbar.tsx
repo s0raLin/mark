@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { ToolbarButton } from './ToolbarButton';
-import { uploadImage } from '@/api';
+import { uploadImage } from '@/api/client';
 
 interface ToolbarProps {
   editorRef: React.RefObject<ReactCodeMirrorRef>;

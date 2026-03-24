@@ -11,7 +11,7 @@ import {
   renameNodeOnServer,
   deleteNodeOnServer,
   saveFileContent,
-} from "@/api";
+} from "@/api/client";
 
 interface UseFileOperationsProps {
   nodes: FileNode[];
