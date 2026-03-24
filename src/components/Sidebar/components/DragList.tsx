@@ -154,10 +154,9 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
   }, []);
 
   const clearVisuals = useCallback(() => {
-    applyMargin(null, null);
     applyInto(null);
     localDropRef.current = null;
-  }, [applyMargin, applyInto]);
+  }, [applyInto]);
 
   const resolveHit = useCallback((clientY: number, clientX: number) => {
     const dragId = draggingIdRef.current;
@@ -210,62 +209,70 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
     }
 
     if (rects.length === 0) {
-      applyMargin(null, null);
       applyInto(null);
       localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: null };
       return;
     }
 
     // Hover over folder row → drop into (only middle 50% of row triggers "into", edges trigger reorder)
+    // Block: don't allow dropping into self or own children
     for (const info of rects) {
       if (info.node.type === "folder" && clientY >= info.top && clientY <= info.bottom) {
+        // Block: don't allow dropping into self or own children
+        const isOwnChild = dragId && info.node.id.startsWith(dragId + "/");
+        if (info.node.id === dragId || isOwnChild) {
+          // Block - clear drop target, no animation
+          applyInto(null);
+          localDropRef.current = null;
+          return;
+        }
         const rowHeight = info.bottom - info.top;
         const edgeZone = Math.min(rowHeight * 0.28, 10); // top/bottom 28% or 10px triggers reorder
         if (clientY < info.top + edgeZone) {
           // top edge → insert before this folder
           applyInto(null);
-          applyMargin(info.idx, "top");
           localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: info.node.id };
           return;
         }
         if (clientY > info.bottom - edgeZone) {
           // bottom edge → insert after this folder
           applyInto(null);
-          applyMargin(info.idx, "bottom");
           // find the next sibling in rects (skip the dragged node)
           const rectsIdx = rects.findIndex(r => r.idx === info.idx);
           const nextRect = rects[rectsIdx + 1];
           localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: nextRect?.node.id ?? null };
           return;
         }
-        // middle → drop into folder
-        applyMargin(null, null);
+        // middle → drop into folder - show push/squeeze animation
         applyInto(info.idx);
         localDropRef.current = { kind: "into", folderId: info.node.id };
         return;
       }
     }
 
+    // Reorder in empty space - block if target is inside own subtree - no animation
+    if (pid && dragId && pid.startsWith(dragId + "/")) {
+      applyInto(null);
+      localDropRef.current = null;
+      return;
+    }
+
     applyInto(null);
 
     if (clientY < rects[0].mid) {
-      applyMargin(rects[0].idx, "top");
       localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: rects[0].node.id };
       return;
     }
     if (clientY >= rects[rects.length - 1].mid) {
-      applyMargin(rects[rects.length - 1].idx, "bottom");
       localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: null };
       return;
     }
     for (let j = 0; j < rects.length - 1; j++) {
       if (clientY >= rects[j].mid && clientY < rects[j + 1].mid) {
-        applyMargin(rects[j + 1].idx, "top");
         localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: rects[j + 1].node.id };
         return;
       }
     }
-    applyMargin(rects[rects.length - 1].idx, "bottom");
     localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: null };
   }, [draggingIdRef, applyMargin, applyInto, clearVisuals]);
 

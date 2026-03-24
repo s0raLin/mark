@@ -1233,7 +1233,7 @@ input, textarea, [contenteditable] {
   --preview-delete-text: #c08497;
   --preview-delete-decoration: #f2b5c3;
   --preview-link: #ff4d6d;
-  --preview-code-bg: #fff1f5;
+  --preview-code-bg: #ffd6de;
   --preview-code-text: #db2777;
   --preview-blockquote-bg: linear-gradient(135deg, rgba(255,179,193,0.1) 0%, rgba(255,240,243,0.5) 100%);
   --preview-blockquote-border: #ffb3c1;

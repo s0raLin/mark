@@ -137,7 +137,7 @@ export const CodeBlock = memo(function CodeBlock({ language, code, previewTheme 
           label: "text-rose-400",
           button: "bg-white border-rose-100 text-rose-300 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50",
           buttonCopied: "bg-emerald-50 border-emerald-100 text-emerald-600",
-          blockBackground: "#fff8fb",
+          blockBackground: "#ffebee",
         };
       case "theme-heart-golden":
         return {

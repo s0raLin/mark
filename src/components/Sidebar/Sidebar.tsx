@@ -61,9 +61,14 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen, 
           fs.toggleFolder(target.folderId);
         }
       } else {
-        // Reorder — check it's not a no-op
+        // Reorder — check it's not a no-op and not dropping into self
         const node = fs.getNode(dragId);
         if (!node) return;
+        // Don't reorder into own children (target parent or insertBefore is inside dragId's subtree)
+        const isIntoOwnChild = 
+          (target.parentId && target.parentId.startsWith(dragId + "/")) ||
+          (target.insertBeforeId && target.insertBeforeId.startsWith(dragId + "/"));
+        if (isIntoOwnChild) return;
         const sameParent = (node.parentId ?? null) === target.parentId;
         if (sameParent && target.insertBeforeId === null) {
           // Moving to end of same list — still valid
