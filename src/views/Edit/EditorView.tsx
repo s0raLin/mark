@@ -190,11 +190,12 @@ export default function EditorView() {
 
   // 加载状态显示
   if (storageSync.isLoading) {
+    const isDark = document.documentElement.classList.contains("dark");
     return (
-      <div className="h-screen flex items-center justify-center bg-background-light">
+      <div className="h-screen flex items-center justify-center bg-background-light dark:dark-bg">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-rose-200 border-t-rose-500 rounded-full animate-spin" />
-          <p className="text-slate-500 font-medium">加载中...</p>
+          <div className={`w-12 h-12 border-4 rounded-full animate-spin ${isDark ? "border-[var(--md-sys-color-primary-container)] border-t-[var(--md-sys-color-primary)]" : "border-rose-200 border-t-rose-500"}`} />
+          <p className={`font-medium ${isDark ? "text-[var(--md-sys-color-on-surface-variant)]" : "text-slate-500"}`}>加载中...</p>
         </div>
       </div>
     );

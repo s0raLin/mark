@@ -26,6 +26,11 @@ body {
   -webkit-user-select: none;
 }
 
+/* 暗色模式加载背景 */
+.dark-bg {
+  background-color: var(--md-sys-color-surface);
+}
+
 input, textarea, [contenteditable] {
   user-select: text;
   -webkit-user-select: text;
