@@ -69,10 +69,10 @@ export const PREVIEW_THEMES = [
 ];
 
 export const ACCENT_COLORS = [
-  "#ff9a9e",
-  "#a1c4fd",
-  "#c2e9fb",
-  "#d4fc79",
-  "#f6d365",
-  "#ffecd2",
+  "#ff9a9e", // Rose
+  "#6750a4", // Purple
+  "#006874", // Teal
+  "#386a20", // Green
+  "#b3261e", // Red
+  "#1565c0", // Blue
 ];

@@ -3,7 +3,7 @@ import { errorBus } from "@/contexts/errorBus";
 import type {
   ApiResponse,
   ApiError,
-} from "../types";
+} from "@/api/client/types";
 
 // ===== 配置 =====
 const API_BASE_URL = "/api";

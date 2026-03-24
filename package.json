@@ -41,6 +41,7 @@
     "@fontsource/playfair-display": "^5.2.8",
     "@fontsource/quicksand": "^5.2.10",
     "@google/genai": "^1.29.0",
+    "@material/material-color-utilities": "^0.4.0",
     "@tailwindcss/vite": "^4.1.14",
     "@uiw/codemirror-theme-dracula": "^4.25.8",
     "@uiw/codemirror-theme-github": "^4.25.8",

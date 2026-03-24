@@ -5,6 +5,7 @@ import { cn } from "@/utils/cn";
 import { searchFiles } from "@/api/client";
 import { useTranslation } from "react-i18next";
 import type { FileNode } from "@/types/filesystem";
+import { ModalShell } from "../ModalShell";
 
 interface SearchResult {
   id: string;
@@ -134,22 +135,9 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 flex items-start justify-center bg-slate-900/20 backdrop-blur-sm pt-[15vh] px-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.95, y: -20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.95, y: -20 }}
-        className="bg-white/70 backdrop-blur-xl w-full max-w-2xl rounded-3xl overflow-hidden shadow-sm border border-white/50 flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <ModalShell onClose={onClose} align="top" className="w-full max-w-2xl rounded-3xl">
         {/* Search input */}
-        <div className="p-6 flex items-center gap-4 border-b border-rose-100">
+        <div className="modal-m3-header p-6 flex items-center gap-4">
           <Search className={cn("w-6 h-6 shrink-0 transition-colors", isLoading ? "text-primary animate-pulse" : "text-slate-400")} />
           <input
             ref={inputRef}
@@ -161,17 +149,17 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
             onKeyDown={handleKeyDown}
           />
           {query && (
-            <button onClick={() => setQuery("")} className="text-slate-300 hover:text-slate-500 transition-colors">
+            <button onClick={() => setQuery("")} className="modal-m3-icon-button text-slate-300 hover:text-slate-500 transition-colors rounded-full h-8 w-8 flex items-center justify-center shrink-0">
               <X className="w-4 h-4" />
             </button>
           )}
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[10px] font-black text-slate-400 uppercase">
+          <div className="modal-m3-keycap flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-black text-slate-400 uppercase">
             ESC
           </div>
         </div>
 
         {/* Filters */}
-        <div className="px-6 py-3 bg-white/30 border-b border-rose-100 flex flex-wrap gap-6 items-center">
+        <div className="modal-m3-inline-surface px-6 py-3 border-b border-primary/20 flex flex-wrap gap-6 items-center">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
               <Filter className="w-3 h-3" />
@@ -183,11 +171,12 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
                   key={type}
                   onClick={() => setSelectedType(type)}
                   className={cn(
-                    "px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all",
+                    "modal-m3-segmented-button px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border",
                     selectedType === type
-                      ? "bg-primary text-white shadow-sm"
-                      : "bg-white text-slate-500 hover:bg-rose-50 border border-slate-200",
+                      ? "text-white"
+                      : "text-slate-500",
                   )}
+                  data-active={selectedType === type}
                 >
                   {type === "all" ? t("search.dateAll") : type.toUpperCase()}
                 </button>
@@ -206,11 +195,12 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
                   key={range}
                   onClick={() => setDateRange(range)}
                   className={cn(
-                    "px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all",
+                    "modal-m3-segmented-button px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border",
                     dateRange === range
-                      ? "bg-primary text-white shadow-sm"
-                      : "bg-white text-slate-500 hover:bg-rose-50 border border-slate-200",
+                      ? "text-white"
+                      : "text-slate-500",
                   )}
+                  data-active={dateRange === range}
                 >
                   {dateLabels[range]}
                 </button>
@@ -228,9 +218,9 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
                   key={node.id}
                   data-idx={idx}
                   onClick={() => handleOpen(node.id)}
-                  className="group flex items-center gap-4 p-4 rounded-2xl hover:bg-rose-50 cursor-pointer transition-all"
+                  className="group flex items-center gap-4 p-4 rounded-2xl hover:bg-primary/10 cursor-pointer transition-all"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-400 group-hover:bg-white group-hover:shadow-sm transition-all">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-white group-hover:shadow-sm transition-all">
                     <FileText className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -239,7 +229,7 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
                       {new Date(node.updatedAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-rose-200 opacity-0 group-hover:opacity-100 transition-all" />
+                  <ChevronRight className="w-4 h-4 text-primary/30 opacity-0 group-hover:opacity-100 transition-all" />
                 </div>
               ))}
             </div>
@@ -255,12 +245,12 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
                     onClick={() => handleOpen(result.id)}
                     className={cn(
                       "group flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all",
-                      selectedIdx === idx ? "bg-primary/10 border border-primary/20" : "hover:bg-rose-50",
+                      selectedIdx === idx ? "bg-primary/10 border border-primary/20" : "hover:bg-primary/10",
                     )}
                   >
                     <div className={cn(
                       "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
-                      selectedIdx === idx ? "bg-primary/20 text-primary" : "bg-rose-50 text-rose-400 group-hover:bg-white group-hover:shadow-sm",
+                      selectedIdx === idx ? "bg-primary/20 text-primary" : "bg-primary/10 text-primary/60 group-hover:bg-white group-hover:shadow-sm",
                     )}>
                       {isFolder ? <Folder className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
                     </div>
@@ -284,14 +274,14 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
                     )}>
                       {result.matchType === "name" ? t("search.matchName") : t("search.matchContent")}
                     </span>
-                    <ChevronRight className="w-4 h-4 text-rose-200 opacity-0 group-hover:opacity-100 transition-all" />
+                    <ChevronRight className="w-4 h-4 text-primary/30 opacity-0 group-hover:opacity-100 transition-all" />
                   </div>
                 );
               })}
             </div>
           ) : (
             <div className="py-12 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-200 mb-4">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary/30 mb-4">
                 <Search className="w-8 h-8" />
               </div>
               <p className="text-sm font-bold text-slate-400">{t("search.noResults", { query })}</p>
@@ -301,14 +291,14 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-white/30 border-t border-rose-100 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+        <div className="modal-m3-footer p-4 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest">
           <div className="flex gap-4">
             <span className="flex items-center gap-1.5">
-              <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-200 shadow-sm">↑↓</kbd>
+              <kbd className="modal-m3-keycap px-1.5 py-0.5 rounded">↑↓</kbd>
               {t("search.navigate")}
             </span>
             <span className="flex items-center gap-1.5">
-              <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-200 shadow-sm">Enter</kbd>
+              <kbd className="modal-m3-keycap px-1.5 py-0.5 rounded">Enter</kbd>
               {t("search.open")}
             </span>
           </div>
@@ -318,7 +308,6 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
               : `${fileNodes.length} ${t("search.files")}`}
           </span>
         </div>
-      </motion.div>
-    </motion.div>
+    </ModalShell>
   );
 }

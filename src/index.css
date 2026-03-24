@@ -49,14 +49,25 @@ input, textarea, [contenteditable] {
   font-size: var(--editor-font-size, 14px);
 }
 
-/* Tailwind CSS v4 theme variables - these generate utility classes */
+/* ── Tailwind v4 theme: map --color-* → --md-sys-color-* (Actify pattern) ── */
 @theme {
-  --color-primary: #ff8fab;
-  --color-secondary: #a2d2ff;
-  --color-accent: #ffafcc;
-  --color-background-light: #fdfdfd;
-  --color-soft-bg: #f8f9fa;
-  --color-border-soft: #f1f3f5;
+  --color-primary:            var(--md-sys-color-primary, #6750a4);
+  --color-on-primary:         var(--md-sys-color-on-primary, #ffffff);
+  --color-primary-container:  var(--md-sys-color-primary-container, #eaddff);
+  --color-on-primary-container: var(--md-sys-color-on-primary-container, #21005d);
+  --color-secondary:          var(--md-sys-color-secondary, #625b71);
+  --color-on-secondary:       var(--md-sys-color-on-secondary, #ffffff);
+  --color-secondary-container: var(--md-sys-color-secondary-container, #e8def8);
+  --color-tertiary:           var(--md-sys-color-tertiary, #7d5260);
+  --color-surface:            var(--md-sys-color-surface, #fffbfe);
+  --color-surface-variant:    var(--md-sys-color-surface-variant, #e7e0ec);
+  --color-on-surface:         var(--md-sys-color-on-surface, #1c1b1f);
+  --color-on-surface-variant: var(--md-sys-color-on-surface-variant, #49454f);
+  --color-outline:            var(--md-sys-color-outline, #79747e);
+  --color-outline-variant:    var(--md-sys-color-outline-variant, #cac4d0);
+  --color-background-light: var(--md-sys-color-surface, #fffbfe);
+  --color-soft-bg: var(--md-sys-color-surface-variant, #f7f2fa);
+  --color-border-soft: var(--md-sys-color-outline-variant, #e6e0ec);
   --font-display: "Quicksand", sans-serif;
   --radius-DEFAULT: 0.75rem;
   --radius-lg: 1rem;
@@ -64,125 +75,567 @@ input, textarea, [contenteditable] {
   --radius-full: 9999px;
 }
 
-/* Dark mode */
+/* ── M3 sys token defaults (overridden at runtime by applyTheme) ── */
+:root {
+  --md-sys-color-primary:              #6750a4;
+  --md-sys-color-on-primary:           #ffffff;
+  --md-sys-color-primary-container:    #eaddff;
+  --md-sys-color-on-primary-container: #21005d;
+  --md-sys-color-secondary:            #625b71;
+  --md-sys-color-on-secondary:         #ffffff;
+  --md-sys-color-secondary-container:  #e8def8;
+  --md-sys-color-on-secondary-container: #1d192b;
+  --md-sys-color-tertiary:             #7d5260;
+  --md-sys-color-on-tertiary:          #ffffff;
+  --md-sys-color-tertiary-container:   #ffd8e4;
+  --md-sys-color-on-tertiary-container: #31111d;
+  --md-sys-color-surface:              #fffbfe;
+  --md-sys-color-surface-variant:      #e7e0ec;
+  --md-sys-color-on-surface:           #1c1b1f;
+  --md-sys-color-on-surface-variant:   #49454f;
+  --md-sys-color-outline:              #79747e;
+  --md-sys-color-outline-variant:      #cac4d0;
+  --md-sys-color-inverse-surface:      #313033;
+  --md-sys-color-inverse-on-surface:   #f4eff4;
+  --md-sys-color-inverse-primary:      #d0bcff;
+  --md-sys-color-background:           #fffbfe;
+  --md-sys-color-on-background:        #1c1b1f;
+  --md-sys-color-error:                #b3261e;
+  --md-sys-color-on-error:             #ffffff;
+  --md-sys-color-error-container:      #f9dedc;
+  --md-sys-color-on-error-container:   #410e0b;
+  /* Surface container roles */
+  --md-sys-color-surface-container:    #f3edf7;
+  --md-sys-color-surface-container-high: #ece6f0;
+  /* Convenience aliases (legacy compat) */
+  --color-primary:      #6750a4;
+  --color-accent:       #eaddff;
+  --color-primary-text: #6750a4;
+  /* Palette tones (set by applyM3Theme) */
+  --md-primary-tone-40: #6750a4;
+  --md-primary-tone-80: #d0bcff;
+  --md-primary-tone-90: #eaddff;
+  --md-primary-tone-10: #21005d;
+}
+
+/* ── M3 semantic utility classes ── */
+.m3-surface         { background-color: var(--md-sys-color-surface); }
+.m3-surface-variant { background-color: var(--md-sys-color-surface-variant); }
+.m3-on-surface      { color: var(--md-sys-color-on-surface); }
+.m3-primary-container { background-color: var(--md-sys-color-primary-container); }
+.m3-on-primary-container { color: var(--md-sys-color-on-primary-container); }
+
+/* ── text-primary / bg-primary: Actify pattern ── */
+/* text uses --color-primary (tone ≤ 50, always readable on white/dark) */
+.text-primary { color: var(--color-primary) !important; }
+.hover\:text-primary:hover { color: var(--color-primary) !important; }
+
+/* bg-primary uses --md-sys-color-primary (seed color, visually correct) */
+.bg-primary { background-color: var(--md-sys-color-primary) !important; }
+/* text on a primary background uses on-primary */
+.bg-primary .text-white,
+.bg-primary.text-white { color: var(--md-sys-color-on-primary) !important; }
+
+/* primary-container tint for hover/active states */
+.bg-primary\/10  { background-color: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent) !important; }
+.bg-primary\/15  { background-color: color-mix(in srgb, var(--md-sys-color-primary) 18%, transparent) !important; }
+.bg-primary\/20  { background-color: color-mix(in srgb, var(--md-sys-color-primary) 22%, transparent) !important; }
+.bg-primary\/\[0\.12\] { background-color: color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent) !important; }
+.bg-primary\/\[0\.08\] { background-color: color-mix(in srgb, var(--md-sys-color-primary) 9%, transparent) !important; }
+.hover\:bg-primary\/10:hover  { background-color: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent) !important; }
+.hover\:bg-primary\/20:hover  { background-color: color-mix(in srgb, var(--md-sys-color-primary) 22%, transparent) !important; }
+.hover\:bg-primary\/\[0\.08\]:hover { background-color: color-mix(in srgb, var(--md-sys-color-primary) 9%, transparent) !important; }
+
+/* border uses outline-variant role */
+.border-primary\/20 { border-color: var(--md-sys-color-outline-variant) !important; }
+.border-primary\/10 { border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 60%, transparent) !important; }
+
+/* ── Dark mode: M3 token-based overrides ── */
 .dark {
   color-scheme: dark;
-  --color-background-light: #2d2d2d;
-  --color-soft-bg: #252525;
-  --color-border-soft: #444444;
+  /* --color-background-light / soft-bg / border-soft are set by applyM3Theme at runtime */
 }
 
-/* ── 全局背景 & 文字 ── */
 .dark body {
-  background-color: #2d2d2d;
-  color: #cccccc;
+  background-color: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-surface);
 }
 
-/* ── 背景色覆盖 ── */
-.dark .bg-white { background-color: #2d2d2d !important; }
-.dark .bg-white\/70 { background-color: rgba(45, 45, 45, 0.95) !important; }
-.dark .bg-white\/80 { background-color: rgba(45, 45, 45, 0.95) !important; }
-.dark .bg-white\/40 { background-color: rgba(45, 45, 45, 0.6) !important; }
-.dark .bg-white\/60 { background-color: rgba(45, 45, 45, 0.8) !important; }
-.dark .bg-slate-50\/50 { background-color: rgba(37, 37, 37, 0.8) !important; }
-.dark .bg-slate-100 { background-color: #3a3a3a !important; }
-.dark .bg-slate-50 { background-color: #2d2d2d !important; }
-.dark .bg-background-light { background-color: #2d2d2d !important; }
+/* Surfaces */
+.dark .bg-white,
+.dark .bg-white\/70,
+.dark .bg-white\/80 { background-color: var(--md-sys-color-surface-container) !important; }
+.dark .bg-white\/60 { background-color: color-mix(in srgb, var(--md-sys-color-surface-container) 85%, transparent) !important; }
+.dark .bg-white\/40 { background-color: color-mix(in srgb, var(--md-sys-color-surface-container) 60%, transparent) !important; }
+.dark .bg-slate-50,
+.dark .bg-background-light { background-color: var(--md-sys-color-surface) !important; }
+.dark .bg-slate-50\/50 { background-color: color-mix(in srgb, var(--md-sys-color-surface) 80%, transparent) !important; }
+.dark .bg-slate-100 { background-color: var(--md-sys-color-surface-variant) !important; }
 
-/* ── 文字色覆盖 ── */
-.dark .text-slate-800 { color: #e0e0e0 !important; }
-.dark .text-slate-700 { color: #cccccc !important; }
-.dark .text-slate-600 { color: #aaaaaa !important; }
-.dark .text-slate-500 { color: #888888 !important; }
-.dark .text-slate-400 { color: #666666 !important; }
-.dark .text-slate-300 { color: #555555 !important; }
+/* Text */
+.dark .text-slate-800 { color: var(--md-sys-color-on-surface) !important; }
+.dark .text-slate-700 { color: var(--md-sys-color-on-surface) !important; }
+.dark .text-slate-600 { color: var(--md-sys-color-on-surface-variant) !important; }
+.dark .text-slate-500 { color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 80%, transparent) !important; }
+.dark .text-slate-400 { color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 60%, transparent) !important; }
+.dark .text-slate-300 { color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 45%, transparent) !important; }
 
-/* ── 边框色覆盖 ── */
-.dark .border-slate-200 { border-color: #444444 !important; }
-.dark .border-slate-200\/80 { border-color: rgba(68, 68, 68, 0.8) !important; }
-.dark .border-rose-100 { border-color: #3a3a3a !important; }
-.dark .border-pink-100 { border-color: #3a3a3a !important; }
-.dark .border-border-soft { border-color: #444444 !important; }
-.dark .border-white\/50 { border-color: rgba(80, 80, 80, 0.5) !important; }
+/* Borders */
+.dark .border-slate-200,
+.dark .border-slate-200\/80,
+.dark .border-rose-100,
+.dark .border-pink-100,
+.dark .border-border-soft { border-color: var(--md-sys-color-outline-variant) !important; }
+.dark .border-white\/50 { border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent) !important; }
 
-/* ── hover 状态 ── */
-.dark .hover\:bg-slate-100:hover { background-color: #3a3a3a !important; }
-.dark .hover\:bg-slate-100\/80:hover { background-color: rgba(58, 58, 58, 0.8) !important; }
-.dark .hover\:bg-rose-50:hover { background-color: #3a2a2a !important; }
-.dark .hover\:bg-primary\/10:hover { background-color: rgba(255, 143, 171, 0.12) !important; }
-.dark .hover\:bg-primary\/20:hover { background-color: rgba(255, 143, 171, 0.2) !important; }
-.dark .hover\:text-slate-700:hover { color: #e0e0e0 !important; }
-.dark .hover\:text-slate-800:hover { color: #e0e0e0 !important; }
+/* Hover states */
+.dark .hover\:bg-slate-100:hover,
+.dark .hover\:bg-slate-100\/80:hover,
+.dark .hover\:bg-rose-50:hover { background-color: var(--md-sys-color-surface-variant) !important; }
+.dark .hover\:text-slate-700:hover,
+.dark .hover\:text-slate-800:hover { color: var(--md-sys-color-on-surface) !important; }
 
-/* ── Header 顶部栏 ── */
-.dark .app-header {
-  background-color: rgba(37, 37, 37, 0.98) !important;
-  border-color: #444444 !important;
-}
-
-/* ── 中间 QuickBtn 工具栏 ── */
+/* Header quickbar */
 .dark .header-quickbar {
-  background-color: rgba(45, 45, 45, 0.95) !important;
-  border-color: #444444 !important;
+  background-color: color-mix(in srgb, var(--md-sys-color-surface-container) 95%, transparent) !important;
+  border-color: var(--md-sys-color-outline-variant) !important;
   box-shadow: none !important;
 }
 
-/* ── 侧边栏 ── */
+/* Sidebars */
 .dark aside.w-80 {
-  background-color: rgba(45, 45, 45, 0.95) !important;
-  border-color: #444444 !important;
+  background-color: color-mix(in srgb, var(--md-sys-color-surface-container) 95%, transparent) !important;
+  border-color: var(--md-sys-color-outline-variant) !important;
 }
-
-/* ── Outline 右侧栏 ── */
 .dark aside.w-56 {
-  background-color: rgba(58, 58, 58, 0.95) !important;
-  border-color: #444444 !important;
+  background-color: color-mix(in srgb, var(--md-sys-color-surface-container-high) 95%, transparent) !important;
+  border-color: var(--md-sys-color-outline-variant) !important;
 }
 
-/* ── 编辑器区域 frosted glass ── */
+/* Editor */
 .dark .cm-editor,
-.dark .cm-scroller {
-  background-color: #3a3a3a !important;
-}
-
-/* ── Toolbar 工具栏 ── */
+.dark .cm-scroller { background-color: var(--md-sys-color-surface-container-high) !important; }
 .dark .editor-toolbar {
-  background-color: rgba(50, 50, 50, 0.9) !important;
-  border-color: #444444 !important;
+  background-color: color-mix(in srgb, var(--md-sys-color-surface-container) 90%, transparent) !important;
+  border-color: var(--md-sys-color-outline-variant) !important;
 }
-
-/* ── 分隔线 ── */
-.dark .bg-slate-200 { background-color: #444444 !important; }
-.dark .w-px.h-5.bg-slate-200 { background-color: #444444 !important; }
-.dark .w-\[1px\].h-6.bg-slate-200 { background-color: #444444 !important; }
-
-/* ── 滚动条 ── */
-.dark ::-webkit-scrollbar-track { background: #2d2d2d; }
-.dark ::-webkit-scrollbar-thumb { background: #555555; }
-.dark ::-webkit-scrollbar-thumb:hover { background: #666666; }
-.dark .cm-scroller::-webkit-scrollbar-track { background: #3a3a3a; }
-.dark .cm-scroller::-webkit-scrollbar-thumb { background: #555555; }
-
-/* ── 模态框 ── */
-.dark .bg-white\/70.backdrop-blur-xl {
-  background-color: rgba(40, 40, 40, 0.95) !important;
-}
-.dark .bg-slate-50\/50 { background-color: rgba(37, 37, 37, 0.8) !important; }
-
-/* ── Sidebar 文件项 active 状态 ── */
-.dark .bg-primary\/10 { background-color: rgba(255, 143, 171, 0.12) !important; }
-.dark .bg-primary\/15 { background-color: rgba(255, 143, 171, 0.15) !important; }
-.dark .bg-primary\/20 { background-color: rgba(255, 143, 171, 0.2) !important; }
-
-/* ── 字数统计 badge ── */
-.dark .bg-slate-100.px-2 { background-color: #3a3a3a !important; }
-
-/* ── 进度条轨道 ── */
-.dark .bg-slate-100.rounded-full { background-color: #3a3a3a !important; }
-
-/* ── EditorPane frosted glass overlay ── */
 .dark .editor-glass-overlay {
-  background-color: rgba(58, 58, 58, 0.7) !important;
+  background-color: color-mix(in srgb, var(--md-sys-color-surface-container-high) 70%, transparent) !important;
+}
+
+/* Dividers */
+.dark .bg-slate-200 { background-color: var(--md-sys-color-outline-variant) !important; }
+
+/* Scrollbars */
+.dark ::-webkit-scrollbar-track { background: var(--md-sys-color-surface); }
+.dark ::-webkit-scrollbar-thumb { background: var(--md-sys-color-outline-variant); }
+.dark ::-webkit-scrollbar-thumb:hover { background: var(--md-sys-color-outline); }
+.dark .cm-scroller::-webkit-scrollbar-track { background: var(--md-sys-color-surface-container-high); }
+.dark .cm-scroller::-webkit-scrollbar-thumb { background: var(--md-sys-color-outline-variant); }
+
+/* Modal system: Material 3 surfaces and state layers */
+.modal-m3-overlay,
+.settings-m3-overlay {
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent), transparent 42%),
+    color-mix(in srgb, var(--md-sys-color-scrim, #000000) 22%, transparent);
+}
+
+.modal-m3-shell,
+.settings-m3-shell {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 72%, transparent);
+  box-shadow:
+    0 20px 48px -24px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 38%, transparent),
+    0 10px 24px -18px color-mix(in srgb, var(--md-sys-color-primary) 18%, transparent);
+}
+
+.modal-m3-header,
+.settings-m3-header,
+.modal-m3-footer,
+.settings-m3-footer,
+.modal-m3-sidebar,
+.settings-m3-sidebar {
+  border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent);
+}
+
+.modal-m3-header,
+.settings-m3-header {
+  border-bottom-width: 1px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--md-sys-color-surface-container-high) 96%, transparent) 0%,
+    color-mix(in srgb, var(--md-sys-color-surface-container) 94%, transparent) 100%
+  );
+}
+
+.modal-m3-header-icon,
+.settings-m3-header-icon {
+  background: color-mix(in srgb, var(--md-sys-color-primary-container) 88%, transparent);
+  color: var(--md-sys-color-on-primary-container);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--md-sys-color-on-primary-container) 8%, transparent);
+}
+
+.modal-m3-icon-button,
+.settings-m3-icon-button,
+.modal-m3-text-button,
+.settings-m3-text-button,
+.modal-m3-outlined-button,
+.settings-m3-outlined-button,
+.modal-m3-nav-button,
+.settings-m3-nav-button,
+.modal-m3-segmented-button,
+.settings-m3-segmented-button,
+.modal-m3-filled-button,
+.settings-m3-filled-button,
+.modal-m3-theme-option,
+.settings-m3-theme-option,
+.modal-m3-preview-card,
+.settings-m3-preview-card,
+.modal-m3-swatch,
+.settings-m3-swatch {
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-m3-icon-button,
+.settings-m3-icon-button {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 72%, transparent);
+  box-shadow: 0 4px 12px -10px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 28%, transparent);
+}
+
+.modal-m3-icon-button:hover,
+.settings-m3-icon-button:hover,
+.modal-m3-text-button:hover,
+.settings-m3-text-button:hover,
+.modal-m3-outlined-button:hover,
+.settings-m3-outlined-button:hover,
+.modal-m3-nav-button:hover,
+.settings-m3-nav-button:hover,
+.modal-m3-segmented-button:hover,
+.settings-m3-segmented-button:hover {
+  background: color-mix(in srgb, var(--md-sys-color-primary) 8%, var(--md-sys-color-surface-container-high));
+}
+
+.modal-m3-icon-button:hover,
+.settings-m3-icon-button:hover,
+.modal-m3-text-button:hover,
+.settings-m3-text-button:hover,
+.modal-m3-outlined-button:hover,
+.settings-m3-outlined-button:hover,
+.modal-m3-nav-button:hover,
+.settings-m3-nav-button:hover,
+.modal-m3-segmented-button:hover,
+.settings-m3-segmented-button:hover {
+  color: var(--md-sys-color-on-surface);
+}
+
+.modal-m3-sidebar,
+.settings-m3-sidebar {
+  border-right-width: 1px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--md-sys-color-surface-container) 96%, transparent), color-mix(in srgb, var(--md-sys-color-surface-container-high) 92%, transparent));
+}
+
+.modal-m3-nav-button[data-active="true"],
+.settings-m3-nav-button[data-active="true"] {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--md-sys-color-on-secondary-container) 10%, transparent);
+}
+
+.modal-m3-footer,
+.settings-m3-footer {
+  border-top-width: 1px;
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 88%, transparent);
+}
+
+.modal-m3-card,
+.settings-m3-card,
+.modal-m3-inline-surface,
+.settings-m3-inline-surface {
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 62%, transparent);
+}
+
+.modal-m3-card,
+.settings-m3-card {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 94%, transparent);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 6%, transparent);
+}
+
+.modal-m3-inline-surface,
+.settings-m3-inline-surface {
+  background: color-mix(in srgb, var(--md-sys-color-surface) 96%, transparent);
+}
+
+.modal-m3-popover,
+.settings-m3-popover {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 98%, transparent);
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent);
+  box-shadow:
+    0 20px 48px -20px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 38%, transparent),
+    0 6px 18px -12px color-mix(in srgb, var(--md-sys-color-primary) 16%, transparent);
+}
+
+.modal-m3-popover-arrow,
+.settings-m3-popover-arrow {
+  background: inherit;
+  border-left: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent);
+}
+
+.modal-m3-swatch,
+.settings-m3-swatch {
+  border: 4px solid color-mix(in srgb, var(--md-sys-color-surface-container-high) 96%, transparent);
+  box-shadow: 0 8px 20px -14px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 42%, transparent);
+}
+
+.modal-m3-swatch[data-active="true"],
+.settings-m3-swatch[data-active="true"] {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--md-sys-color-primary) 34%, transparent),
+    0 8px 20px -14px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 42%, transparent);
+}
+
+.modal-m3-theme-option,
+.settings-m3-theme-option,
+.modal-m3-preview-card,
+.settings-m3-preview-card,
+.modal-m3-segmented-button,
+.settings-m3-segmented-button,
+.modal-m3-outlined-button,
+.settings-m3-outlined-button {
+  border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 72%, transparent);
+}
+
+.modal-m3-theme-option:hover,
+.settings-m3-theme-option:hover,
+.modal-m3-preview-card:hover,
+.settings-m3-preview-card:hover,
+.modal-m3-segmented-button:hover,
+.settings-m3-segmented-button:hover,
+.modal-m3-outlined-button:hover,
+.settings-m3-outlined-button:hover {
+  border-color: color-mix(in srgb, var(--md-sys-color-primary) 34%, var(--md-sys-color-outline-variant));
+}
+
+.modal-m3-theme-option[data-active="true"],
+.settings-m3-theme-option[data-active="true"],
+.modal-m3-preview-card[data-active="true"],
+.settings-m3-preview-card[data-active="true"],
+.modal-m3-segmented-button[data-active="true"],
+.settings-m3-segmented-button[data-active="true"] {
+  border-color: transparent;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent), color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent)),
+    linear-gradient(var(--md-sys-color-primary), var(--md-sys-color-primary));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 10px 24px -20px color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent);
+}
+
+.modal-m3-segmented-button[data-active="true"],
+.settings-m3-segmented-button[data-active="true"] {
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  background-image: none;
+  border-color: color-mix(in srgb, var(--md-sys-color-on-secondary-container) 12%, transparent);
+  box-shadow: none;
+}
+
+.modal-m3-outlined-button,
+.settings-m3-outlined-button {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 82%, transparent);
+}
+
+.modal-m3-text-button,
+.settings-m3-text-button {
+  color: var(--md-sys-color-primary);
+}
+
+.app-m3-filled-button,
+.modal-m3-filled-button,
+.settings-m3-filled-button {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  box-shadow: 0 10px 24px -18px color-mix(in srgb, var(--md-sys-color-primary) 60%, transparent);
+}
+
+.app-m3-filled-button[data-disabled="true"],
+.modal-m3-filled-button[data-disabled="true"],
+.settings-m3-filled-button[data-disabled="true"] {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
+  color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
+  box-shadow: none;
+}
+
+.modal-m3-switch-track,
+.settings-m3-switch-track {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--md-sys-color-primary) 16%, transparent);
+}
+
+.modal-m3-keycap,
+.settings-m3-keycap {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--md-sys-color-outline) 22%, transparent);
+}
+
+.dark .modal-m3-overlay,
+.dark .settings-m3-overlay {
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--md-sys-color-primary) 18%, transparent), transparent 38%),
+    color-mix(in srgb, #000000 46%, transparent);
+}
+
+.dark .modal-m3-shell,
+.dark .settings-m3-shell {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 96%, transparent);
+  border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 64%, transparent);
+  box-shadow:
+    0 24px 56px -24px rgba(0, 0, 0, 0.7),
+    0 10px 24px -16px color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
+}
+
+.dark .modal-m3-nav-button[data-active="true"],
+.dark .settings-m3-nav-button[data-active="true"],
+.dark .modal-m3-segmented-button[data-active="true"],
+.dark .settings-m3-segmented-button[data-active="true"] {
+  background: color-mix(in srgb, var(--md-sys-color-secondary-container) 88%, transparent);
+}
+
+.dark .modal-m3-theme-option[data-active="true"],
+.dark .settings-m3-theme-option[data-active="true"],
+.dark .modal-m3-preview-card[data-active="true"],
+.dark .settings-m3-preview-card[data-active="true"] {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--md-sys-color-primary) 16%, transparent), color-mix(in srgb, var(--md-sys-color-primary) 16%, transparent)),
+    linear-gradient(var(--md-sys-color-primary), var(--md-sys-color-primary));
+}
+
+.dark .modal-m3-swatch,
+.dark .settings-m3-swatch {
+  border-color: color-mix(in srgb, var(--md-sys-color-surface-container-high) 92%, transparent);
+}
+
+/* App shell: Material 3 surfaces */
+.app-m3-shell {
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent), transparent 38%),
+    var(--md-sys-color-background);
+}
+
+.app-m3-bg {
+  opacity: 0.92;
+}
+
+.app-m3-topbar {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 88%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent);
+  box-shadow: 0 10px 24px -20px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 20%, transparent);
+}
+
+.app-m3-sidebar,
+.app-m3-outline {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--md-sys-color-surface-container) 96%, transparent), color-mix(in srgb, var(--md-sys-color-surface-container-high) 92%, transparent));
+  border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 72%, transparent);
+}
+
+.app-m3-sidebar-content {
+  background: transparent;
+}
+
+.app-m3-editor-surface {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 86%, transparent);
+}
+
+.app-m3-preview-surface {
+  background-color: color-mix(in srgb, var(--md-sys-color-surface) 92%, transparent) !important;
+}
+
+.app-m3-toolbar {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 90%, transparent);
+  border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent);
+}
+
+.app-m3-quickbar {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent);
+  box-shadow:
+    0 8px 20px -16px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 28%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--md-sys-color-on-surface) 4%, transparent);
+}
+
+.app-m3-divider {
+  background: color-mix(in srgb, var(--md-sys-color-outline-variant) 86%, transparent);
+}
+
+.app-m3-quick-btn,
+.app-m3-tool-button,
+.app-m3-window-btn,
+.app-m3-sidebar-item,
+.app-m3-outline-item {
+  position: relative;
+}
+
+.app-m3-quick-btn:hover,
+.app-m3-tool-button:hover,
+.app-m3-window-btn:hover,
+.app-m3-sidebar-item:hover,
+.app-m3-outline-item:hover {
+  background: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+  color: var(--md-sys-color-primary);
+}
+
+.app-m3-quick-btn[data-active="true"],
+.app-m3-window-btn[data-active="true"] {
+  background: color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent);
+  color: var(--md-sys-color-primary);
+}
+
+.app-m3-tool-button {
+  color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 88%, transparent);
+}
+
+.app-m3-window-btn {
+  border-radius: 0.9rem;
+}
+
+.app-m3-chip {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent);
+}
+
+.app-m3-progress-track {
+  background: color-mix(in srgb, var(--md-sys-color-surface-variant) 86%, transparent);
+}
+
+.dark .app-m3-shell {
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent), transparent 34%),
+    var(--md-sys-color-background);
+}
+
+.dark .app-m3-topbar {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 94%, transparent);
+  box-shadow: 0 12px 24px -18px rgba(0, 0, 0, 0.5);
+}
+
+.dark .app-m3-preview-surface {
+  background-color: color-mix(in srgb, var(--md-sys-color-surface) 82%, transparent) !important;
+}
+
+.dark .app-m3-toolbar,
+.dark .app-m3-quickbar,
+.dark .app-m3-sidebar,
+.dark .app-m3-outline {
+  border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 64%, transparent);
+}
+
+.dark .app-m3-chip {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 88%, transparent);
 }
 
 /* 优化后的列表样式 */
@@ -216,7 +669,7 @@ input, textarea, [contenteditable] {
     content: "check_circle";
     font-family: "Material Symbols Outlined";
     @apply text-primary text-2xl;
-    background: rgba(255, 143, 171, 0.12);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent);
     border-radius: 50%;
   }
 
@@ -228,7 +681,9 @@ input, textarea, [contenteditable] {
     content: counter(step-counter);
     counter-increment: step-counter;
 
-    @apply bg-secondary/15 text-secondary font-semibold;
+    background: color-mix(in srgb, var(--md-sys-color-primary) 15%, transparent);
+    color: var(--md-sys-color-primary);
+    font-weight: 600;
     width: 2rem;
     height: 2rem;
     border-radius: 9999px;
@@ -259,17 +714,17 @@ input, textarea, [contenteditable] {
     /* 未选中状态 ── 更现代、更清晰 */
     @apply appearance-none cursor-pointer transition-all duration-200;
     background: white;
-    border: 2.5px solid #ffafcc; /* 主色浅版 */
-    border-radius: 0.6rem; /* 稍微圆一点更好看 */
+    border: 2.5px solid var(--md-sys-color-primary-container);
+    border-radius: 0.6rem;
     box-shadow:
       inset 0 1px 3px rgba(0, 0, 0, 0.06),
-      0 2px 6px -2px rgba(255, 143, 171, 0.25);
+      0 2px 6px -2px color-mix(in srgb, var(--md-sys-color-primary) 25%, transparent);
   }
 
   .markdown-body li.task-list-item input[type="checkbox"]:hover {
-    border-color: #ff8fab;
-    background: rgba(255, 143, 171, 0.08);
-    box-shadow: 0 3px 10px -3px rgba(255, 143, 171, 0.3);
+    border-color: var(--md-sys-color-primary);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+    box-shadow: 0 3px 10px -3px color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
   }
 
   .markdown-body li.task-list-item input[type="checkbox"]:checked {
@@ -278,13 +733,13 @@ input, textarea, [contenteditable] {
     background-size: 70%;
     background-position: center;
     background-repeat: no-repeat;
-    box-shadow: 0 4px 14px -2px rgba(255, 143, 171, 0.45);
-    transform: scale(1.04); /* 轻微放大更有反馈 */
+    box-shadow: 0 4px 14px -2px color-mix(in srgb, var(--md-sys-color-primary) 45%, transparent);
+    transform: scale(1.04);
   }
 
   .markdown-body li.task-list-item input[type="checkbox"]:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(255, 143, 171, 0.3);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
   }
 }
 
@@ -297,8 +752,8 @@ input, textarea, [contenteditable] {
 
 .shadow-cute {
   box-shadow:
-    0 10px 25px -5px rgba(255, 143, 171, 0.1),
-    0 8px 10px -6px rgba(255, 143, 171, 0.1);
+    0 10px 25px -5px color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent),
+    0 8px 10px -6px color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent);
 }
 
 /* Scrollbar styling */
@@ -310,11 +765,11 @@ input, textarea, [contenteditable] {
   background: #f8f9fa;
 }
 ::-webkit-scrollbar-thumb {
-  background: #ffc2d1;
+  background: var(--md-sys-color-primary-container, #eaddff);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #ffafcc;
+  background: var(--md-sys-color-primary, #6750a4);
 }
 
 /* CodeMirror scrollbar styling */
@@ -332,11 +787,11 @@ input, textarea, [contenteditable] {
   border-radius: 10px;
 }
 .cm-scroller::-webkit-scrollbar-thumb {
-  background: #ffc2d1;
+  background: var(--md-sys-color-primary-container, #eaddff);
   border-radius: 10px;
 }
 .cm-scroller::-webkit-scrollbar-thumb:hover {
-  background: #ffafcc;
+  background: var(--md-sys-color-primary, #6750a4);
 }
 
 /* CodeMirror 性能优化 */
@@ -348,13 +803,13 @@ input, textarea, [contenteditable] {
   contain: layout style paint;
 }
 .cm-content {
-  caret-color: #ff8fab;
+  caret-color: var(--md-sys-color-primary);
 }
 .cm-activeLine {
-  background-color: rgba(255, 143, 171, 0.05) !important;
+  background-color: color-mix(in srgb, var(--md-sys-color-primary) 5%, transparent) !important;
 }
 .cm-activeLineGutter {
-  background-color: rgba(255, 143, 171, 0.1) !important;
+  background-color: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent) !important;
 }
 
 /* Preview area scroll optimization */
@@ -397,17 +852,19 @@ input, textarea, [contenteditable] {
   @apply text-slate-600 leading-relaxed mb-4;
 }
 .markdown-body em {
-  @apply text-primary font-bold not-italic;
+  color: var(--md-sys-color-primary);
+  font-weight: bold;
+  font-style: normal;
 }
 /* Blockquote */
 .markdown-body blockquote {
   @apply my-6 not-italic text-slate-600;
   position: relative;
   padding: 1.25rem 1.5rem 1.25rem 1.75rem;
-  background: linear-gradient(135deg, rgba(255,143,171,0.12) 0%, rgba(162,210,255,0.12) 100%);
-  border-left: 5px solid #ff8fab;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent) 0%, rgba(162,210,255,0.12) 100%);
+  border-left: 5px solid var(--md-sys-color-primary);
   border-radius: 0 1rem 1rem 0;
-  box-shadow: 0 2px 16px -4px rgba(255, 143, 171, 0.2);
+  box-shadow: 0 2px 16px -4px color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent);
 }
 .markdown-body blockquote::before {
   content: "\201C";
@@ -416,7 +873,7 @@ input, textarea, [contenteditable] {
   left: 0.75rem;
   font-size: 3rem;
   line-height: 1;
-  color: #ff8fab;
+  color: var(--md-sys-color-primary);
   font-family: "Playfair Display", serif;
   opacity: 0.7;
 }
@@ -446,13 +903,15 @@ input, textarea, [contenteditable] {
 
 /* Links */
 .markdown-body a {
-  @apply text-primary underline decoration-primary/30 decoration-2 underline-offset-2 hover:decoration-primary transition-all;
+  color: var(--md-sys-color-primary);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  transition: all 0.15s;
 }
-.markdown-body a::before {
-  content: none;
-}
-.markdown-body a::after {
-  content: none;
+.markdown-body a:hover {
+  text-decoration-color: var(--md-sys-color-primary);
 }
 
 /* Images */
@@ -473,18 +932,18 @@ input, textarea, [contenteditable] {
   border-spacing: 0;
   border-radius: 1rem;
   overflow: hidden;
-  box-shadow: 0 2px 16px -4px rgba(255, 143, 171, 0.2);
+  box-shadow: 0 2px 16px -4px color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent);
 }
 .markdown-body table::before,
 .markdown-body table::after {
   content: none;
 }
 .markdown-body thead tr {
-  background: linear-gradient(90deg, rgba(255,143,171,0.22) 0%, rgba(162,210,255,0.22) 100%);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--md-sys-color-primary) 22%, transparent) 0%, rgba(162,210,255,0.22) 100%);
 }
 .markdown-body th {
   @apply px-5 py-3 text-left font-bold text-slate-800;
-  border-bottom: 2px solid rgba(255, 100, 140, 0.35);
+  border-bottom: 2px solid color-mix(in srgb, var(--md-sys-color-primary) 35%, transparent);
   letter-spacing: 0.02em;
 }
 .markdown-body td {
@@ -495,13 +954,13 @@ input, textarea, [contenteditable] {
   border-bottom: none;
 }
 .markdown-body tbody tr:hover td {
-  background: rgba(255, 143, 171, 0.1);
+  background: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent);
 }
 .markdown-body tbody tr:nth-child(even) td {
   background: rgba(162, 210, 255, 0.09);
 }
 .markdown-body tbody tr:nth-child(even):hover td {
-  background: rgba(255, 143, 171, 0.1);
+  background: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent);
 }
 
 /* Horizontal Rule */
@@ -511,7 +970,12 @@ input, textarea, [contenteditable] {
 
 /* Code */
 .markdown-body code {
-  @apply bg-slate-100 text-primary px-2 py-1 rounded-lg font-mono text-sm;
+  background: color-mix(in srgb, var(--md-sys-color-primary) 10%, #f1f5f9);
+  color: var(--md-sys-color-primary);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.5rem;
+  font-family: monospace;
+  font-size: 0.875rem;
 }
 .markdown-body pre {
   @apply p-0 my-0;
@@ -520,7 +984,6 @@ input, textarea, [contenteditable] {
   @apply bg-transparent text-primary p-0;
 }
 
-/* Classic Heart Theme */
 .theme-heart-classic {
   background-color: #fffafb !important;
 }
@@ -638,10 +1101,10 @@ input, textarea, [contenteditable] {
   border-radius: 9999px;
   background: linear-gradient(
     to right,
-    var(--color-primary) 0%,
-    var(--color-primary) var(--slider-pct, 50%),
-    #fce7f3 var(--slider-pct, 50%),
-    #fce7f3 100%
+    var(--md-sys-color-primary) 0%,
+    var(--md-sys-color-primary) var(--slider-pct, 50%),
+    var(--md-sys-color-surface-variant) var(--slider-pct, 50%),
+    var(--md-sys-color-surface-variant) 100%
   );
   outline: none;
   cursor: pointer;
@@ -655,8 +1118,8 @@ input, textarea, [contenteditable] {
   height: 24px;
   border-radius: 50%;
   background: white;
-  border: 3px solid var(--color-primary);
-  box-shadow: 0 2px 8px -2px rgba(255, 143, 171, 0.5);
+  border: 3px solid var(--md-sys-color-primary);
+  box-shadow: 0 2px 8px -2px color-mix(in srgb, var(--md-sys-color-primary) 50%, transparent);
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
 }
@@ -666,8 +1129,8 @@ input, textarea, [contenteditable] {
   height: 24px;
   border-radius: 50%;
   background: white;
-  border: 3px solid var(--color-primary);
-  box-shadow: 0 2px 8px -2px rgba(255, 143, 171, 0.5);
+  border: 3px solid var(--md-sys-color-primary);
+  box-shadow: 0 2px 8px -2px color-mix(in srgb, var(--md-sys-color-primary) 50%, transparent);
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
 }
@@ -675,11 +1138,11 @@ input, textarea, [contenteditable] {
 .pretty-slider:hover::-webkit-slider-thumb,
 .pretty-slider:focus::-webkit-slider-thumb {
   transform: scale(1.2);
-  box-shadow: 0 4px 14px -2px rgba(255, 143, 171, 0.6);
+  box-shadow: 0 4px 14px -2px color-mix(in srgb, var(--md-sys-color-primary) 60%, transparent);
 }
 
 .pretty-slider:hover::-moz-range-thumb,
 .pretty-slider:focus::-moz-range-thumb {
   transform: scale(1.2);
-  box-shadow: 0 4px 14px -2px rgba(255, 143, 171, 0.6);
+  box-shadow: 0 4px 14px -2px color-mix(in srgb, var(--md-sys-color-primary) 60%, transparent);
 }

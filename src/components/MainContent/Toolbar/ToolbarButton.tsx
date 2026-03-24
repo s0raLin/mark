@@ -7,7 +7,7 @@ export function ToolbarButton({ title, icon, onClick }: ToolbarButtonProps) {
   return (
     <button
       onClick={onClick}
-      className="p-2.5 hover:bg-primary/10 text-slate-500 hover:text-primary rounded-lg transition-colors"
+      className="app-m3-tool-button p-2.5 text-slate-500 rounded-lg transition-colors"
       title={title}
     >
       {icon}

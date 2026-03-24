@@ -22,7 +22,7 @@ export default function Outline({
   markdown,
 }: OutlineProps) {
   return (
-    <aside className="w-56 border-l border-border-soft bg-white/80 backdrop-blur-2xl hidden lg:flex flex-col shrink-0">
+    <aside className="app-m3-outline w-56 border-l border-border-soft hidden lg:flex flex-col shrink-0">
       <div className="p-6 border-b border-border-soft flex items-center justify-between">
         <span className="text-xs font-extrabold uppercase tracking-widest text-slate-400">
           Outline
@@ -44,14 +44,14 @@ export default function Outline({
       </div>
       <div className="p-6 border-t border-border-soft">
         <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 mb-4">
-          <span className="bg-slate-100 px-2 py-0.5 rounded">
+          <span className="app-m3-chip px-2 py-0.5 rounded">
             {markdown.split(/\s+/).filter(Boolean).length} Words
           </span>
-          <span className="bg-slate-100 px-2 py-0.5 rounded">
+          <span className="app-m3-chip px-2 py-0.5 rounded">
             {markdown.length} Chars
           </span>
         </div>
-        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+        <div className="app-m3-progress-track h-2 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-primary to-accent shadow-[0_0_8px_rgba(255,143,171,0.3)] transition-all duration-500"
             style={{

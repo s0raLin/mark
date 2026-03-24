@@ -1,7 +1,78 @@
 import { useState, useEffect, useRef } from "react";
 import { EditorTheme, PreviewTheme, FontChoice } from "@/types/editor";
-import type { StorageEditorConfig } from "../../../api/types";
-import i18n from "../../../i18n";
+import type { StorageEditorConfig } from "@/api/client/types";
+import i18n from "@/i18n";
+import {
+  argbFromHex,
+  hexFromArgb,
+  themeFromSourceColor,
+  applyTheme,
+  Hct,
+} from "@material/material-color-utilities";
+
+// ─── M3 Token Generator (Actify-style) ───────────────────────────────────────
+// Key insight: HCT tonal palette shifts hue/chroma during tone mapping, so
+// palette.tone(75) for a pink seed looks brownish. We use the seed hex directly
+// as the primary fill color so "pink stays pink", and only use the tonal palette
+// for text/icon roles where we need guaranteed contrast on white/dark backgrounds.
+
+export function applyM3Theme(seed: string, isDark: boolean) {
+  const argb = argbFromHex(seed);
+  const theme = themeFromSourceColor(argb);
+
+  // Write all --md-sys-color-* tokens (surface, outline, container roles etc.)
+  applyTheme(theme, { target: document.documentElement, dark: isDark });
+
+  const root = document.documentElement;
+  const palette = theme.palettes.primary;
+  const neutralPalette = theme.palettes.neutral;
+  const seedHct = Hct.fromInt(argb);
+  const seedTone = seedHct.tone;
+
+  // ── Primary fill: use seed hex directly so color is visually preserved ──
+  // Dark mode: use tone-80 (light variant for dark bg), light mode: seed itself
+  const fillHex = isDark ? hexFromArgb(palette.tone(80)) : seed;
+
+  // ── on-primary: white for dark/saturated fills, dark for very light fills ──
+  const onPrimaryHex = (isDark || seedTone < 65) ? "#ffffff" : hexFromArgb(palette.tone(10));
+
+  // ── Text/icon primary: must be readable on white (tone ≤ 50) ──
+  const textTone = isDark ? 80 : Math.min(50, seedTone);
+  const textHex = hexFromArgb(palette.tone(textTone));
+
+  root.style.setProperty("--md-sys-color-primary", fillHex);
+  root.style.setProperty("--md-sys-color-on-primary", onPrimaryHex);
+
+  // Tailwind aliases
+  root.style.setProperty("--color-primary", textHex);
+  root.style.setProperty("--color-accent", hexFromArgb(palette.tone(isDark ? 30 : 90)));
+  root.style.setProperty("--color-primary-text", textHex);
+
+  // Palette tone refs
+  root.style.setProperty("--md-primary-tone-80", hexFromArgb(palette.tone(80)));
+  root.style.setProperty("--md-primary-tone-40", hexFromArgb(palette.tone(40)));
+  root.style.setProperty("--md-primary-tone-90", hexFromArgb(palette.tone(90)));
+  root.style.setProperty("--md-primary-tone-10", hexFromArgb(palette.tone(10)));
+
+  // ── M3 surface container roles (used by dark mode CSS) ──
+  // M3 spec: surface=N-6, surface-container=N-12, surface-container-high=N-17
+  if (isDark) {
+    root.style.setProperty("--md-sys-color-surface-container", hexFromArgb(neutralPalette.tone(12)));
+    root.style.setProperty("--md-sys-color-surface-container-high", hexFromArgb(neutralPalette.tone(17)));
+  } else {
+    root.style.setProperty("--md-sys-color-surface-container", hexFromArgb(neutralPalette.tone(94)));
+    root.style.setProperty("--md-sys-color-surface-container-high", hexFromArgb(neutralPalette.tone(92)));
+  }
+
+  // ── Convenience aliases for legacy CSS vars ──
+  const surfaceHex = isDark ? hexFromArgb(neutralPalette.tone(6)) : hexFromArgb(neutralPalette.tone(98));
+  const surfaceVariantHex = isDark ? hexFromArgb(neutralPalette.tone(30)) : hexFromArgb(neutralPalette.tone(90));
+  const borderSoftHex = isDark ? hexFromArgb(neutralPalette.tone(25)) : hexFromArgb(neutralPalette.tone(88));
+  root.style.setProperty("--color-background-light", surfaceHex);
+  root.style.setProperty("--color-soft-bg", isDark ? hexFromArgb(neutralPalette.tone(10)) : hexFromArgb(neutralPalette.tone(96)));
+  root.style.setProperty("--color-border-soft", borderSoftHex);
+  root.style.setProperty("--md-sys-color-surface-variant", surfaceVariantHex);
+}
 
 export interface UseEditorThemeProps {
   initialConfig?: StorageEditorConfig | null;
@@ -105,18 +176,17 @@ export function useEditorTheme(props?: UseEditorThemeProps): UseEditorThemeRetur
     }
   }, [initialConfig]);
 
+  // ── Dark mode class ──
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
+  // ── M3 color tokens (official HCT algorithm) ──
   useEffect(() => {
-    document.documentElement.style.setProperty("--color-primary", accentColor);
-  }, [accentColor]);
+    applyM3Theme(accentColor, darkMode);
+  }, [accentColor, darkMode]);
 
+  // ── Typography / layout CSS vars ──
   useEffect(() => {
     document.documentElement.style.setProperty("--markdown-font-size", `${previewFontSize}px`);
   }, [previewFontSize]);

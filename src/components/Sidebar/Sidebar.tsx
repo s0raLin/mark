@@ -101,7 +101,7 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen, 
   return (
     <DragContext.Provider value={{ draggingId, draggingIdRef, setDraggingId, dropTarget, setDropTarget }}>
       <div
-        className={cn("flex flex-col h-full transition-colors duration-200 relative", isDragOver && "bg-primary/[0.04]")}
+        className={cn("app-m3-sidebar-content flex flex-col h-full transition-colors duration-200 relative", isDragOver && "bg-primary/[0.04]")}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -115,7 +115,7 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen, 
           {pinnedNodes.length > 0 && (
             <section>
               <div className="px-3 mb-2">
-                <h2 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-rose-300">Pinned</h2>
+                <h2 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-primary/60">Pinned</h2>
               </div>
               <DragList
                 nodes={pinnedNodes}
@@ -128,15 +128,15 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen, 
           {/* Explorer */}
           <section>
             <div className="px-3 mb-2 flex items-center justify-between">
-              <h2 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-rose-300">Explorer</h2>
+              <h2 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-primary/60">Explorer</h2>
               <div className="flex items-center gap-1">
                 <button title="New file" onClick={() => setNewItem("file")}
-                  className="p-1 rounded-lg hover:bg-rose-50 transition-colors">
-                  <FilePlus className="w-3.5 h-3.5 text-rose-300 hover:text-primary" />
+                  className="p-1 rounded-lg hover:bg-primary/10 transition-colors">
+                  <FilePlus className="w-3.5 h-3.5 text-primary/50 hover:text-primary" />
                 </button>
                 <button title="New folder" onClick={() => setNewItem("folder")}
-                  className="p-1 rounded-lg hover:bg-rose-50 transition-colors">
-                  <FolderPlus className="w-3.5 h-3.5 text-rose-300 hover:text-primary" />
+                  className="p-1 rounded-lg hover:bg-primary/10 transition-colors">
+                  <FolderPlus className="w-3.5 h-3.5 text-primary/50 hover:text-primary" />
                 </button>
               </div>
             </div>
@@ -165,10 +165,10 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen, 
           </section>
         </div>
 
-        <div className="p-4 border-t border-rose-100 space-y-1 shrink-0">
-          <SidebarItem icon={<Search className="w-5 h-5 text-slate-400" />} label="Search"
+        <div className="p-4 border-t border-primary/10 space-y-1 shrink-0">
+          <SidebarItem icon={<Search className="w-5 h-5 text-primary/50" />} label="Search"
             onClick={() => setIsSearchModalOpen(true)} />
-          <SidebarItem icon={<Settings className="w-5 h-5 text-slate-400" />} label="Settings"
+          <SidebarItem icon={<Settings className="w-5 h-5 text-primary/50" />} label="Settings"
             onClick={() => setIsSettingsModalOpen(true)} />
         </div>
       </div>

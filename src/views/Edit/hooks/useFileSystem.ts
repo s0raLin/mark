@@ -5,7 +5,7 @@ import {
   arraysEqual,
   DEFAULT_FILE_ID,
 } from "../utils/editorHelpers";
-import type { StorageFileSystem } from "@/api/types";
+import type { StorageFileSystem } from "@/api/client/types";
 
 /**
  * useFileSystem Hook 参数接口

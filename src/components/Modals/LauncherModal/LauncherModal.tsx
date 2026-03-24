@@ -1,7 +1,9 @@
-import { LayoutGrid, X, Search, Settings, Download, Sparkles, Power, Moon, Sun } from "lucide-react";
+import { LayoutGrid, Search, Settings, Download, Sparkles, Power, Moon, Sun } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "@/utils/cn";
 import { useTranslation } from "react-i18next";
+import { ModalHeader } from "../ModalHeader";
+import { ModalShell } from "../ModalShell";
 
 interface LauncherModalProps {
   onClose: () => void;
@@ -97,41 +99,18 @@ export function LauncherModal({
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 flex items-center justify-center bg-slate-900/20 backdrop-blur-sm p-4 z-50"
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <motion.div
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
-        className="bg-white/70 backdrop-blur-xl w-full max-w-xl rounded-3xl overflow-hidden shadow-sm border border-white/50 flex flex-col"
-      >
-        <header className="flex items-center justify-between border-b border-dashed border-pink-100 px-8 py-5 shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center p-2.5 rounded-2xl bg-primary/20 text-primary">
-              <LayoutGrid className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold leading-tight tracking-tight text-slate-800">{t("launcher.title")}</h2>
-              <p className="text-[10px] text-primary font-bold uppercase tracking-widest">{t("launcher.subtitle")}</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="flex items-center justify-center rounded-full h-9 w-9 bg-white/60 hover:bg-primary/20 hover:text-primary text-slate-400 transition-all"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </header>
+    <ModalShell onClose={onClose} className="w-full max-w-xl rounded-3xl">
+        <ModalHeader
+          icon={<LayoutGrid className="w-5 h-5" />}
+          title={t("launcher.title")}
+          subtitle={t("launcher.subtitle")}
+          onClose={onClose}
+        />
 
         <div className="p-6 space-y-6">
           {groups.map((group) => (
             <div key={group.title}>
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-rose-300 mb-3 px-1">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-primary/60 mb-3 px-1">
                 {group.title}
               </p>
               <div className="flex gap-2">
@@ -139,7 +118,7 @@ export function LauncherModal({
                   <button
                     key={item.id}
                     onClick={item.onClick}
-                    className="group flex flex-col items-center gap-2 p-3 rounded-2xl hover:bg-slate-100/80 transition-all duration-150 active:scale-95 min-w-[72px]"
+                    className="modal-m3-outlined-button group flex flex-col items-center gap-2 p-3 rounded-2xl transition-all duration-150 active:scale-95 min-w-[72px]"
                   >
                     <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", item.iconBg)}>
                       {item.icon}
@@ -159,14 +138,13 @@ export function LauncherModal({
           ))}
         </div>
 
-        <footer className="flex items-center justify-between px-8 py-4 bg-slate-50/50 border-t border-dashed border-pink-100 shrink-0">
+        <footer className="modal-m3-footer flex items-center justify-between px-8 py-4 shrink-0">
           <span className="flex items-center gap-1.5 text-[11px] text-slate-400">
-            <span className="w-5 h-5 flex items-center justify-center bg-slate-200 rounded text-[9px] font-bold">Esc</span>
+            <span className="modal-m3-keycap w-5 h-5 flex items-center justify-center rounded text-[9px] font-bold">Esc</span>
             {t("launcher.close")}
           </span>
-          <span className="text-xs font-bold text-primary">NoteMark</span>
+          <span className="text-[11px] font-bold text-primary">NoteMark</span>
         </footer>
-      </motion.div>
-    </motion.div>
+    </ModalShell>
   );
 }

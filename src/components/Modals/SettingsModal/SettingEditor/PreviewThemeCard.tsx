@@ -26,11 +26,12 @@ export const PreviewThemeCard = memo(function PreviewThemeCard({
   return (
     <div
       onClick={onClick}
+      data-active={active}
       className={cn(
-        "p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4",
+        "settings-m3-preview-card p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4",
         active
-          ? "border-primary shadow-md shadow-primary/20 scale-[1.01]"
-          : "border-slate-200 hover:border-primary/40",
+          ? "scale-[1.01]"
+          : "",
       )}
       style={{ backgroundColor: bgColor }}
     >

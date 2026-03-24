@@ -1,5 +1,5 @@
 import { Home, PanelLeft } from "lucide-react";
-import { cn } from "../utils/cn";
+import { cn } from "@/utils/cn";
 
 interface WindowControlsProps {
   sidebarOpen?: boolean;
@@ -18,7 +18,7 @@ export default function WindowControls({
       <div className="relative group">
         <button
           onClick={onLauncher}
-          className="flex items-center justify-center transition-all duration-150 text-slate-400 hover:text-slate-700 active:scale-90"
+          className="app-m3-window-btn flex items-center justify-center transition-all duration-150 text-slate-400 active:scale-90"
         >
           <Home className="w-7 h-7" />
         </button>
@@ -33,9 +33,10 @@ export default function WindowControls({
         <button
           onClick={onToggleSidebar}
           className={cn(
-            "flex items-center justify-center transition-all duration-150 active:scale-90",
-            sidebarOpen ? "text-primary" : "text-slate-400 hover:text-slate-700",
+            "app-m3-window-btn flex items-center justify-center transition-all duration-150 active:scale-90",
+            sidebarOpen ? "text-primary" : "text-slate-400",
           )}
+          data-active={sidebarOpen}
         >
           <PanelLeft className="w-7 h-7" />
         </button>

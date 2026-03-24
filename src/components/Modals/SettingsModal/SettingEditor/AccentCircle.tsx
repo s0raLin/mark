@@ -16,9 +16,10 @@ export const AccentCircle = memo(function AccentCircle({
     <button
       onClick={onClick}
       title={color}
+      data-active={active}
       className={cn(
-        "w-11 h-11 rounded-full border-4 border-white cursor-pointer transition-all hover:scale-110 shadow-lg focus:outline-none",
-        active && "ring-2 ring-offset-1 ring-primary scale-110",
+        "settings-m3-swatch w-11 h-11 rounded-full cursor-pointer transition-all hover:scale-110 focus:outline-none",
+        active && "scale-110",
       )}
       style={{ backgroundColor: color }}
     />

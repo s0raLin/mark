@@ -26,9 +26,9 @@ export function SidebarItem({
     <div
       onClick={onClick}
       className={cn(
-        "group flex items-center gap-3 rounded-2xl px-3 transition-colors cursor-pointer",
+        "app-m3-sidebar-item group flex items-center gap-3 rounded-2xl px-3 transition-colors cursor-pointer",
         small ? "py-2 rounded-xl" : "py-2.5",
-        active ? "bg-primary/10 text-slate-800" : "hover:bg-rose-50",
+        active ? "bg-primary/[0.12] text-primary" : "hover:bg-primary/[0.08] hover:text-primary",
       )}
     >
       {icon}
@@ -47,7 +47,7 @@ export function SidebarItem({
         />
       )}
       {!hasChevron && !small && (
-        <GripVertical className="w-4 h-4 opacity-0 group-hover:opacity-100 cursor-grab text-rose-300" />
+        <GripVertical className="w-4 h-4 opacity-0 group-hover:opacity-100 cursor-grab text-primary/40" />
       )}
     </div>
   );

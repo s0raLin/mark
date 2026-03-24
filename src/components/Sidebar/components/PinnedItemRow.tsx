@@ -62,8 +62,8 @@ export default function PinnedItemRow({ node, fs }: PinnedItemRowProps) {
         data-node-id={node.id}
         className={cn(
           "flex items-center gap-2 rounded-xl px-2 py-2 transition-colors select-none cursor-default",
-          isActive ? "bg-primary/15 text-primary font-semibold" : "hover:bg-rose-50 text-slate-600",
-          (isDragOverFolder) && "bg-primary/8 ring-1 ring-primary/30",
+          isActive ? "bg-primary/[0.12] text-primary font-semibold" : "hover:bg-primary/[0.08] text-slate-600",
+          (isDragOverFolder) && "bg-primary/[0.08] ring-1 ring-primary/30",
         )}
       >
         {node.type === "folder" ? (
@@ -100,7 +100,7 @@ export default function PinnedItemRow({ node, fs }: PinnedItemRowProps) {
       </div>
 
       {isOpen && (
-        <div className="border-l border-rose-100 ml-4">
+        <div className="border-l border-primary/20 ml-4">
           <DragList
             nodes={children}
             parentId={node.id}

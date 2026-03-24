@@ -218,7 +218,7 @@ export default function EditorPane({
   }
 
   return (
-    <section className="flex-1 border-r border-border-soft flex flex-col relative overflow-hidden">
+    <section className="app-m3-editor-surface flex-1 border-r border-border-soft flex flex-col relative overflow-hidden">
       {/* Frosted glass layer over the global background — blur controlled by CSS var */}
       <div
         className="editor-glass-overlay absolute inset-0 pointer-events-none z-0"
@@ -229,7 +229,7 @@ export default function EditorPane({
         }}
       />
       {/* Toolbar */}
-      <div className="editor-toolbar h-14 border-b border-border-soft bg-white/40 backdrop-blur-sm flex items-center justify-center px-4 gap-1 shrink-0 relative z-10">
+      <div className="app-m3-toolbar editor-toolbar h-14 border-b border-border-soft flex items-center justify-center px-4 gap-1 shrink-0 relative z-10">
         <Toolbar editorRef={editorRef} />
       </div>
       <div className="flex-1 min-h-0 overflow-hidden relative z-10">

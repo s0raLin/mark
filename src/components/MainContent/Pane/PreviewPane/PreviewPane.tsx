@@ -25,7 +25,7 @@ export default function PreviewPane({
     <section
       ref={previewRef}
       className={cn(
-        "flex-1 overflow-y-auto relative transition-colors duration-500 preview-scroll",
+        "app-m3-preview-surface flex-1 overflow-y-auto relative transition-colors duration-500 preview-scroll",
         previewTheme,
       )}
       style={{

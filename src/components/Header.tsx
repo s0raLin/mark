@@ -3,7 +3,7 @@ import {
   FilePlus, Save, FileDown, Search,
   Settings, Sparkles, Columns2,
 } from "lucide-react";
-import { cn } from "../utils/cn";
+import { cn } from "@/utils/cn";
 import WindowControls from "./WindowControls";
 
 interface HeaderProps {
@@ -36,11 +36,12 @@ function QuickBtn({ icon, label, onClick, active }: ActionBtn) {
       <button
         onClick={onClick}
         className={cn(
-          "h-8 w-8 flex items-center justify-center rounded-lg transition-all",
+          "app-m3-quick-btn h-8 w-8 flex items-center justify-center rounded-lg transition-all",
           active
-            ? "bg-primary/15 text-primary"
-            : "text-slate-400 hover:bg-slate-100 hover:text-slate-700",
+            ? "text-primary"
+            : "text-slate-400",
         )}
+        data-active={active}
       >
         {icon}
       </button>
@@ -90,18 +91,18 @@ export default function Header({
 
       {/* Center - Quick Action Bar */}
       <div className="absolute left-1/2 -translate-x-1/2 [-webkit-app-region:no-drag]">
-        <div className="header-quickbar flex items-center gap-0.5 bg-white/80 backdrop-blur-sm border border-slate-200/80 rounded-xl px-2 py-1 shadow-sm">
+        <div className="app-m3-quickbar header-quickbar flex items-center gap-0.5 rounded-xl px-2 py-1">
           {actions.map((action, i) => (
             <div key={i} className="flex items-center">
               <QuickBtn {...action} />
               {action.dividerAfter && (
-                <div className="w-px h-5 bg-slate-200 mx-1.5" />
+                <div className="app-m3-divider w-px h-5 mx-1.5" />
               )}
             </div>
           ))}
 
           {/* View mode divider + switcher */}
-          <div className="w-px h-5 bg-slate-200 mx-1.5" />
+          <div className="app-m3-divider w-px h-5 mx-1.5" />
           <div className="flex items-center gap-0.5">
             {(
               [
@@ -126,7 +127,7 @@ export default function Header({
       <div className="flex items-center ml-auto shrink-0 [-webkit-app-region:no-drag]">
         <button
           onClick={onExport}
-          className="h-10 bg-primary hover:bg-primary/90 text-white px-6 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-cute"
+          className="app-m3-filled-button h-10 px-6 rounded-xl text-sm font-bold transition-all flex items-center gap-2"
         >
           <Upload className="w-4 h-4" />
           Publish

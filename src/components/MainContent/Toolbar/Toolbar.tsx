@@ -55,14 +55,14 @@ export default function Toolbar({ editorRef }: ToolbarProps) {
       <ToolbarButton title="Bold" icon={<Bold className="w-5 h-5" />} onClick={() => applyMarkdown('**', '**')} />
       <ToolbarButton title="Italic" icon={<Italic className="w-5 h-5" />} onClick={() => applyMarkdown('*', '*')} />
       <ToolbarButton title="Strikethrough" icon={<Strikethrough className="w-5 h-5" />} onClick={() => applyMarkdown('~~', '~~')} />
-      <div className="w-[1px] h-6 bg-slate-200 mx-2"></div>
+      <div className="app-m3-divider w-[1px] h-6 mx-2"></div>
       <ToolbarButton title="Heading 1" icon={<Heading1 className="w-5 h-5" />} onClick={() => applyMarkdown('# ')} />
       <ToolbarButton title="Heading 2" icon={<Heading2 className="w-5 h-5" />} onClick={() => applyMarkdown('## ')} />
-      <div className="w-[1px] h-6 bg-slate-200 mx-2"></div>
+      <div className="app-m3-divider w-[1px] h-6 mx-2"></div>
       <ToolbarButton title="Bullet List" icon={<List className="w-5 h-5" />} onClick={() => applyMarkdown('- ')} />
       <ToolbarButton title="Numbered List" icon={<ListOrdered className="w-5 h-5" />} onClick={() => applyMarkdown('1. ')} />
       <ToolbarButton title="Checklist" icon={<CheckSquare className="w-5 h-5" />} onClick={() => applyMarkdown('- [ ] ')} />
-      <div className="w-[1px] h-6 bg-slate-200 mx-2"></div>
+      <div className="app-m3-divider w-[1px] h-6 mx-2"></div>
       <ToolbarButton title="Quote" icon={<Quote className="w-5 h-5" />} onClick={() => applyMarkdown('> ')} />
       <ToolbarButton title="Code Block" icon={<Code className="w-5 h-5" />} onClick={() => applyMarkdown('```\n', '\n```')} />
       <ToolbarButton title="Link" icon={<LinkIcon className="w-5 h-5" />} onClick={() => applyMarkdown('[', '](url)')} />

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { getUserData, saveUserData } from "../../../api/client";
-import type { StorageFileSystem, StorageEditorConfig, StorageUserSettings } from "../../../api/types";
-import { errorBus } from "../../../contexts/errorBus";
-import i18n from "../../../i18n";
+import { getUserData, saveUserData } from "@/api/client";
+import type { StorageFileSystem, StorageEditorConfig, StorageUserSettings } from "@/api/client";
+import { errorBus } from "@/contexts/errorBus";
+import i18n from "@/i18n";
 
 /**
  * useStorageSync Hook - 负责数据加载和保存

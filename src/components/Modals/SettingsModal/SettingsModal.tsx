@@ -1,14 +1,15 @@
 import { useState, useMemo } from "react";
 import {
-  Layout, Settings, Download, X, Palette, Smile, RotateCcw, Sparkles,
+  Layout, Settings, Download, Palette, Smile, RotateCcw, Sparkles,
 } from "lucide-react";
-import { motion } from "motion/react";
 import { cn } from "@/utils/cn";
 import { useTranslation } from "react-i18next";
 import General from "./SettingGeneral/SettingGeneral";
 import SettingEditor from "./SettingEditor/SettingEditor";
 import SettingExport from "./SettingExport/SettingExport";
 import SettingAccount from "./SettingAccount/SettingAccount";
+import { ModalHeader } from "../ModalHeader";
+import { ModalShell } from "../ModalShell";
 
 interface SettingsSnapshot {
   editorTheme: string;
@@ -154,49 +155,26 @@ export function SettingsModal({
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 flex items-center justify-center bg-slate-900/20 backdrop-blur-sm p-4"
-    >
-      <motion.div
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
-        className="bg-white/70 backdrop-blur-xl w-full max-w-5xl rounded-3xl overflow-hidden shadow-sm border border-white/50 flex flex-col h-[85vh]"
-      >
-        <header className="flex items-center justify-between border-b border-dashed border-pink-100 px-8 py-5 shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center p-2.5 rounded-2xl bg-primary/20 text-primary">
-              <Settings className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold leading-tight tracking-tight text-slate-800">{t("settings.title")}</h2>
-              <p className="text-[10px] text-primary font-bold uppercase tracking-widest">
-                {t("settings.subtitle")}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={handleClose}
-            className="flex items-center justify-center rounded-full h-9 w-9 bg-white/60 hover:bg-primary/20 hover:text-primary text-slate-400 transition-all"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </header>
+    <ModalShell onClose={handleClose} className="w-full max-w-5xl rounded-3xl h-[85vh]">
+        <ModalHeader
+          icon={<Settings className="w-5 h-5" />}
+          title={t("settings.title")}
+          subtitle={t("settings.subtitle")}
+          onClose={handleClose}
+        />
 
         <div className="flex flex-1 overflow-hidden">
-          <aside className="w-64 border-r border-dashed border-pink-100 bg-white/30 p-6 flex flex-col gap-2">
+          <aside className="modal-m3-sidebar w-64 p-6 flex flex-col gap-2">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
+                data-active={activeTab === tab.id}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all",
+                  "modal-m3-nav-button flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all",
                   activeTab === tab.id
-                    ? "bg-primary text-white shadow-lg shadow-primary/30 scale-[1.02]"
-                    : "text-slate-500 hover:bg-primary/10 hover:text-primary",
+                    ? "text-white scale-[1.02]"
+                    : "text-slate-500",
                 )}
               >
                 {tab.icon}
@@ -206,9 +184,9 @@ export function SettingsModal({
           </aside>
 
           <div className="flex-1 overflow-y-auto p-10">
-            {activeTab === "general" && <General />}
+            <div className={activeTab === "general" ? undefined : "hidden"}><General /></div>
 
-            {activeTab === "editor" && (
+            <div className={activeTab === "editor" ? undefined : "hidden"}>
               <SettingEditor
                 editorTheme={draft.editorTheme}
                 setEditorTheme={set("editorTheme")}
@@ -238,22 +216,22 @@ export function SettingsModal({
                   customFonts: [...prev.customFonts, font],
                 }))}
               />
-            )}
+            </div>
 
-            {activeTab === "export" && <SettingExport />}
-            {activeTab === "account" && (
+            <div className={activeTab === "export" ? undefined : "hidden"}><SettingExport /></div>
+            <div className={activeTab === "account" ? undefined : "hidden"}>
               <SettingAccount
                 draftLang={draft.lang}
                 setDraftLang={set("lang")}
               />
-            )}
+            </div>
           </div>
         </div>
 
-        <footer className="flex items-center justify-between gap-4 p-6 bg-slate-50/50 border-t border-dashed border-pink-100 shrink-0">
+        <footer className="modal-m3-footer flex items-center justify-between gap-4 p-6 shrink-0">
           <button
             onClick={handleReset}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-400 hover:text-rose-400 transition-colors rounded-2xl hover:bg-rose-50"
+            className="modal-m3-text-button flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-400 transition-colors rounded-2xl"
           >
             <RotateCcw className="w-4 h-4" />
             {t("settings.resetSpace")}
@@ -262,18 +240,19 @@ export function SettingsModal({
           <div className="flex items-center gap-3">
             <button
               onClick={handleClose}
-              className="px-6 py-2.5 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors rounded-2xl hover:bg-slate-100"
+              className="modal-m3-outlined-button px-6 py-2.5 text-sm font-bold text-slate-400 transition-colors rounded-2xl"
             >
               {t("settings.cancel")}
             </button>
             <button
               onClick={handleSave}
               disabled={!isDirty}
+              data-disabled={!isDirty}
               className={cn(
-                "flex items-center gap-2 px-8 py-3 text-sm font-bold rounded-full transition-all border-b-4",
+                "modal-m3-filled-button flex items-center gap-2 px-8 py-2.5 text-sm font-bold rounded-full transition-all",
                 isDirty
-                  ? "bg-gradient-to-r from-primary to-accent text-white shadow-xl shadow-pink-200 border-pink-400 hover:brightness-105 active:brightness-95"
-                  : "bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed grayscale",
+                  ? "text-white active:scale-95"
+                  : "text-slate-400 cursor-not-allowed",
               )}
             >
               <Sparkles className="w-4 h-4" />
@@ -281,7 +260,6 @@ export function SettingsModal({
             </button>
           </div>
         </footer>
-      </motion.div>
-    </motion.div>
+    </ModalShell>
   );
 }

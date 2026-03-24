@@ -1,11 +1,13 @@
 import { useState } from "react";
 import showdown from "showdown";
 import {
-  Code, Image as ImageIcon, FileText, Folder, Download, Share2, X, PlusCircle,
+  Code, Image as ImageIcon, FileText, Folder, Download, Share2, PlusCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useTranslation } from "react-i18next";
 import { FormatOption } from "./FormatOption";
+import { ModalHeader } from "../ModalHeader";
+import { ModalShell } from "../ModalShell";
 
 interface ExportModalProps {
   markdown: string;
@@ -70,37 +72,13 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 flex items-center justify-center bg-slate-900/20 backdrop-blur-sm p-4"
-    >
-      <motion.div
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
-        className="bg-white/70 backdrop-blur-xl w-full max-w-5xl rounded-3xl overflow-hidden shadow-sm border border-white/50 flex flex-col max-h-[90vh]"
-      >
-        <header className="flex items-center justify-between border-b border-dashed border-pink-100 px-6 py-5 shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/20 text-primary shadow-sm">
-              <Share2 className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold leading-tight tracking-tight text-slate-800">
-                {t("exportModal.title")}
-              </h2>
-              <p className="text-sm font-medium text-pink-400">Project: Documentation.md</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="flex items-center justify-center rounded-full h-9 w-9 bg-white/60 hover:bg-primary/20 hover:text-primary text-slate-400 transition-all"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </header>
+    <ModalShell onClose={onClose} className="w-full max-w-5xl rounded-3xl max-h-[90vh]">
+        <ModalHeader
+          icon={<Share2 className="w-5 h-5" />}
+          title={t("exportModal.title")}
+          subtitle="Project: Documentation.md"
+          onClose={onClose}
+        />
 
         <div className="flex flex-1 overflow-hidden">
           <div className="flex-1 overflow-y-auto p-10 space-y-10">
@@ -153,10 +131,10 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
                     {t("exportModal.presetThemes")}
                   </label>
                   <div className="flex flex-wrap gap-3">
-                    <button className="px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-bold shadow-sm shadow-pink-200">Modern Slate</button>
-                    <button className="px-5 py-2.5 rounded-xl bg-pink-50 text-slate-600 text-sm font-bold hover:bg-pink-100 transition-colors">Classic Ivory</button>
-                    <button className="px-5 py-2.5 rounded-xl bg-pink-50 text-slate-600 text-sm font-bold hover:bg-pink-100 transition-colors">Terminal Dark</button>
-                    <button className="px-5 py-2.5 rounded-xl bg-pink-50 text-slate-600 text-sm font-bold hover:bg-pink-100 transition-colors">Academic</button>
+                    <button className="px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-bold shadow-sm shadow-primary/20">Modern Slate</button>
+                    <button className="px-5 py-2.5 rounded-xl bg-primary/10 text-slate-600 text-sm font-bold hover:bg-primary/20 transition-colors">Classic Ivory</button>
+                    <button className="px-5 py-2.5 rounded-xl bg-primary/10 text-slate-600 text-sm font-bold hover:bg-primary/20 transition-colors">Terminal Dark</button>
+                    <button className="px-5 py-2.5 rounded-xl bg-primary/10 text-slate-600 text-sm font-bold hover:bg-primary/20 transition-colors">Academic</button>
                   </div>
                 </div>
                 <div className="space-y-3">
@@ -167,7 +145,7 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
                     </span>
                   </div>
                   <textarea
-                    className="w-full h-36 rounded-xl border-2 border-pink-50 bg-pink-50/30 text-xs font-mono p-4 focus:ring-primary focus:border-primary transition-all"
+                    className="w-full h-36 rounded-xl border-2 border-primary/10 bg-primary/5 text-xs font-mono p-4 focus:ring-primary focus:border-primary transition-all"
                     placeholder="/* Add your custom CSS here */"
                     defaultValue={`body {\n  font-family: 'Quicksand', sans-serif;\n  line-height: 1.8;\n}`}
                   />
@@ -176,19 +154,19 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
             </section>
           </div>
 
-          <aside className="w-[400px] bg-pink-50/60 border-l border-dashed border-pink-200 flex flex-col">
+          <aside className="w-[400px] bg-primary/5 border-l border-primary/20 flex flex-col">
             <div className="p-8 flex-1 flex flex-col overflow-hidden">
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-pink-400 mb-6">
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-primary/60 mb-6">
                 {t("exportModal.exportPreview")}
               </h4>
-              <div className="flex-1 bg-white rounded-3xl border-4 border-border-soft shadow-2xl shadow-pink-100/20 overflow-hidden flex flex-col">
-                <div className="bg-pink-50 p-4 flex items-center justify-between border-b-2 border-pink-100">
+              <div className="flex-1 bg-white rounded-3xl border-4 border-border-soft shadow-2xl shadow-primary/10 overflow-hidden flex flex-col">
+                <div className="bg-primary/5 p-4 flex items-center justify-between border-b-2 border-primary/10">
                   <div className="flex gap-2">
                     <div className="w-3 h-3 rounded-full bg-primary" />
                     <div className="w-3 h-3 rounded-full bg-secondary" />
                     <div className="w-3 h-3 rounded-full bg-accent" />
                   </div>
-                  <span className="text-[10px] font-black text-pink-300 uppercase tracking-widest">
+                  <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest">
                     {previewLabel[selectedFormat]}
                   </span>
                 </div>
@@ -268,25 +246,24 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
               </div>
             </div>
 
-            <div className="p-8 bg-white border-t border-dashed border-pink-100 space-y-4">
+            <div className="modal-m3-footer p-8 space-y-4">
               <button
                 onClick={handleExport}
-                className="w-full flex items-center justify-center gap-2 bg-primary text-white py-4 rounded-2xl font-bold shadow-lg shadow-pink-200/50 hover:brightness-105 active:scale-[0.98] transition-all"
+                className="modal-m3-filled-button w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold active:scale-[0.98] transition-all"
               >
                 <Download className="w-5 h-5" />
                 {t("exportModal.exportBtn")} {selectedFormat.toUpperCase()}
               </button>
-              <button className="w-full flex items-center justify-center gap-2 bg-secondary/20 text-slate-700 py-4 rounded-2xl font-bold hover:bg-secondary/30 active:scale-[0.98] transition-all">
+              <button className="modal-m3-outlined-button w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold active:scale-[0.98] transition-all">
                 <Share2 className="w-5 h-5" />
                 {t("exportModal.shareLink")}
               </button>
-              <p className="text-center text-[12px] text-pink-300 mt-3 font-semibold uppercase tracking-wider">
+              <p className="text-center text-[12px] text-primary/40 mt-3 font-semibold uppercase tracking-wider">
                 {t("exportModal.preserved")}
               </p>
             </div>
           </aside>
         </div>
-      </motion.div>
-    </motion.div>
+    </ModalShell>
   );
 }

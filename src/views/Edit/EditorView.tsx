@@ -184,11 +184,11 @@ export default function EditorView() {
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden font-display text-slate-700 relative">
-      <div id="editor-bg-layer" className="absolute inset-0 z-0 pointer-events-none bg-background-light" />
+    <div className="app-m3-shell h-screen flex flex-col overflow-hidden font-display text-slate-700 relative">
+      <div id="editor-bg-layer" className="app-m3-bg absolute inset-0 z-0 pointer-events-none bg-background-light" />
 
       <header
-        className="app-header h-20 flex items-center justify-between px-8 border-b border-border-soft z-50 shrink-0 relative bg-white/70 backdrop-blur-xl select-none"
+        className="app-m3-topbar app-header h-20 flex items-center justify-between px-8 z-50 shrink-0 relative select-none"
         onMouseDown={(e) => {
           const target = e.target as HTMLElement;
           if (target.closest('button') || target.closest('input')) return;
@@ -237,7 +237,7 @@ export default function EditorView() {
 
       <div className="flex-1 flex overflow-hidden relative z-10">
         <aside className={cn(
-          "h-full flex flex-col border-r border-rose-100 bg-white/80 backdrop-blur-2xl shrink-0 transition-all duration-300 overflow-hidden",
+          "app-m3-sidebar h-full flex flex-col shrink-0 transition-all duration-300 overflow-hidden",
           sidebarOpen ? "w-80" : "w-0 border-r-0",
         )}>
           <Sidebar

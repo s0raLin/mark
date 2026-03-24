@@ -23,11 +23,12 @@ export const ThemeOption = memo(function ThemeOption({
   return (
     <button
       onClick={onClick}
+      data-active={active}
       className={cn(
-        "relative flex flex-col gap-2 p-3 rounded-xl border-2 transition-all text-left overflow-hidden",
+        "settings-m3-theme-option relative flex flex-col gap-2 p-3 rounded-xl border-2 transition-all text-left overflow-hidden",
         active
-          ? "border-primary shadow-md shadow-primary/20 scale-[1.02]"
-          : "border-slate-100 hover:border-primary/40",
+          ? "scale-[1.02]"
+          : "",
       )}
       style={{ backgroundColor: bg }}
     >
