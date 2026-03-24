@@ -119,7 +119,7 @@ export default function Modal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="modal-m3-overlay fixed inset-0 backdrop-blur-sm pointer-events-none"
+            className="modal-m3-overlay fixed inset-0 pointer-events-none"
           />
         )}
       </AnimatePresence>
