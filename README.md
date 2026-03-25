@@ -13,35 +13,24 @@
   <strong>NoteMark</strong> — 一个现代化、可爱风格的 Markdown 编辑器，支持实时预览、自动同步和自定义主题。
 </p>
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/notemark/notemark/main/public/favicon.svg" width="128" height="128" alt="notemark Logo">
-</p>
-
 ---
 
 ## 📺 演示
 
-![NoteMark Editor](https://via.placeholder.com/800x450/f8fafc/e2e8f0?text=notemark+Editor+Demo)
-
 ### 主页
-
-![alt text](images/image-4.png)
+![主页](images/image-4.png)
 
 ### 启动台
+![启动台](images/image.png)
 
-![alt text](images/image.png)
-
-### 导出
-
-![alt text](images/image-1.png)
+### 导出功能
+![导出](images/image-1.png)
 
 ### 主题设置
-
-![alt text](images/image-2.png)
+![主题设置](images/image-2.png)
 
 ### 查找文件
-
-![alt text](images/image-3.png)
+![查找文件](images/image-3.png)
 
 ---
 
@@ -147,7 +136,7 @@ pnpm dev
 
 ```bash
 # 使用 Electron 启动应用（同时启动前后端服务）
-node index.ts
+pnpm dev:electron
 ```
 
 Electron 应用会：
@@ -206,9 +195,6 @@ notemark/
 ├── tsconfig.json         # TypeScript 配置
 ├── tsconfig.electron.json # Electron TypeScript 配置
 │
-├── public/               # 静态资源
-│   └── favicon.svg       # 应用图标
-│
 ├── server/               # Go 后端
 │   ├── cmd/
 │   │   └── server/
@@ -224,9 +210,6 @@ notemark/
 │   │   ├── model/        # 数据模型
 │   │   │   └── types.go  # 类型定义
 │   │   │
-│   │   ├── service/      # 业务逻辑
-│   │   │   └── storage.go
-│   │   │
 │   │   └── repository/   # 数据仓库
 │   │       └── storage.go # 存储实现
 │   │
@@ -240,18 +223,13 @@ notemark/
 ├── src/                  # React 前端
 │   ├── main.tsx          # 前端入口
 │   ├── App.tsx           # 根组件
-│   ├── index.css         # 全局样式
 │   │
 │   ├── api/              # API 客户端
-│   │   ├── client.ts     # Axios 实例
-│   │   ├── index.ts      # API 导出
-│   │   └── types.ts      # API 类型
+│   │   └── client/       # API 客户端实现
 │   │
 │   ├── components/       # React 组件
-│   │   ├── ErrorToast/   # 错误提示
-│   │   ├── Footer/       # 底部组件
 │   │   ├── Header/       # 头部组件
-│   │   ├── WindowControls/ # 窗口控制
+│   │   ├── Footer.tsx    # 底部组件
 │   │   │
 │   │   ├── MainContent/  # 主内容区
 │   │   │   ├── MainContent.tsx
@@ -265,63 +243,24 @@ notemark/
 │   │   │   ├── SaveAsModal/    # 另存为模态框
 │   │   │   ├── SearchModal/    # 搜索模态框
 │   │   │   ├── SettingsModal/  # 设置模态框
-│   │   │   │   ├── SettingAccount/   # 账户设置
-│   │   │   │   ├── SettingEditor/    # 编辑器设置
-│   │   │   │   ├── SettingExport/    # 导出设置
-│   │   │   │   └── SettingGeneral/   # 通用设置
 │   │   │   └── SparkleDust/    # 粒子特效
 │   │   │
 │   │   └── Sidebar/      # 侧边栏
 │   │       ├── Sidebar.tsx
-│   │       ├── SidebarItem.tsx
-│   │       ├── components/     # 侧边栏子组件
-│   │       │   ├── ContextMenu.tsx
-│   │       │   ├── DragList.tsx
-│   │       │   ├── GripHandle.tsx
-│   │       │   ├── NewItemDialog.tsx
-│   │       │   ├── PinnedItemRow.tsx
-│   │       │   ├── RenameInput.tsx
-│   │       │   └── TreeNode.tsx
-│   │       └── utils/    # 侧边栏工具
+│   │       └── components/     # 侧边栏子组件
 │   │
 │   ├── constants/        # 常量定义
-│   │   ├── index.ts
-│   │   └── theme.ts      # 主题常量
-│   │
 │   ├── contexts/         # React Context
-│   │   ├── ErrorContext.tsx
-│   │   └── errorBus.ts
-│   │
 │   ├── hooks/            # 自定义 Hooks
-│   │   ├── useKeyboardShortcuts.ts
-│   │   └── useModalRoute.ts
-│   │
+│   ├── i18n/             # 国际化
 │   ├── router/           # 路由配置
-│   │   └── IndexRouter.tsx
-│   │
+│   ├── styles/           # 样式文件
 │   ├── types/            # TypeScript 类型
-│   │   ├── editor.ts
-│   │   ├── electron.d.ts
-│   │   └── filesystem.ts
-│   │
 │   ├── utils/            # 工具函数
-│   │   └── cn.ts         # className 合并
-│   │
-│   └── views/            # 页面视图
-│       └── Edit/
-│           ├── EditorView.tsx
-│           ├── hooks/    # 编辑器相关 Hooks
-│           │   ├── useEditorState.ts
-│           │   ├── useEditorTheme.ts
-│           │   ├── useFileOperations.ts
-│           │   ├── useFileSystem.ts
-│           │   ├── useMarkdownSync.ts
-│           │   └── useStorageSync.ts
-│           └── utils/    # 编辑器工具
-│               └── editorHelpers.ts
+│   ├── views/            # 页面视图
+│   └── workers/          # Web Workers
 │
-└── dist-electron/        # Electron 构建输出
-    └── index.js
+└── images/               # 演示图片
 ```
 
 ---
