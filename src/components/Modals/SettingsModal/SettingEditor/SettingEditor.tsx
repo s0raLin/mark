@@ -308,7 +308,7 @@ export default function SettingEditor({
                 )}
                 <div className="relative z-10 flex flex-col items-center gap-2 bg-white/40 backdrop-blur-md px-6 py-4 rounded-xl border border-white/50">
                   {bgUploading
-                    ? <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    ? <div className="w-7 h-7 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
                     : <CloudUpload className="w-7 h-7 text-primary" />}
                   <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-700">
                     {bgUploading ? t("editor.uploading") : t("editor.chooseBg")}
@@ -420,7 +420,7 @@ export default function SettingEditor({
                   {fontUploading ? t("editor.uploading") : t("editor.uploadFont")}
                 </span>
                 {fontUploading
-                  ? <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  ? <div className="w-4 h-4 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
                   : <PlusCircle className="w-4 h-4 text-primary/60 group-hover:text-primary group-hover:rotate-90 transition-all" />}
               </button>
               <input ref={fontInputRef} type="file" accept=".ttf,.woff,.woff2,.otf" className="sr-only" onChange={handleFontUpload} />

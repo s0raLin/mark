@@ -1,11 +1,12 @@
 // import Footer from "@/components/Footer";
-import Header from "@/components/Header";
+import Header from "@/components/Header/Header";
 import MainContent from "@/components/MainContent/MainContent";
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import Modal from "@/components/Modals/Modal";
 import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { cn } from "@/utils/cn";
+import Loading from "@/components/Loading";
 
 // Hooks
 import { useFileSystem } from "./hooks/useFileSystem";
@@ -190,15 +191,7 @@ export default function EditorView() {
 
   // 加载状态显示
   if (storageSync.isLoading) {
-    const isDark = document.documentElement.classList.contains("dark");
-    return (
-      <div className="h-screen flex items-center justify-center bg-background-light dark:dark-bg">
-        <div className="flex flex-col items-center gap-4">
-          <div className={`w-12 h-12 border-4 rounded-full animate-spin ${isDark ? "border-[var(--md-sys-color-primary-container)] border-t-[var(--md-sys-color-primary)]" : "border-rose-200 border-t-rose-500"}`} />
-          <p className={`font-medium ${isDark ? "text-[var(--md-sys-color-on-surface-variant)]" : "text-slate-500"}`}>加载中...</p>
-        </div>
-      </div>
-    );
+    return <Loading message="正在加载数据..." show={true} />;
   }
 
   return (
