@@ -1,0 +1,46 @@
+appId: com.notemark.app
+productName: NoteMark
+asar: true
+npmRebuild: false
+
+directories:
+  output: release
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+
+extraResources:
+  - from: server/cmd/server
+    to: server
+    filter:
+      - "**/*"
+
+# Electron 镜像配置
+electronDownload:
+  mirror: https://npmmirror.com/mirrors/electron/
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.png
+
+mac:
+  target:
+    - dmg
+  icon: build/icon.png
+
+linux:
+  target:
+    - deb
+    - AppImage
+  icon: build/icon.png
+  category: Office
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
