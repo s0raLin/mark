@@ -1,7 +1,7 @@
 import IndexRouter from "./router/IndexRouter";
 import { ErrorProvider } from "./contexts/ErrorContext";
 import ErrorToast from "./components/ErrorToast";
-import { UserDataProvider } from "./contexts/UserDataContext";
+
 import {
   StorageSyncProvider,
   useStorageSyncContext,
