@@ -31,6 +31,8 @@ const en = {
     workspaceNameDesc: "How your workspace appears in the sidebar",
     autoSave: "Auto-Save",
     autoSaveDesc: "Automatically save your sparkles to local storage",
+    autoSaveInterval: "Auto-Save Interval",
+    autoSaveIntervalDesc: "Time interval for auto-save (milliseconds)",
     shortcuts: "Keyboard Shortcuts",
     shortcutSearch: "Global Search",
     shortcutBold: "Bold Text",

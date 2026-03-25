@@ -69,6 +69,8 @@ type StorageEditorConfig struct {
 		URL  string `json:"url"`
 	} `json:"customFonts"`
 	DarkMode bool `json:"darkMode"`
+	  AutoSave bool `json:"autoSave"`
+  AutoSaveInterval int `json:"autoSaveInterval"`
 }
 
 // StorageAppConfig 仅保存应用配置（持久化到 JSON，不含文件系统数据）

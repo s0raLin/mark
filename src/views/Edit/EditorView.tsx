@@ -67,6 +67,8 @@ export default function EditorView() {
           lang: editorTheme.lang,
           customFonts: editorTheme.customFonts,
           darkMode: editorTheme.darkMode,
+          autoSave: editorTheme.autoSave,
+          autoSaveInterval: editorTheme.autoSaveInterval,
         },
       });
     }
@@ -92,6 +94,8 @@ export default function EditorView() {
     editorTheme.lang,
     editorTheme.customFonts,
     editorTheme.darkMode,
+    editorTheme.autoSave,
+    editorTheme.autoSaveInterval,
   ]);
 
   // 文件操作 Hook
@@ -117,6 +121,14 @@ export default function EditorView() {
           }
         },
         description: "打开/关闭搜索模态框",
+      },
+      {
+        key: "s",
+        ctrl: true,
+        handler: () => {
+          editorState.handleSave();
+        },
+        description: "保存文件",
       },
     ],
   });

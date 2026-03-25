@@ -57,6 +57,8 @@ export interface EditorConfigContextProps {
   darkMode: boolean;
   lang: string;
   customFonts: Array<{ name: string; url: string }>;
+  autoSave: boolean;
+  autoSaveInterval: number;
   setEditorTheme: React.Dispatch<React.SetStateAction<EditorTheme>>;
   setPreviewTheme: React.Dispatch<React.SetStateAction<PreviewTheme>>;
   setFontChoice: React.Dispatch<React.SetStateAction<FontChoice>>;
@@ -70,6 +72,8 @@ export interface EditorConfigContextProps {
   setParticlesOn: React.Dispatch<React.SetStateAction<boolean>>;
   setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
   setLang: React.Dispatch<React.SetStateAction<string>>;
+  setAutoSave: React.Dispatch<React.SetStateAction<boolean>>;
+  setAutoSaveInterval: React.Dispatch<React.SetStateAction<number>>;
   addCustomFont: (font: { name: string; url: string }) => void;
   removeCustomFont: (name: string) => void;
 }
@@ -99,6 +103,8 @@ export function EditorThemeProvider({
     lang: "en",
     customFonts: [],
     darkMode: false,
+    autoSave: true,
+    autoSaveInterval: 500,
   };
 
   const config = initialConfig ?? defaultConfig;
@@ -135,6 +141,8 @@ export function EditorThemeProvider({
   const [customFonts, setCustomFonts] = useState<
     Array<{ name: string; url: string }>
   >(() => config.customFonts ?? []);
+  const [autoSave, setAutoSave] = useState<boolean>(() => config.autoSave ?? true);
+  const [autoSaveInterval, setAutoSaveInterval] = useState<number>(() => config.autoSaveInterval ?? 3000);
 
   const hasInitialized = useRef(false);
   useEffect(() => {
@@ -169,6 +177,8 @@ export function EditorThemeProvider({
       }
     }
     setDarkMode(initialConfig.darkMode || false);
+    setAutoSave(initialConfig.autoSave ?? true);
+    setAutoSaveInterval(initialConfig.autoSaveInterval ?? 500);
   }, [initialConfig]);
 
   // ── Dark mode class ──
@@ -271,6 +281,8 @@ export function EditorThemeProvider({
         darkMode,
         lang,
         customFonts,
+        autoSave,
+        autoSaveInterval,
         setEditorTheme,
         setPreviewTheme,
         setFontChoice,
@@ -284,6 +296,8 @@ export function EditorThemeProvider({
         setParticlesOn,
         setDarkMode: setDarkModeWithPreviewSync,
         setLang,
+        setAutoSave,
+        setAutoSaveInterval,
         addCustomFont,
         removeCustomFont,
       }}

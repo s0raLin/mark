@@ -35,8 +35,8 @@ function AppContent() {
     <FileSystemProvider>
       <FileOperationsProvider>
         <EditorThemeProvider initialConfig={initialConfig}>
-          <EditorStateProvider>
-            <MarkdownSyncProvider>
+          <MarkdownSyncProvider>
+            <EditorStateProvider>
               <ErrorProvider>
                 <div className="h-screen flex flex-col overflow-hidden">
                   <div className="flex-1 overflow-hidden">
@@ -45,8 +45,8 @@ function AppContent() {
                 </div>
                 <ErrorToast />
               </ErrorProvider>
-            </MarkdownSyncProvider>
-          </EditorStateProvider>
+            </EditorStateProvider>
+          </MarkdownSyncProvider>
         </EditorThemeProvider>
       </FileOperationsProvider>
     </FileSystemProvider>

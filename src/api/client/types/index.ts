@@ -137,6 +137,8 @@ export interface StorageEditorConfig {
   lang: string;
   customFonts: CustomFont[];
   darkMode: boolean;
+  autoSave: boolean;
+  autoSaveInterval: number;
 }
 
 /**

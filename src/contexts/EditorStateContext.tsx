@@ -1,5 +1,8 @@
-import { useState, useCallback, ReactNode, createContext, useContext } from "react";
+import { useState, useCallback, ReactNode, createContext, useContext, useEffect, useRef } from "react";
 import { useFileOperationsContext } from "./FileOperationContext";
+import { useMarkdownSyncContext } from "./MarkdownSyncContext";
+import { useEditorConfigContext } from "./EditorConfigContext";
+import { useFileSystemContext } from "./FileSystemContext";
 
 /**
  * 视图模式类型
@@ -52,6 +55,13 @@ export function EditorStateProvider({
 }): ReactNode {
   // 文件操作
   const { createFile } = useFileOperationsContext();
+  // Markdown 同步
+  const markdownSync = useMarkdownSyncContext();
+  // 编辑器配置
+  const editorConfig = useEditorConfigContext();
+  // 文件系统
+  const fileSystem = useFileSystemContext();
+  
   // ===== 编辑器UI状态 =====
 
   /** 当前视图模式：分屏/仅编辑器/仅预览 */
@@ -65,6 +75,9 @@ export function EditorStateProvider({
 
   /** 是否正在保存中 */
   const [isSaving, setIsSaving] = useState(false);
+
+  // 自动保存定时器引用
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // ===== UI处理函数 =====
 
@@ -82,10 +95,43 @@ export function EditorStateProvider({
    * 更新保存状态，显示保存指示器，800ms后自动结束
    */
   const handleSave = useCallback(() => {
+    // 触发保存到后端
+    if (fileSystem.activeFileId && markdownSync.markdown) {
+      markdownSync.setMarkdown(markdownSync.markdown);
+    }
     setLastSaved(new Date());
     setIsSaving(true);
     setTimeout(() => setIsSaving(false), 800);
-  }, []);
+  }, [fileSystem.activeFileId, markdownSync.markdown, markdownSync.setMarkdown]);
+
+  // 自动保存逻辑
+  useEffect(() => {
+    // 清除之前的定时器
+    if (autoSaveTimerRef.current) {
+      clearInterval(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = null;
+    }
+
+    // 如果自动保存开启且有活动文件，设置定时器
+    if (editorConfig.autoSave && fileSystem.activeFileId) {
+      autoSaveTimerRef.current = setInterval(() => {
+        if (fileSystem.activeFileId && markdownSync.markdown) {
+          markdownSync.setMarkdown(markdownSync.markdown);
+          setLastSaved(new Date());
+          setIsSaving(true);
+          setTimeout(() => setIsSaving(false), 800);
+        }
+      }, editorConfig.autoSaveInterval);
+    }
+
+    // 清理函数
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearInterval(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = null;
+      }
+    };
+  }, [editorConfig.autoSave, editorConfig.autoSaveInterval, fileSystem.activeFileId, markdownSync.markdown, markdownSync.setMarkdown]);
 
   /**
    * 另存为

@@ -31,6 +31,8 @@ const zh = {
     workspaceNameDesc: "工作区在侧边栏中的显示名称",
     autoSave: "自动保存",
     autoSaveDesc: "自动将内容保存到本地存储",
+    autoSaveInterval: "自动保存间隔",
+    autoSaveIntervalDesc: "自动保存的时间间隔（毫秒）",
     shortcuts: "键盘快捷键",
     shortcutSearch: "全局搜索",
     shortcutBold: "加粗文字",

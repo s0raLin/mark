@@ -31,6 +31,8 @@ const ja = {
     workspaceNameDesc: "サイドバーに表示されるワークスペース名",
     autoSave: "自動保存",
     autoSaveDesc: "ローカルストレージに自動保存する",
+    autoSaveInterval: "自動保存間隔",
+    autoSaveIntervalDesc: "自動保存の時間間隔（ミリ秒）",
     shortcuts: "キーボードショートカット",
     shortcutSearch: "グローバル検索",
     shortcutBold: "太字",
