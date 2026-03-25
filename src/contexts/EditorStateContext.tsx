@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, ReactNode, createContext, useContext } from "react";
+import { useFileOperationsContext } from "./FileOperationContext";
 
 /**
  * 视图模式类型
@@ -11,7 +12,7 @@ export type ViewMode = "split" | "editor" | "preview";
 /**
  * useEditorState Hook 返回值接口
  */
-export interface UseEditorStateReturn {
+export interface EditorStateContextProps {
   /** 当前视图模式 */
   viewMode: ViewMode;
   /** 是否显示粒子效果 */
@@ -34,18 +35,9 @@ export interface UseEditorStateReturn {
   handleNewSparkle: () => void;
 }
 
-/**
- * useEditorState Hook 参数接口
- */
-export interface UseEditorStateProps {
-  /** 创建文件的函数，用于新建Sparkle */
-  createFile: (
-    name: string,
-    parentId?: string | null,
-    opts?: { open?: boolean; initialContent?: string },
-  ) => string;
-}
-
+const EditorStateContext = createContext<EditorStateContextProps | undefined>(
+  undefined,
+);
 /**
  * 编辑器UI状态Hook
  * 管理编辑器的视图模式和用户交互状态
@@ -53,9 +45,13 @@ export interface UseEditorStateProps {
  * @param props - 依赖的函数（createFile）
  * @returns 编辑器UI状态和处理函数
  */
-export function useEditorState({
-  createFile,
-}: UseEditorStateProps): UseEditorStateReturn {
+export function EditorStateProvider({
+  children,
+}: {
+  children: ReactNode;
+}): ReactNode {
+  // 文件操作
+  const { createFile } = useFileOperationsContext();
   // ===== 编辑器UI状态 =====
 
   /** 当前视图模式：分屏/仅编辑器/仅预览 */
@@ -124,16 +120,31 @@ export function useEditorState({
     setViewMode(mode);
   }, []);
 
-  return {
-    viewMode,
-    particlesOn,
-    isSaving,
-    lastSaved,
-    handleViewModeChange,
-    handleParticlesToggle,
-    handleSave,
-    handleSaveAs,
-    handleExport,
-    handleNewSparkle,
-  };
+  return (
+    <EditorStateContext.Provider
+      value={{
+        viewMode,
+        particlesOn,
+        isSaving,
+        lastSaved,
+        handleViewModeChange,
+        handleParticlesToggle,
+        handleSave,
+        handleSaveAs,
+        handleExport,
+        handleNewSparkle,
+      }}
+    >
+        {children}
+    </EditorStateContext.Provider>
+  );
+}
+
+
+export function useEditorStateContext() {
+    const context = useContext(EditorStateContext);
+    if (!context) {
+        throw new Error("EditorStateContext must be used within EditorStateProvider");
+    }
+    return context;
 }

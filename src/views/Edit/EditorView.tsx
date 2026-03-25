@@ -1,22 +1,23 @@
-// import Footer from "@/components/Footer";
 import Header from "@/components/Header/Header";
 import MainContent from "@/components/MainContent/MainContent";
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import Modal from "@/components/Modals/Modal";
 import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { cn } from "@/utils/cn";
-import Loading from "@/components/Loading";
 
 // Hooks
-import { useFileSystem } from "./hooks/useFileSystem";
-import { useFileOperations } from "./hooks/useFileOperations";
-import { useEditorState } from "./hooks/useEditorState";
-import { useEditorTheme } from "./hooks/useEditorTheme";
-import { useMarkdownSync } from "./hooks/useMarkdownSync";
-import { useStorageSync } from "./hooks/useStorageSync";
+// import { useFileOperations } from "./hooks/useFileOperations";
+// import { useEditorState } from "./hooks/useEditorState";
+// import { useMarkdownSync } from "./hooks/useMarkdownSync";
 import { useModalRoute, ROUTES } from "../../hooks/useModalRoute";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
+import { useEditorConfigContext } from "@/contexts/EditorConfigContext";
+import { useStorageSyncContext } from "@/contexts/StorageContext";
+import { useFileSystemContext } from "@/contexts/FileSystemContext";
+import { useFileOperationsContext } from "@/contexts/FileOperationContext";
+import { useEditorStateContext } from "@/contexts/EditorStateContext";
+import { useMarkdownSyncContext } from "@/contexts/MarkdownSyncContext";
 
 // ── EditorView ───────────────────────────────────────────────────────────────-
 
@@ -25,36 +26,16 @@ export default function EditorView() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // 存储同步 Hook - 管理数据加载和保存
-  const storageSync = useStorageSync();
+  const storageSync = useStorageSyncContext();
 
   // 路由管理的模态框状态
   const { isModalOpen, openModal, closeModal } = useModalRoute();
 
-  // 粒子效果状态由 editorTheme 统一管理
-
-  // 用 useMemo 稳定引用，避免每次渲染都生成新对象触发子 hook effect
-  const initialFileSystem = useMemo(
-    () =>
-      storageSync.isInitialized && storageSync.userData
-        ? storageSync.userData.fileSystem
-        : null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [storageSync.isInitialized], // 只在初始化完成时固定，之后不再变
-  );
-  const initialConfig = useMemo(
-    () =>
-      storageSync.isInitialized && storageSync.userData
-        ? storageSync.userData.editorConfig
-        : null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [storageSync.isInitialized],
-  );
-
   // 文件系统 Hook
-  const fileSystem = useFileSystem({ initialFileSystem });
+  const fileSystem = useFileSystemContext();
 
   // 编辑器主题 Hook
-  const editorTheme = useEditorTheme({ initialConfig });
+  const editorTheme = useEditorConfigContext();
 
   // 数据变化时自动保存（文件内容已保存到真实.md文件，不再保存到JSON配置）
   useEffect(() => {
@@ -114,34 +95,13 @@ export default function EditorView() {
   ]);
 
   // 文件操作 Hook
-  const fileOperations = useFileOperations({
-    nodes: fileSystem.nodes,
-    pinnedIds: fileSystem.pinnedIds,
-    explorerOrder: fileSystem.explorerOrder,
-    folderOrder: fileSystem.folderOrder,
-    activeFileId: fileSystem.activeFileId,
-    expandedFolders: fileSystem.expandedFolders,
-    setNodes: fileSystem.setNodes,
-    setPinnedIds: fileSystem.setPinnedIds,
-    setExplorerOrder: fileSystem.setExplorerOrder,
-    setFolderOrder: fileSystem.setFolderOrder,
-    setExpandedFolders: fileSystem.setExpandedFolders,
-    setActiveFileId: fileSystem.setActiveFileId,
-  });
+  const fileOperations = useFileOperationsContext();
 
   // 编辑器状态 Hook
-  const editorState = useEditorState({
-    createFile: fileOperations.createFile,
-  });
+  const editorState = useEditorStateContext();
 
   // Markdown 同步 Hook
-  const markdownSync = useMarkdownSync({
-    activeFileId: fileSystem.activeFileId,
-    activeFileType:
-      fileSystem.nodes.find((n) => n.id === fileSystem.activeFileId)?.type ??
-      null,
-    setNodes: fileSystem.setNodes,
-  });
+  const markdownSync = useMarkdownSyncContext();
 
   // 键盘快捷键
   useKeyboardShortcuts({
@@ -160,8 +120,6 @@ export default function EditorView() {
       },
     ],
   });
-
-  // 字体设置已在 useEditorTheme 内部处理
 
   // 打开文件时加载内容，并自动展开父文件夹
   const handleOpenFile = useCallback(
@@ -188,11 +146,6 @@ export default function EditorView() {
       fileSystem.setExpandedFolders,
     ],
   );
-
-  // 加载状态显示
-  if (storageSync.isLoading) {
-    return <Loading message="正在加载数据..." show={true} />;
-  }
 
   return (
     <div className="app-m3-shell h-screen flex flex-col overflow-hidden font-display text-slate-700 relative">

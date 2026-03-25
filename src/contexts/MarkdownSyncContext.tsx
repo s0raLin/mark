@@ -1,25 +1,56 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { getFileContent, saveFileContent } from "@/api/client";
 import { INITIAL_MARKDOWN } from "@/constants";
-import { saveFileContent, getFileContent } from "@/api/client";
-
-export interface UseMarkdownSyncReturn {
-  markdown: string;
-  setMarkdown: React.Dispatch<React.SetStateAction<string>>;
-}
+import {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  ReactNode,
+  createContext,
+  useContext,
+} from "react";
+import { useFileSystemContext } from "./FileSystemContext";
 
 export interface UseMarkdownSyncProps {
   activeFileId: string | null;
   activeFileType?: "file" | "folder" | null;
-  setNodes: React.Dispatch<React.SetStateAction<import("@/types/filesystem").FileNode[]>>;
+  setNodes: React.Dispatch<
+    React.SetStateAction<import("@/types/filesystem").FileNode[]>
+  >;
 }
 
 // 可编辑的文本扩展名白名单
 const TEXT_EXTENSIONS = new Set([
-  "md", "txt", "markdown", "mdown", "mkd",
-  "json", "yaml", "yml", "toml", "xml",
-  "js", "ts", "jsx", "tsx", "css", "html", "htm",
-  "sh", "bash", "py", "go", "rs", "java", "c", "cpp", "h",
-  "csv", "log", "env", "gitignore",
+  "md",
+  "txt",
+  "markdown",
+  "mdown",
+  "mkd",
+  "json",
+  "yaml",
+  "yml",
+  "toml",
+  "xml",
+  "js",
+  "ts",
+  "jsx",
+  "tsx",
+  "css",
+  "html",
+  "htm",
+  "sh",
+  "bash",
+  "py",
+  "go",
+  "rs",
+  "java",
+  "c",
+  "cpp",
+  "h",
+  "csv",
+  "log",
+  "env",
+  "gitignore",
 ]);
 
 function isTextFile(fileId: string): boolean {
@@ -27,11 +58,25 @@ function isTextFile(fileId: string): boolean {
   return TEXT_EXTENSIONS.has(ext);
 }
 
-export function useMarkdownSync({
-  activeFileId,
-  activeFileType,
-  setNodes,
-}: UseMarkdownSyncProps): UseMarkdownSyncReturn {
+export interface MarkdownSyncContextProps {
+  markdown: string;
+  setMarkdown: React.Dispatch<React.SetStateAction<string>>;
+}
+
+const MarkdownSyncContext = createContext<MarkdownSyncContextProps | undefined>(
+  undefined,
+);
+export function MarkdownSyncProvider({
+  children,
+}: {
+  children: ReactNode;
+}): ReactNode {
+  const fileSystem = useFileSystemContext();
+  const activeFileId = fileSystem.activeFileId;
+  const activeFileType =
+    fileSystem.nodes.find((n) => n.id === fileSystem.activeFileId)?.type ??
+    null;
+  const setNodes = fileSystem.setNodes;
   const [markdown, setMarkdown] = useState(INITIAL_MARKDOWN);
   const fileContentsRef = useRef<Record<string, string>>({});
 
@@ -93,5 +138,21 @@ export function useMarkdownSync({
     [saveToBackend],
   );
 
-  return { markdown, setMarkdown: handleSetMarkdown };
+  return (
+    <MarkdownSyncContext.Provider
+      value={{ markdown, setMarkdown: handleSetMarkdown }}
+    >
+      {children}
+    </MarkdownSyncContext.Provider>
+  );
+}
+
+export function useMarkdownSyncContext() {
+  const context = useContext(MarkdownSyncContext);
+  if (!context) {
+    throw Error(
+      "useMarkdownSyncContext must be used within MarkdownSyncProvider",
+    );
+  }
+  return context;
 }

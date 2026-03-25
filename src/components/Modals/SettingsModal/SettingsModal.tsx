@@ -4,7 +4,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useTranslation } from "react-i18next";
-import { applyM3Theme } from "@/views/Edit/hooks/useEditorTheme";
+import { applyM3Theme } from "@/utils/applyM3Theme";
 import General from "./SettingGeneral/SettingGeneral";
 import SettingEditor from "./SettingEditor/SettingEditor";
 import SettingExport from "./SettingExport/SettingExport";

@@ -18,7 +18,7 @@ import { ColorPicker } from "./ColorPicker";
 import { cn } from "@/utils/cn";
 import { ACCENT_COLORS, EDITOR_THEMES, PREVIEW_THEMES } from "@/constants/theme";
 import { uploadFont, uploadImage } from "@/api/client";
-import { applyM3Theme } from "@/views/Edit/hooks/useEditorTheme";
+import { applyM3Theme } from "@/utils/applyM3Theme";
 
 // Live preview: reuse the same applyM3Theme so colors match exactly
 function previewM3Theme(seed: string) {
