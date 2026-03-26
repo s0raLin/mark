@@ -4,14 +4,13 @@ import { cn } from "@/utils/cn";
 import { useTranslation } from "react-i18next";
 import { ModalHeader } from "../ModalHeader";
 import { ModalShell } from "../ModalShell";
+import { useEditorConfigContext } from "@/contexts/EditorConfig/EditorThemeProvider";
 
 interface LauncherModalProps {
   onClose: () => void;
   onSearch?: () => void;
   onSettings?: () => void;
   onExport?: () => void;
-  onParticlesToggle?: () => void;
-  particlesOn?: boolean;
   darkMode?: boolean;
   onDarkModeToggle?: () => void;
 }
@@ -28,12 +27,11 @@ export function LauncherModal({
   onSearch,
   onSettings,
   onExport,
-  onParticlesToggle,
-  particlesOn,
   darkMode,
   onDarkModeToggle,
 }: LauncherModalProps) {
   const { t } = useTranslation();
+  const { particlesOn, setParticlesOn } = useEditorConfigContext();
 
   const groups = [
     {
@@ -80,7 +78,7 @@ export function LauncherModal({
           iconBg: particlesOn ? "bg-primary/20 text-primary" : "bg-slate-100 text-slate-400",
           label: t("launcher.particles"),
           desc: particlesOn ? t("launcher.particlesOn") : t("launcher.particlesOff"),
-          onClick: () => { onParticlesToggle?.(); onClose(); },
+          onClick: () => { setParticlesOn((prev) => !prev); onClose(); },
         },
       ],
     },

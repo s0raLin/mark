@@ -1,7 +1,8 @@
 import { Layout, Terminal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ShortcutRow } from "./ShortcutRow";
-import { useEditorConfigContext } from "@/contexts/EditorConfigContext";
+import { useEditorConfigContext } from "@/contexts/EditorConfig/EditorThemeProvider";
+
 
 export default function SettingGeneral() {
   const { t } = useTranslation();

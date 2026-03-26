@@ -6,12 +6,10 @@ import {
 import { cn } from "@/utils/cn";
 import { useTranslation } from "react-i18next";
 import WindowControls from "./WindowControls";
+import { useEditorConfigContext } from "@/contexts/EditorConfig/EditorThemeProvider";
+import { useEditorStateContext } from "@/contexts/EditorStateContext";
 
 interface HeaderProps {
-  viewMode?: "split" | "editor" | "preview";
-  onViewModeChange?: (mode: "split" | "editor" | "preview") => void;
-  particlesOn?: boolean;
-  onParticlesToggle?: () => void;
   onNewSparkle?: () => void;
   onSave?: () => void;
   onSaveAs?: () => void;
@@ -56,10 +54,6 @@ function QuickBtn({ icon, label, onClick, active }: ActionBtn) {
 }
 
 export default function Header({
-  viewMode = "split",
-  onViewModeChange,
-  particlesOn,
-  onParticlesToggle,
   onNewSparkle,
   onSave,
   onSaveAs,
@@ -71,12 +65,15 @@ export default function Header({
   onToggleSidebar,
 }: HeaderProps) {
   const { t } = useTranslation();
+  const { particlesOn, setParticlesOn } = useEditorConfigContext();
+  const editorState = useEditorStateContext();
+  
   const actions: ActionBtn[] = [
     { icon: <FilePlus className="w-4 h-4" />, label: t("header.newFile"), onClick: onNewSparkle },
     { icon: <Save className="w-4 h-4" />, label: t("header.save"), onClick: onSave },
     { icon: <FileDown className="w-4 h-4" />, label: t("header.saveAs"), onClick: onSaveAs, dividerAfter: true },
     { icon: <Search className="w-4 h-4" />, label: t("header.search"), onClick: onSearch, dividerAfter: true },
-    { icon: <Sparkles className="w-4 h-4" />, label: t("header.sparkleDust"), onClick: onParticlesToggle, active: particlesOn },
+    { icon: <Sparkles className="w-4 h-4" />, label: t("header.sparkleDust"), onClick: () => setParticlesOn((prev) => !prev), active: particlesOn },
     { icon: <Settings className="w-4 h-4" />, label: t("header.settings"), onClick: onSettings },
   ];
 
@@ -117,8 +114,8 @@ export default function Header({
                 key={mode}
                 icon={icon}
                 label={label}
-                active={viewMode === mode}
-                onClick={() => onViewModeChange?.(mode)}
+                active={editorState.viewMode === mode}
+                onClick={() => editorState.handleViewModeChange(mode)}
               />
             ))}
           </div>

@@ -121,17 +121,24 @@ export default function SettingEditor({
   const pickerPopoverRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
   const fontInputRef = useRef<HTMLInputElement>(null);
+  const handlerRef = useRef<((e: MouseEvent) => void) | null>(null);
 
   useEffect(() => {
     if (!pickerOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (
-        pickerBtnRef.current && !pickerBtnRef.current.contains(e.target as Node) &&
-        pickerPopoverRef.current && !pickerPopoverRef.current.contains(e.target as Node)
-      ) setPickerOpen(false);
+    handlerRef.current = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const isClickOnButton = pickerBtnRef.current?.contains(target);
+      const isClickOnPopover = pickerPopoverRef.current?.contains(target);
+      if (!isClickOnButton && !isClickOnPopover) {
+        setPickerOpen(false);
+      }
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener("mousedown", handlerRef.current);
+    return () => {
+      if (handlerRef.current) {
+        document.removeEventListener("mousedown", handlerRef.current);
+      }
+    };
   }, [pickerOpen]);
 
   const openPicker = () => {
@@ -252,7 +259,7 @@ export default function SettingEditor({
                   left: pickerPos.left,
                   transform: "translateX(-50%)",
                 }}
-                onMouseDown={e => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
               >
                 <div
                   className="settings-m3-popover-arrow absolute -top-[7px] left-1/2 -translate-x-1/2 w-3.5 h-3.5 rotate-45"

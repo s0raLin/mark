@@ -1,3 +1,5 @@
+// fileSystemUtils.ts
+
 import { FileNode } from "@/types/filesystem";
 
 /**
@@ -70,3 +72,39 @@ export const arraysEqual = (a: string[], b: string[]): boolean => {
  * 导出默认文件ID常量供外部使用
  */
 export { DEFAULT_FILE_ID };
+
+
+export const generateOptimisticId = (parentId: string | null, name: string): string => {
+  return parentId ? `${parentId}/${name}` : name;
+};
+
+export const remapId = (s: string, oldPrefix: string, newPrefix: string): string => {
+  if (s === oldPrefix) return newPrefix;
+  if (s.startsWith(oldPrefix + "/")) return newPrefix + s.slice(oldPrefix.length);
+  return s;
+};
+
+// 重映射一组 IDs（用于 pinnedIds, explorerOrder 等）
+export const remapIds = (ids: string[], oldPrefix: string, newPrefix: string): string[] => {
+  return ids.map((id) => remapId(id, oldPrefix, newPrefix));
+};
+
+// 重映射 Set（用于 expandedFolders）
+export const remapSet = (set: Set<string>, oldPrefix: string, newPrefix: string): Set<string> => {
+  const next = new Set<string>();
+  for (const f of set) {
+    next.add(remapId(f, oldPrefix, newPrefix));
+  }
+  return next;
+};
+
+// 收集要删除的节点（递归）
+export const collectDescendants = (nodes: FileNode[], id: string): Set<string> => {
+  const toDelete = new Set<string>();
+  const collect = (nodeId: string) => {
+    toDelete.add(nodeId);
+    nodes.filter((n) => n.parentId === nodeId).forEach((n) => collect(n.id));
+  };
+  collect(id);
+  return toDelete;
+};

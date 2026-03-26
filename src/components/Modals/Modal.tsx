@@ -8,95 +8,40 @@ import { LauncherModal } from "./LauncherModal/LauncherModal";
 import { SparkleDust } from "../../components/Modals/SparkleDust/SparkleDust";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import type { FileNode } from "@/types/filesystem";
+import { useEditorConfigContext } from "@/contexts/EditorConfig/EditorThemeProvider";
+import { useMarkdownSyncContext } from "@/contexts/MarkdownSyncContext";
+import { useFileSystemContext } from "@/contexts/FileSystemContext";
+import { useFileOperations } from "@/contexts/hooks/useFileOperations";
+import { useEditorStateContext } from "@/contexts/EditorStateContext";
 
 interface ModalProps {
-  editorTheme: string;
-  previewTheme: string;
   isExportModalOpen: boolean;
   isSaveAsModalOpen: boolean;
   isSettingsModalOpen: boolean;
   isSearchModalOpen: boolean;
-  setEditorTheme: React.Dispatch<React.SetStateAction<string>>;
-  setPreviewTheme: React.Dispatch<React.SetStateAction<string>>;
   setIsExportModalOpen: (open: boolean) => void;
   setIsSaveAsModalOpen: (open: boolean) => void;
   setIsSettingsModalOpen: (open: boolean) => void;
   setIsSearchModalOpen: (open: boolean) => void;
-  markdown: string;
-  particlesOn: boolean;
-  setParticlesOn: React.Dispatch<React.SetStateAction<boolean>>;
-  fontChoice: string;
-  setFontChoice: React.Dispatch<React.SetStateAction<string>>;
-  editorFont: string;
-  setEditorFont: React.Dispatch<React.SetStateAction<string>>;
-  accentColor: string;
-  setAccentColor: (color: string) => void;
-  fontSize: number;
-  setFontSize: (size: number) => void;
-  editorFontSize: number;
-  setEditorFontSize: (size: number) => void;
-  previewFontSize: number;
-  setPreviewFontSize: (size: number) => void;
-  blurAmount: number;
-  setBlurAmount: (amount: number) => void;
-  bgImage: string;
-  setBgImage: (url: string) => void;
-  customFonts: { name: string; url: string }[];
-  addCustomFont: (font: { name: string; url: string }) => void;
-  lang: string;
-  setLang: React.Dispatch<React.SetStateAction<string>>;
-  nodes: FileNode[];
-  onOpenFile: (id: string) => void;
   onLauncherSearch?: () => void;
   onLauncherSettings?: () => void;
   onLauncherExport?: () => void;
   onLauncherViewMode?: (mode: "split" | "editor" | "preview") => void;
-  onLauncherParticlesToggle?: () => void;
-  darkMode?: boolean;
-  onDarkModeToggle?: () => void;
 }
 
 export default function Modal({
-  editorTheme,
-  previewTheme,
-  setEditorTheme,
-  setPreviewTheme,
   setIsExportModalOpen,
   setIsSaveAsModalOpen,
   setIsSettingsModalOpen,
   setIsSearchModalOpen,
-  markdown,
-  particlesOn,
-  setParticlesOn,
-  fontChoice,
-  setFontChoice,
-  editorFont,
-  setEditorFont,
-  accentColor,
-  setAccentColor,
-  fontSize,
-  setFontSize,
-  editorFontSize,
-  setEditorFontSize,
-  previewFontSize,
-  setPreviewFontSize,
-  blurAmount,
-  setBlurAmount,
-  bgImage,
-  setBgImage,
-  customFonts,
-  addCustomFont,
-  lang,
-  setLang,
-  nodes,
-  onOpenFile,
-  onLauncherParticlesToggle,
-  darkMode,
-  onDarkModeToggle,
 }: ModalProps) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const modal = searchParams.get("modal") || "";
+  const editorConfig = useEditorConfigContext();
+  const markdownSync = useMarkdownSyncContext();
+  const fileSystem = useFileSystemContext();
+  const {handleOpenFile} = useEditorStateContext();
 
   const hasModal =
     modal === "settings" ||
@@ -131,51 +76,49 @@ export default function Modal({
             onSearch={() => navigate("/?modal=search")}
             onSettings={() => navigate("/?modal=settings")}
             onExport={() => navigate("/?modal=export")}
-            onParticlesToggle={onLauncherParticlesToggle}
-            particlesOn={particlesOn}
-            darkMode={darkMode}
-            onDarkModeToggle={onDarkModeToggle}
+            darkMode={editorConfig.darkMode}
+            onDarkModeToggle={() => editorConfig.setDarkMode((prev) => !prev)}
           />
         )}
         {modal === "settings" && (
           <SettingsModal
             key="settings"
             onClose={() => setIsSettingsModalOpen(false)}
-            editorTheme={editorTheme}
-            setEditorTheme={setEditorTheme}
-            previewTheme={previewTheme}
-            setPreviewTheme={setPreviewTheme}
-            particlesOn={particlesOn}
-            setParticlesOn={setParticlesOn}
-            fontChoice={fontChoice}
-            setFontChoice={setFontChoice}
-            editorFont={editorFont}
-            setEditorFont={setEditorFont}
-            accentColor={accentColor}
-            setAccentColor={setAccentColor}
-            fontSize={fontSize}
-            setFontSize={setFontSize}
-            editorFontSize={editorFontSize}
-            setEditorFontSize={setEditorFontSize}
-            previewFontSize={previewFontSize}
-            setPreviewFontSize={setPreviewFontSize}
-            blurAmount={blurAmount}
-            setBlurAmount={setBlurAmount}
-            bgImage={bgImage}
-            setBgImage={setBgImage}
-            customFonts={customFonts}
-            addCustomFont={addCustomFont}
-            lang={lang}
-            setLang={setLang}
+            editorTheme={editorConfig.editorTheme}
+            setEditorTheme={editorConfig.setEditorTheme}
+            previewTheme={editorConfig.previewTheme}
+            setPreviewTheme={editorConfig.setPreviewTheme}
+            particlesOn={editorConfig.particlesOn}
+            setParticlesOn={editorConfig.setParticlesOn}
+            fontChoice={editorConfig.fontChoice}
+            setFontChoice={editorConfig.setFontChoice}
+            editorFont={editorConfig.editorFont}
+            setEditorFont={editorConfig.setEditorFont}
+            accentColor={editorConfig.accentColor}
+            setAccentColor={editorConfig.setAccentColor}
+            fontSize={editorConfig.fontSize}
+            setFontSize={editorConfig.setFontSize}
+            editorFontSize={editorConfig.editorFontSize}
+            setEditorFontSize={editorConfig.setEditorFontSize}
+            previewFontSize={editorConfig.previewFontSize}
+            setPreviewFontSize={editorConfig.setPreviewFontSize}
+            blurAmount={editorConfig.blurAmount}
+            setBlurAmount={editorConfig.setBlurAmount}
+            bgImage={editorConfig.bgImage}
+            setBgImage={editorConfig.setBgImage}
+            customFonts={editorConfig.customFonts}
+            addCustomFont={editorConfig.addCustomFont}
+            lang={editorConfig.lang}
+            setLang={editorConfig.setLang}
           />
         )}
         {modal === "search" && (
           <SearchModal
             key="search"
             onClose={() => setIsSearchModalOpen(false)}
-            nodes={nodes}
+            nodes={fileSystem.nodes}
             onOpenFile={(id) => {
-              onOpenFile(id);
+              handleOpenFile(id);
               setIsSearchModalOpen(false);
             }}
           />
@@ -183,19 +126,19 @@ export default function Modal({
         {modal === "save-as" && (
           <SaveAsModal
             key="save-as"
-            markdown={markdown}
+            markdown={markdownSync.markdown}
             onClose={() => setIsSaveAsModalOpen(false)}
           />
         )}
         {modal === "export" && (
           <ExportModal
             key="export"
-            markdown={markdown}
+            markdown={markdownSync.markdown}
             onClose={() => setIsExportModalOpen(false)}
           />
         )}
       </AnimatePresence>
-      <AnimatePresence>{particlesOn && <SparkleDust />}</AnimatePresence>
+      <AnimatePresence>{editorConfig.particlesOn && <SparkleDust />}</AnimatePresence>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import {
   ReactNode,
   createContext,
   useContext,
+  useMemo,
 } from "react";
 import { useFileSystemContext } from "./FileSystemContext";
 
@@ -138,10 +139,12 @@ export function MarkdownSyncProvider({
     [saveToBackend],
   );
 
+  const context = useMemo(() => {
+    return { markdown, setMarkdown: handleSetMarkdown };
+  }, [markdown, handleSetMarkdown]);
+
   return (
-    <MarkdownSyncContext.Provider
-      value={{ markdown, setMarkdown: handleSetMarkdown }}
-    >
+    <MarkdownSyncContext.Provider value={context}>
       {children}
     </MarkdownSyncContext.Provider>
   );

@@ -7,12 +7,12 @@ import {
   useStorageSyncContext,
 } from "./contexts/StorageContext";
 import { useMemo } from "react";
-import { EditorThemeProvider } from "./contexts/EditorConfigContext";
 import { FileSystemProvider } from "./contexts/FileSystemContext";
 import Loading from "./components/Loading";
 import { FileOperationsProvider } from "./contexts/FileOperationContext";
 import { EditorStateProvider } from "./contexts/EditorStateContext";
 import { MarkdownSyncProvider } from "./contexts/MarkdownSyncContext";
+import { EditorThemeProvider } from "./contexts/EditorConfig/EditorThemeProvider";
 
 function AppContent() {
   const storageSync = useStorageSyncContext();

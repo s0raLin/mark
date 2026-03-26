@@ -6,8 +6,13 @@ import { SidebarProps, DragContext, ResolvedDrop } from "./types";
 import { NewItemDialog, DragList, TreeNode, PinnedItemRow } from "./components";
 import { importDroppedIntoFs } from "./utils";
 import SidebarAreaMenu from "./components/SidebarAreaMenu";
+import { useFileSystemContext } from "@/contexts/FileSystemContext";
+import { useFileOperationsContext } from "@/contexts/FileOperationContext";
 
-export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen, fs }: SidebarProps) {
+export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen }: SidebarProps) {
+  const fileSystem = useFileSystemContext();
+  const fileOperations = useFileOperationsContext();
+  const fs = { ...fileSystem, ...fileOperations, pinnedFiles: fileSystem.pinnedNodes, openFile: (id: string) => fileSystem.setActiveFileId(id) };
   const [newItem, setNewItem] = useState<"file" | "folder" | null>(null);
   const [draggingId, setDraggingIdState] = useState<string | null>(null);
   const [dropTarget, setDropTargetState] = useState<ResolvedDrop | null>(null);

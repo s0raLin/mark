@@ -11,12 +11,13 @@ import SettingExport from "./SettingExport/SettingExport";
 import SettingAccount from "./SettingAccount/SettingAccount";
 import { ModalHeader } from "../ModalHeader";
 import { ModalShell } from "../ModalShell";
+import type { EditorTheme, PreviewTheme, FontChoice } from "@/api/client";
 
 interface SettingsSnapshot {
-  editorTheme: string;
-  previewTheme: string;
+  editorTheme: EditorTheme;
+  previewTheme: PreviewTheme;
   particlesOn: boolean;
-  fontChoice: string;
+  fontChoice: FontChoice;
   editorFont: string;
   accentColor: string;
   fontSize: number;
@@ -46,32 +47,32 @@ const DEFAULT_SETTINGS: SettingsSnapshot = {
 
 interface SettingsModalProps {
   onClose: () => void;
-  editorTheme: string;
-  setEditorTheme: (theme: string) => void;
-  previewTheme: string;
-  setPreviewTheme: (theme: string) => void;
+  editorTheme: EditorTheme;
+  setEditorTheme: React.Dispatch<React.SetStateAction<EditorTheme>>;
+  previewTheme: PreviewTheme;
+  setPreviewTheme: React.Dispatch<React.SetStateAction<PreviewTheme>>;
   particlesOn: boolean;
-  setParticlesOn: (on: boolean) => void;
-  fontChoice: string;
-  setFontChoice: (font: string) => void;
+  setParticlesOn: React.Dispatch<React.SetStateAction<boolean>>;
+  fontChoice: FontChoice;
+  setFontChoice: React.Dispatch<React.SetStateAction<FontChoice>>;
   editorFont: string;
-  setEditorFont: (font: string) => void;
+  setEditorFont: React.Dispatch<React.SetStateAction<string>>;
   accentColor: string;
-  setAccentColor: (color: string) => void;
+  setAccentColor: React.Dispatch<React.SetStateAction<string>>;
   fontSize: number;
-  setFontSize: (size: number) => void;
+  setFontSize: React.Dispatch<React.SetStateAction<number>>;
   editorFontSize: number;
-  setEditorFontSize: (size: number) => void;
+  setEditorFontSize: React.Dispatch<React.SetStateAction<number>>;
   previewFontSize: number;
-  setPreviewFontSize: (size: number) => void;
+  setPreviewFontSize: React.Dispatch<React.SetStateAction<number>>;
   blurAmount: number;
-  setBlurAmount: (amount: number) => void;
+  setBlurAmount: React.Dispatch<React.SetStateAction<number>>;
   bgImage: string;
-  setBgImage: (url: string) => void;
+  setBgImage: React.Dispatch<React.SetStateAction<string>>;
   customFonts: { name: string; url: string }[];
   addCustomFont: (font: { name: string; url: string }) => void;
   lang: string;
-  setLang: (lang: string) => void;
+  setLang: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export function SettingsModal({

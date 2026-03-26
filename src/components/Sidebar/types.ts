@@ -4,7 +4,6 @@ import { FileSystemAPI } from "@/types/filesystem";
 export interface SidebarProps {
   setIsSettingsModalOpen: (open: boolean) => void;
   setIsSearchModalOpen: (open: boolean) => void;
-  fs: FileSystemAPI;
 }
 
 // drop target types

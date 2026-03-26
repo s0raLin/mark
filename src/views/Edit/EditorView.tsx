@@ -6,18 +6,14 @@ import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { cn } from "@/utils/cn";
 
-// Hooks
-// import { useFileOperations } from "./hooks/useFileOperations";
-// import { useEditorState } from "./hooks/useEditorState";
-// import { useMarkdownSync } from "./hooks/useMarkdownSync";
 import { useModalRoute, ROUTES } from "../../hooks/useModalRoute";
-import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
-import { useEditorConfigContext } from "@/contexts/EditorConfigContext";
+
 import { useStorageSyncContext } from "@/contexts/StorageContext";
 import { useFileSystemContext } from "@/contexts/FileSystemContext";
 import { useFileOperationsContext } from "@/contexts/FileOperationContext";
 import { useEditorStateContext } from "@/contexts/EditorStateContext";
 import { useMarkdownSyncContext } from "@/contexts/MarkdownSyncContext";
+import { useEditorConfigContext } from "@/contexts/EditorConfig/EditorThemeProvider";
 
 // ── EditorView ───────────────────────────────────────────────────────────────-
 
@@ -107,58 +103,6 @@ export default function EditorView() {
   // Markdown 同步 Hook
   const markdownSync = useMarkdownSyncContext();
 
-  // 键盘快捷键
-  useKeyboardShortcuts({
-    shortcuts: [
-      {
-        key: "k",
-        ctrl: true,
-        handler: () => {
-          if (isModalOpen(ROUTES.SEARCH)) {
-            closeModal();
-          } else {
-            openModal(ROUTES.SEARCH);
-          }
-        },
-        description: "打开/关闭搜索模态框",
-      },
-      {
-        key: "s",
-        ctrl: true,
-        handler: () => {
-          editorState.handleSave();
-        },
-        description: "保存文件",
-      },
-    ],
-  });
-
-  // 打开文件时加载内容，并自动展开父文件夹
-  const handleOpenFile = useCallback(
-    (id: string) => {
-      fileSystem.setActiveFileId(id);
-      // 展开所有祖先文件夹，确保侧边栏能看到选中项
-      const node = fileSystem.nodes.find((n) => n.id === id);
-      if (!node) return;
-      let parentId = node.parentId;
-      while (parentId) {
-        if (!fileSystem.expandedFolders.has(parentId)) {
-          fileSystem.setExpandedFolders(
-            (prev) => new Set([...prev, parentId!]),
-          );
-        }
-        const parent = fileSystem.nodes.find((n) => n.id === parentId);
-        parentId = parent?.parentId ?? null;
-      }
-    },
-    [
-      fileSystem.setActiveFileId,
-      fileSystem.nodes,
-      fileSystem.expandedFolders,
-      fileSystem.setExpandedFolders,
-    ],
-  );
-
   return (
     <div className="app-m3-shell h-screen flex flex-col overflow-hidden font-display text-slate-700 relative">
       <div
@@ -200,10 +144,6 @@ export default function EditorView() {
         }}
       >
         <Header
-          viewMode={editorState.viewMode}
-          onViewModeChange={editorState.handleViewModeChange}
-          particlesOn={editorTheme.particlesOn}
-          onParticlesToggle={() => editorTheme.setParticlesOn((prev) => !prev)}
           onNewSparkle={editorState.handleNewSparkle}
           onSave={editorState.handleSave}
           onSaveAs={() => openModal(ROUTES.SAVE_AS)}
@@ -224,12 +164,6 @@ export default function EditorView() {
           )}
         >
           <Sidebar
-            fs={{
-              ...fileSystem,
-              ...fileOperations,
-              pinnedFiles: fileSystem.pinnedNodes,
-              openFile: handleOpenFile,
-            }}
             setIsSettingsModalOpen={(open) =>
               open ? openModal(ROUTES.SETTINGS) : closeModal()
             }
@@ -242,16 +176,6 @@ export default function EditorView() {
         <main className="flex-1 flex overflow-hidden">
           <MainContent
             toolbarRef={toolbarRef}
-            markdown={markdownSync.markdown}
-            setMarkdown={markdownSync.setMarkdown}
-            viewMode={editorState.viewMode}
-            editorTheme={editorTheme.editorTheme}
-            setEditorTheme={editorTheme.setEditorTheme}
-            previewTheme={editorTheme.previewTheme}
-            setPreviewTheme={editorTheme.setPreviewTheme}
-            fontChoice={editorTheme.fontChoice}
-            setFontChoice={editorTheme.setFontChoice}
-            editorFont={editorTheme.editorFont}
             activeFileName={
               fileSystem.nodes.find((n) => n.id === fileSystem.activeFileId)
                 ?.name ?? ""
@@ -269,10 +193,6 @@ export default function EditorView() {
       </footer> */}
 
       <Modal
-        editorTheme={editorTheme.editorTheme}
-        previewTheme={editorTheme.previewTheme}
-        setEditorTheme={editorTheme.setEditorTheme}
-        setPreviewTheme={editorTheme.setPreviewTheme}
         isExportModalOpen={isModalOpen(ROUTES.EXPORT)}
         isSaveAsModalOpen={isModalOpen(ROUTES.SAVE_AS)}
         isSettingsModalOpen={isModalOpen(ROUTES.SETTINGS)}
@@ -289,42 +209,10 @@ export default function EditorView() {
         setIsSearchModalOpen={(open) =>
           open ? openModal(ROUTES.SEARCH) : closeModal()
         }
-        markdown={markdownSync.markdown}
-        particlesOn={editorTheme.particlesOn}
-        setParticlesOn={editorTheme.setParticlesOn}
-        fontChoice={editorTheme.fontChoice}
-        setFontChoice={editorTheme.setFontChoice}
-        editorFont={editorTheme.editorFont}
-        setEditorFont={editorTheme.setEditorFont}
-        accentColor={editorTheme.accentColor}
-        setAccentColor={editorTheme.setAccentColor}
-        fontSize={editorTheme.fontSize}
-        setFontSize={editorTheme.setFontSize}
-        editorFontSize={editorTheme.editorFontSize}
-        setEditorFontSize={editorTheme.setEditorFontSize}
-        previewFontSize={editorTheme.previewFontSize}
-        setPreviewFontSize={editorTheme.setPreviewFontSize}
-        blurAmount={editorTheme.blurAmount}
-        setBlurAmount={editorTheme.setBlurAmount}
-        bgImage={editorTheme.bgImage}
-        setBgImage={editorTheme.setBgImage}
-        customFonts={editorTheme.customFonts}
-        addCustomFont={editorTheme.addCustomFont}
-        lang={editorTheme.lang}
-        setLang={editorTheme.setLang}
-        nodes={fileSystem.nodes}
-        onOpenFile={handleOpenFile}
         onLauncherSearch={() => openModal(ROUTES.SEARCH)}
         onLauncherSettings={() => openModal(ROUTES.SETTINGS)}
         onLauncherExport={() => openModal(ROUTES.EXPORT)}
         onLauncherViewMode={editorState.handleViewModeChange}
-        onLauncherParticlesToggle={() =>
-          editorTheme.setParticlesOn((prev) => !prev)
-        }
-        darkMode={editorTheme.darkMode}
-        onDarkModeToggle={() => {
-          editorTheme.setDarkMode((prev) => !prev);
-        }}
       />
     </div>
   );

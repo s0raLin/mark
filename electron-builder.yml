@@ -25,18 +25,18 @@ win:
     - target: nsis
       arch:
         - x64
-  icon: build/icon.png
+  icon: build/icon.svg
 
 mac:
   target:
     - dmg
-  icon: build/icon.png
+  icon: build/icon.svg
 
 linux:
   target:
     - deb
     - AppImage
-  icon: build/icon.png
+  icon: build/icon.svg
   category: Office
 
 nsis:

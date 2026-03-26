@@ -1,8 +1,18 @@
-import { useState, useCallback, ReactNode, createContext, useContext, useEffect, useRef } from "react";
+import {
+  useState,
+  useCallback,
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useMemo,
+} from "react";
 import { useFileOperationsContext } from "./FileOperationContext";
 import { useMarkdownSyncContext } from "./MarkdownSyncContext";
-import { useEditorConfigContext } from "./EditorConfigContext";
+
 import { useFileSystemContext } from "./FileSystemContext";
+import { useEditorConfigContext } from "./EditorConfig/EditorThemeProvider";
 
 /**
  * 视图模式类型
@@ -32,6 +42,7 @@ export interface EditorStateContextProps {
   handleSave: () => void;
   /** 另存为 */
   handleSaveAs: () => void;
+  handleOpenFile: (id: string) => void;
   /** 导出文件 */
   handleExport: () => void;
   /** 新建Sparkle（新建文件） */
@@ -56,14 +67,19 @@ export function EditorStateProvider({
   // 文件操作
   const { createFile } = useFileOperationsContext();
   // Markdown 同步
-  const markdownSync = useMarkdownSyncContext();
+  const { markdown, setMarkdown } = useMarkdownSyncContext();
   // 编辑器配置
-  const editorConfig = useEditorConfigContext();
+  const { autoSave, autoSaveInterval } = useEditorConfigContext();
   // 文件系统
-  const fileSystem = useFileSystemContext();
-  
-  // ===== 编辑器UI状态 =====
+  const {
+    nodes,
+    activeFileId,
+    setActiveFileId,
+    expandedFolders,
+    setExpandedFolders,
+  } = useFileSystemContext();
 
+  // ===== 编辑器UI状态 =====
   /** 当前视图模式：分屏/仅编辑器/仅预览 */
   const [viewMode, setViewMode] = useState<ViewMode>("split");
 
@@ -81,6 +97,25 @@ export function EditorStateProvider({
 
   // ===== UI处理函数 =====
 
+  // --- 内部辅助：保存逻辑抽离 ---
+  // 使用 useCallback 避免函数重建，并供手动保存和自动保存复用
+  const performSave = useCallback(() => {
+    if (activeFileId && markdown) {
+      setMarkdown(markdown); // 触发实际保存
+      setLastSaved(new Date());
+      setIsSaving(true);
+      setTimeout(() => setIsSaving(false), 800);
+    }
+  }, [activeFileId, markdown, setMarkdown]);
+
+  /**
+   * 保存文件
+   * 更新保存状态，显示保存指示器，800ms后自动结束
+   */
+  const handleSave = useCallback(() => {
+    performSave();
+  }, [performSave]);
+
   /**
    * 新建Sparkle
    * 创建一个名为"New_Sparkle"的新文件
@@ -89,65 +124,6 @@ export function EditorStateProvider({
     () => createFile("New_Sparkle"),
     [createFile],
   );
-
-  /**
-   * 保存文件
-   * 更新保存状态，显示保存指示器，800ms后自动结束
-   */
-  const handleSave = useCallback(() => {
-    // 触发保存到后端
-    if (fileSystem.activeFileId && markdownSync.markdown) {
-      markdownSync.setMarkdown(markdownSync.markdown);
-    }
-    setLastSaved(new Date());
-    setIsSaving(true);
-    setTimeout(() => setIsSaving(false), 800);
-  }, [fileSystem.activeFileId, markdownSync.markdown, markdownSync.setMarkdown]);
-
-  // 自动保存逻辑
-  useEffect(() => {
-    // 清除之前的定时器
-    if (autoSaveTimerRef.current) {
-      clearInterval(autoSaveTimerRef.current);
-      autoSaveTimerRef.current = null;
-    }
-
-    // 如果自动保存开启且有活动文件，设置定时器
-    if (editorConfig.autoSave && fileSystem.activeFileId) {
-      autoSaveTimerRef.current = setInterval(() => {
-        if (fileSystem.activeFileId && markdownSync.markdown) {
-          markdownSync.setMarkdown(markdownSync.markdown);
-          setLastSaved(new Date());
-          setIsSaving(true);
-          setTimeout(() => setIsSaving(false), 800);
-        }
-      }, editorConfig.autoSaveInterval);
-    }
-
-    // 清理函数
-    return () => {
-      if (autoSaveTimerRef.current) {
-        clearInterval(autoSaveTimerRef.current);
-        autoSaveTimerRef.current = null;
-      }
-    };
-  }, [editorConfig.autoSave, editorConfig.autoSaveInterval, fileSystem.activeFileId, markdownSync.markdown, markdownSync.setMarkdown]);
-
-  /**
-   * 另存为
-   * 实际行为由父组件通过modal状态处理
-   */
-  const handleSaveAs = useCallback(() => {
-    // This will be handled by the parent component via modal state
-  }, []);
-
-  /**
-   * 导出文件
-   * 实际行为由父组件通过modal状态处理
-   */
-  const handleExport = useCallback(() => {
-    // This will be handled by the parent component via modal state
-  }, []);
 
   /**
    * 切换粒子效果显示状态
@@ -166,31 +142,94 @@ export function EditorStateProvider({
     setViewMode(mode);
   }, []);
 
+  /**
+   * 另存为
+   * 实际行为由父组件通过modal状态处理
+   */
+  const handleSaveAs = useCallback(() => {
+    // This will be handled by the parent component via modal state
+  }, []);
+
+  /**
+   * 导出文件
+   * 实际行为由父组件通过modal状态处理
+   */
+  const handleExport = useCallback(() => {
+    // This will be handled by the parent component via modal state
+  }, []);
+
+  // 自动保存逻辑
+  useEffect(() => {
+    if (!autoSave || !activeFileId || !markdown) return;
+
+    const timer = setTimeout(() => {
+      performSave();
+    }, autoSaveInterval);
+
+    return () => clearTimeout(timer);
+  }, [autoSave, autoSaveInterval, activeFileId, markdown, setMarkdown]);
+
+  // 打开文件时加载内容，并自动展开父文件夹
+  const handleOpenFile = useCallback(
+    (id: string) => {
+      setActiveFileId(id);
+      // 展开所有祖先文件夹，确保侧边栏能看到选中项
+      const node = nodes.find((n) => n.id === id);
+      if (!node) return;
+      let parentId = node.parentId;
+      while (parentId) {
+        if (!expandedFolders.has(parentId)) {
+          setExpandedFolders((prev) => new Set([...prev, parentId!]));
+        }
+        const parent = nodes.find((n) => n.id === parentId);
+        parentId = parent?.parentId ?? null;
+      }
+    },
+    [setActiveFileId, nodes, expandedFolders, setExpandedFolders],
+  );
+  // --- Memoize Context Value ---
+  const contextValue = useMemo(() => {
+    return {
+      viewMode,
+      particlesOn,
+      isSaving,
+      lastSaved,
+      handleViewModeChange,
+      handleParticlesToggle,
+      handleSave,
+      handleSaveAs: () => {}, //占位
+      handleExport: () => {}, //占位
+      handleOpenFile,
+      handleNewSparkle,
+
+    };
+  }, [
+    viewMode,
+    particlesOn,
+    isSaving,
+    lastSaved,
+    handleViewModeChange,
+    handleParticlesToggle,
+    handleSave,
+    handleSaveAs, //占位
+    handleExport, //占位
+    handleOpenFile,
+    handleNewSparkle,
+  ]);
+
   return (
-    <EditorStateContext.Provider
-      value={{
-        viewMode,
-        particlesOn,
-        isSaving,
-        lastSaved,
-        handleViewModeChange,
-        handleParticlesToggle,
-        handleSave,
-        handleSaveAs,
-        handleExport,
-        handleNewSparkle,
-      }}
-    >
-        {children}
+    <EditorStateContext.Provider value={contextValue}>
+      {children}
     </EditorStateContext.Provider>
   );
 }
 
-
 export function useEditorStateContext() {
-    const context = useContext(EditorStateContext);
-    if (!context) {
-        throw new Error("EditorStateContext must be used within EditorStateProvider");
-    }
-    return context;
+  const context = useContext(EditorStateContext);
+  if (!context) {
+    throw new Error(
+      "EditorStateContext must be used within EditorStateProvider",
+    );
+  }
+  return context;
 }

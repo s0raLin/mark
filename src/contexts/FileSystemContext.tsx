@@ -3,12 +3,13 @@ import {
   getDefaultNodes,
   DEFAULT_FILE_ID,
   arraysEqual,
-} from "@/contexts/utils/editorHelpers";
+} from "@/contexts/utils/fileSystemUtils";
 import {
   useState,
   useRef,
   useEffect,
   useMemo,
+  useCallback,
   ReactNode,
   createContext,
   useContext,
@@ -188,24 +189,40 @@ export function FileSystemProvider({
     [nodes, pinnedIds],
   );
 
+  const context = useMemo(() => {
+    return {
+      nodes,
+      pinnedIds,
+      explorerOrder,
+      folderOrder,
+      activeFileId,
+      expandedFolders,
+      pinnedNodes,
+      setNodes,
+      setPinnedIds,
+      setExplorerOrder,
+      setFolderOrder,
+      setActiveFileId,
+      setExpandedFolders,
+    };
+  }, [
+    nodes,
+    pinnedIds,
+    explorerOrder,
+    folderOrder,
+    activeFileId,
+    expandedFolders,
+    pinnedNodes,
+    setNodes,
+    setPinnedIds,
+    setExplorerOrder,
+    setFolderOrder,
+    setActiveFileId,
+    setExpandedFolders,
+  ]);
+
   return (
-    <FileSystemContext.Provider
-      value={{
-        nodes,
-        pinnedIds,
-        explorerOrder,
-        folderOrder,
-        activeFileId,
-        expandedFolders,
-        pinnedNodes,
-        setNodes,
-        setPinnedIds,
-        setExplorerOrder,
-        setFolderOrder,
-        setActiveFileId,
-        setExpandedFolders,
-      }}
-    >
+    <FileSystemContext.Provider value={context}>
       {children}
     </FileSystemContext.Provider>
   );

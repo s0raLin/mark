@@ -13,6 +13,7 @@ import {
   useEffect,
   ReactNode,
   useContext,
+  useMemo,
 } from "react";
 import { errorBus } from "./errorBus";
 import { createContext } from "react";
@@ -113,17 +114,18 @@ export function StorageSyncProvider({ children }: StorageSyncProps) {
     }
   }, [userData, clearSaveTimer]);
 
+  const context = useMemo(() => {
+    return {
+      isLoading,
+      isInitialized,
+      error,
+      userData,
+      saveData,
+      syncSave,
+    };
+  }, [isLoading, isInitialized, error, userData, saveData, syncSave]);
   return (
-    <StorageSyncContext.Provider
-      value={{
-        isLoading,
-        isInitialized,
-        error,
-        userData,
-        saveData,
-        syncSave,
-      }}
-    >
+    <StorageSyncContext.Provider value={context}>
       {children}
     </StorageSyncContext.Provider>
   );
