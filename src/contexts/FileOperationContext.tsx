@@ -11,7 +11,6 @@ import { createContext, ReactNode, useCallback, useContext } from "react";
 import { ensureFileExtension } from "./utils/editorHelpers";
 import { useFileSystemContext } from "./FileSystemContext";
 
-
 interface FileOperationsProps {
   //   nodes: FileNode[];
   //   pinnedIds: string[];
@@ -62,20 +61,21 @@ const FileOperationsContext = createContext<
 export function FileOperationsProvider({
   children,
 }: FileOperationsProps): ReactNode {
-  // 文件系统 Hook
-  const fileSystem = useFileSystemContext();
-  const nodes = fileSystem.nodes;
-  const pinnedIds = fileSystem.pinnedIds;
-  const explorerOrder = fileSystem.explorerOrder;
-  const folderOrder = fileSystem.folderOrder;
-  const activeFileId = fileSystem.activeFileId;
-  const expandedFolders = fileSystem.expandedFolders;
-  const setNodes = fileSystem.setNodes;
-  const setPinnedIds = fileSystem.setPinnedIds;
-  const setExplorerOrder = fileSystem.setExplorerOrder;
-  const setFolderOrder = fileSystem.setFolderOrder;
-  const setExpandedFolders = fileSystem.setExpandedFolders;
-  const setActiveFileId = fileSystem.setActiveFileId;
+  // 文件系统 Context
+  const {
+    nodes,
+    pinnedIds,
+    explorerOrder,
+    folderOrder,
+    activeFileId,
+    expandedFolders,
+    setNodes,
+    setPinnedIds,
+    setExplorerOrder,
+    setFolderOrder,
+    setExpandedFolders,
+    setActiveFileId,
+  } = useFileSystemContext();
 
   const openFile = useCallback(
     (id: string) => {
