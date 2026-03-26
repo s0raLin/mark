@@ -21,7 +21,7 @@ export default defineConfig(({mode}) => {
     server: {
       port: 5173,
       watch: {
-        ignored: ['**/server/data/**'],
+        ignored: ['**/server/data/**', '**/src-tauri/**'],
       },
       proxy: {
         '/api': {
