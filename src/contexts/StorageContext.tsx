@@ -1,11 +1,10 @@
 import {
+  getUserSettings,
   StorageUserSettings,
-  // getUserData,
   StorageFileSystem,
   StorageEditorConfig,
-  // saveUserData,
+  updateUserSettings,
 } from "@/api/client";
-import {getUserData, saveUserData} from "@/services/user"
 import i18n from "@/i18n";
 import {
   useState,
@@ -26,8 +25,8 @@ const StorageSyncContext = createContext<StorageSyncContextProps | undefined>(
 interface StorageSyncContextProps {
   isLoading: boolean;
   isInitialized: boolean;
-  error: Error;
-  userData: StorageUserSettings;
+  error: Error | null;
+  userData: StorageUserSettings | null;
   saveData: (data: {
     fileSystem: StorageFileSystem;
     editorConfig: StorageEditorConfig;
@@ -45,10 +44,8 @@ export function StorageSyncProvider({ children }: StorageSyncProps) {
   const [error, setError] = useState<Error | null>(null);
   const [userData, setUserData] = useState<StorageUserSettings | null>(null);
 
-  // 防抖定时器引用
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 清除防抖定时器
   const clearSaveTimer = useCallback(() => {
     if (saveTimerRef.current) {
       clearTimeout(saveTimerRef.current);
@@ -56,18 +53,23 @@ export function StorageSyncProvider({ children }: StorageSyncProps) {
     }
   }, []);
 
-  // 加载用户数据
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const data = await getUserData();
+        // 应用启动时优先获取完整用户设置，再由各领域 context 自行拆分消费。
+        const data = await getUserSettings();
         setUserData(data);
         setIsInitialized(true);
       } catch (err) {
         console.error("加载用户数据失败:", err);
-        setError(err instanceof Error ? err : new Error("加载失败"));
-        // 使用默认数据继续运行
+        const nextError = err instanceof Error ? err : new Error("加载失败");
+        setError(nextError);
+        errorBus.fromException("初始化数据加载失败", err, {
+          message: "应用已使用默认状态继续启动，你可以稍后再试一次。",
+          dedupeKey: "load-user-data",
+          durationMs: 5200,
+        });
         setIsInitialized(true);
       } finally {
         setIsLoading(false);
@@ -76,42 +78,47 @@ export function StorageSyncProvider({ children }: StorageSyncProps) {
     loadData();
   }, []);
 
-  // 清理定时器
   useEffect(() => {
     return () => clearSaveTimer();
   }, [clearSaveTimer]);
 
-  // 保存数据（防抖）
   const saveData = useCallback(
     async (data: {
       fileSystem: StorageFileSystem;
       editorConfig: StorageEditorConfig;
-    }) => {
+    }): Promise<void> => {
       clearSaveTimer();
       saveTimerRef.current = setTimeout(async () => {
         try {
-          await saveUserData(data);
+          // 这里保存的是“整体用户设置”。
+          // 文件内容本身由 MarkdownSyncContext 单独写入真实文件。
+          await updateUserSettings(data);
         } catch (err) {
           console.error("保存数据失败:", err);
-          errorBus.emit(500, i18n.t("toast.saveFailed"));
+          errorBus.fromException(i18n.t("toast.saveFailed"), err, {
+            message: "设置和文件结构暂时没有同步到本地，请稍后重试。",
+            dedupeKey: "save-user-data",
+          });
         }
       }, 1000);
     },
     [clearSaveTimer],
   );
 
-  // 立即保存
   const syncSave = useCallback(async () => {
     if (!userData) return;
     clearSaveTimer();
     try {
-      await saveUserData({
+      await updateUserSettings({
         fileSystem: userData.fileSystem,
         editorConfig: userData.editorConfig,
       });
     } catch (err) {
       console.error("保存数据失败:", err);
-      errorBus.emit(500, i18n.t("toast.saveFailed"));
+      errorBus.fromException(i18n.t("toast.saveFailed"), err, {
+        message: "设置和文件结构暂时没有同步到本地，请稍后重试。",
+        dedupeKey: "save-user-data",
+      });
     }
   }, [userData, clearSaveTimer]);
 
@@ -124,7 +131,7 @@ export function StorageSyncProvider({ children }: StorageSyncProps) {
       saveData,
       syncSave,
     };
-  }, [isLoading, isInitialized, error, userData, saveData, syncSave]);
+  }, [error, isInitialized, isLoading, saveData, syncSave, userData]);
   return (
     <StorageSyncContext.Provider value={context}>
       {children}

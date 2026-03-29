@@ -3,49 +3,27 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ApiResponse<T> {
-    pub code: i32,      // 0 = 成功
+    pub code: i32,
     pub message: String,
     pub data: T,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ApiError {
-    pub code: i32,
-    pub message: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub details: Option<String>,
-}
-
-// ──────────────────────────────────────────────
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct StorageFileNode {
     pub id: String,
     pub name: String,
-    pub r#type: String, // "file" | "folder"
+    #[serde(rename = "type")]
+    pub kind: String,
     pub parent_id: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct FileFrontmatter {
-    pub id: String,
-    pub name: String,
-    pub r#type: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    pub parent_id: String,
-    #[serde(skip_serializing_if = "is_false")]
-    pub pinned: bool,
-    pub order: i32,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-}
-
-fn is_false(b: &bool) -> bool { !*b }
-
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct StorageFileSystem {
     pub nodes: Vec<StorageFileNode>,
     pub pinned_ids: Vec<String>,
@@ -55,6 +33,14 @@ pub struct StorageFileSystem {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct CustomFont {
+    pub name: String,
+    pub url: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct StorageEditorConfig {
     pub editor_theme: String,
     pub preview_theme: String,
@@ -74,13 +60,31 @@ pub struct StorageEditorConfig {
     pub auto_save_interval: i32,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct CustomFont {
-    pub name: String,
-    pub url: String,
+impl Default for StorageEditorConfig {
+    fn default() -> Self {
+        Self {
+            editor_theme: "oneDark".into(),
+            preview_theme: "theme-heart-classic".into(),
+            font_choice: "Quicksand".into(),
+            editor_font: "Quicksand".into(),
+            font_size: 16,
+            editor_font_size: 14,
+            preview_font_size: 16,
+            accent_color: "#ff9a9e".into(),
+            blur_amount: 0.0,
+            bg_image: String::new(),
+            particles_on: false,
+            lang: "zh".into(),
+            custom_fonts: Vec::new(),
+            dark_mode: false,
+            auto_save: true,
+            auto_save_interval: 1000,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct StorageAppConfig {
     pub user_id: String,
     pub username: String,
@@ -90,6 +94,7 @@ pub struct StorageAppConfig {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct StorageUserSettings {
     pub user_id: String,
     pub username: String,
@@ -99,30 +104,40 @@ pub struct StorageUserSettings {
     pub updated_at: DateTime<Utc>,
 }
 
-// 其他响应结构
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct GetFileContentResponse {
     pub id: String,
     pub content: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct SaveFileContentResponse {
-    pub success: bool,
-    pub updated_at: DateTime<Utc>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct SaveResponse {
     pub success: bool,
     pub updated_at: DateTime<Utc>,
 }
 
-// Search
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateNodeResponse {
+    pub id: String,
+    pub name: String,
+    pub file_system: StorageFileSystem,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct MutateNodeResponse {
+    pub id: String,
+    pub file_system: StorageFileSystem,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct SearchResult {
     pub id: String,
     pub name: String,
-    pub snippet: Option<String>,
-    pub match_type: String, // "name" | "content"
+    pub snippet: String,
+    pub match_type: String,
 }

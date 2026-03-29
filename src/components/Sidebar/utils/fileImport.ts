@@ -42,15 +42,15 @@ export async function importEntryIntoFs(
     const name = file.name;
     if (isMarkdownLikeName(name, file.type)) {
       const content = await file.text();
-      fs.createFile(name, parentId, { open: false, initialContent: content });
+      await fs.createFile(name, parentId, { open: false, initialContent: content });
     } else {
-      fs.createFile(name, parentId, { open: false });
+      await fs.createFile(name, parentId, { open: false });
     }
     return;
   }
 
   if (entry?.isDirectory) {
-    const folderId = fs.createFolder(entry.name, parentId);
+    const folderId = await fs.createFolder(entry.name, parentId);
     const reader = entry.createReader();
     const childEntries = await readAllDirectoryEntries(reader);
     for (const child of childEntries) {
@@ -88,9 +88,9 @@ export async function importDroppedIntoFs(
     const name = file.name;
     if (isMarkdownLikeName(name, file.type)) {
       const content = await file.text();
-      fs.createFile(name, parentId, { open: false, initialContent: content });
+      await fs.createFile(name, parentId, { open: false, initialContent: content });
     } else {
-      fs.createFile(name, parentId, { open: false });
+      await fs.createFile(name, parentId, { open: false });
     }
   }
 }

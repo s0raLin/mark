@@ -1,4 +1,5 @@
-import { getFileContent, saveFileContent } from "@/api/client";
+import { getFileContent, updateFileContent } from "@/api/client";
+import { errorBus } from "./errorBus";
 import { INITIAL_MARKDOWN } from "@/constants";
 import {
   useState,
@@ -11,14 +12,6 @@ import {
   useMemo,
 } from "react";
 import { useFileSystemContext } from "./FileSystemContext";
-
-export interface UseMarkdownSyncProps {
-  activeFileId: string | null;
-  activeFileType?: "file" | "folder" | null;
-  setNodes: React.Dispatch<
-    React.SetStateAction<import("@/types/filesystem").FileNode[]>
-  >;
-}
 
 // 可编辑的文本扩展名白名单
 const TEXT_EXTENSIONS = new Set([
@@ -82,7 +75,10 @@ export function MarkdownSyncProvider({
   const fileContentsRef = useRef<Record<string, string>>({});
 
   useEffect(() => {
-    if (!activeFileId || activeFileType === "folder") return;
+    if (!activeFileId || activeFileType === "folder") {
+      setMarkdown("");
+      return;
+    }
 
     // 二进制/不支持的文件类型直接跳过，不发请求
     if (!isTextFile(activeFileId)) {
@@ -103,6 +99,10 @@ export function MarkdownSyncProvider({
         }
       } catch (err) {
         console.error("加载文件失败:", err);
+        errorBus.fromException("无法打开文件", err, {
+          message: "文件内容读取失败，请稍后重试。",
+          dedupeKey: `load-file:${activeFileId}`,
+        });
         setMarkdown("");
       }
     };
@@ -121,8 +121,12 @@ export function MarkdownSyncProvider({
           n.id === activeFileId ? { ...n, updatedAt: Date.now() } : n,
         ),
       );
-      saveFileContent(activeFileId, newMarkdown).catch((err) => {
+      updateFileContent(activeFileId, newMarkdown).catch((err) => {
         console.error("保存文件失败:", err);
+        errorBus.fromException("自动保存失败", err, {
+          message: "内容暂时没有保存成功，我们会在你下次修改时继续尝试。",
+          dedupeKey: `save-file:${activeFileId}`,
+        });
       });
     },
     [activeFileId, setNodes],

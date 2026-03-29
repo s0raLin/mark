@@ -1,27 +1,41 @@
-// Prevents additional console window on Windows in release
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod commands;
 mod models;
 mod repository;
-mod commands;
 
-use tauri::{Builder, Manager};
+/// Tauri 桌面端入口。
+///
+/// 设计目标：
+/// - 在应用启动时预热全局仓储，确保本地目录和配置文件已经初始化。
+/// - 注册所有资源化 command，供前端通过 `invoke` 调用。
+/// - 保持 `run()` 本身足够薄，业务逻辑下沉到 `commands/` 与 `repository/`。
+pub fn run() {
+    // 预初始化本地仓储，避免第一次 command 调用时再懒加载目录结构。
+    let _ = repository::storage::get_storage();
 
-fn main() {
-    Builder::default()
-        .plugin(tauri_plugin_fs::init())      // 如果需要前端也访问 fs（推荐只在 Rust 侧处理）
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_shell::init())
+    tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
-            commands::get_user_data,
-            commands::save_user_data,
-            // ... 其他 commands
+            // users
+            commands::users_get_settings,
+            commands::users_update_settings,
+            // editor config
+            commands::editor_config_get,
+            commands::editor_config_update,
+            // file system
+            commands::file_system_get_tree,
+            commands::file_system_update_tree,
+            // files and folders
+            commands::files_get_content,
+            commands::files_update_content,
+            commands::files_create,
+            commands::folders_create,
+            commands::file_nodes_move,
+            commands::file_nodes_rename,
+            commands::file_nodes_delete,
+            // search
+            commands::search_query_files,
         ])
-        .setup(|app| {
-            // 可在此初始化 repo 或创建必要目录
-            let _ = repo::get_storage(); // 触发初始化
-            Ok(())
-        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

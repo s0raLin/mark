@@ -1,96 +1,137 @@
-import axios, { AxiosInstance, AxiosError } from "axios";
 import { errorBus } from "@/contexts/errorBus";
-import type {
-  ApiResponse,
-  ApiError,
-} from "@/api/client/types";
+import type { ApiResponse } from "@/api/client/types";
 
-// ===== 配置 =====
-// 开发环境使用相对路径（通过vite代理），生产环境使用完整URL
-const API_BASE_URL = import.meta.env.DEV ? "/api" : "http://localhost:8080/api";
-const REQUEST_TIMEOUT = 10000; // 10秒超时
+type InvokeArgs = Record<string, unknown> | undefined;
 
-// ===== 创建 axios 实例 =====
-const createAxiosInstance = (): AxiosInstance => {
-  const instance = axios.create({
-    baseURL: API_BASE_URL,
-    timeout: REQUEST_TIMEOUT,
+// 运行时适配层：
+// - Tauri 模式：优先通过 `invoke` 调后端 command
+// - Electron 模式：回退到本地 `/api` 服务
+//
+// 业务层不应该关心自己当前跑在哪个桌面壳中，只应该调用资源客户端。
+export function hasTauriRuntime() {
+  return typeof window !== "undefined" && !!window.__TAURI__?.core?.invoke;
+}
+
+export function hasElectronRuntime() {
+  if (typeof window === "undefined") return false;
+  try {
+    return typeof (window as Window & { require?: (module: string) => unknown }).require === "function";
+  } catch {
+    return false;
+  }
+}
+
+function getTauriInvoke() {
+  const invoke = window.__TAURI__?.core?.invoke;
+  if (!invoke) {
+    throw new Error("Tauri IPC is unavailable in the current runtime");
+  }
+  return invoke;
+}
+
+function getApiBaseUrl() {
+  // Electron 模式下，主进程会起一个本地服务并把 `/api` 代理到 Go 后端。
+  return "/api";
+}
+
+export async function invokeCommand<T>(
+  cmd: string,
+  args?: InvokeArgs,
+): Promise<T> {
+  try {
+    return await getTauriInvoke()<T>(cmd, args);
+  } catch (error) {
+    const friendlyError = getFriendlyInvokeError(error);
+    errorBus.error(friendlyError.title, friendlyError);
+    throw error;
+  }
+}
+
+export async function httpGet<T>(path: string): Promise<T> {
+  const response = await fetch(`${getApiBaseUrl()}${path}`);
+  return parseHttpResponse<T>(response);
+}
+
+export async function httpSend<T>(
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
+  // 这里默认按 JSON 发送。
+  // 上传类接口仍然应单独处理，不应复用这个 helper。
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
     headers: {
       "Content-Type": "application/json",
+      ...(init?.headers ?? {}),
     },
+    ...init,
   });
+  return parseHttpResponse<T>(response);
+}
 
-  // 请求拦截器
-  instance.interceptors.request.use(
-    (config) => {
-      // 可以在这里添加认证 token
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    },
-  );
+async function parseHttpResponse<T>(response: Response): Promise<T> {
+  let payload: ApiResponse<T> | null = null;
 
-  // 响应拦截器
-  instance.interceptors.response.use(
-    (response) => {
-      return response;
-    },
-    (error: AxiosError<ApiError>) => {
-      if (error.response) {
-        const { status, data } = error.response;
-        if (status >= 400) {
-          const message = (data as ApiError)?.message || `请求失败 (${status})`;
-          const detail = status >= 500 ? "服务器内部错误，请稍后重试" : undefined;
-          errorBus.emit(status, message, detail);
-        }
-        console.error(`API Error: ${status}`, data);
-      } else if (error.request) {
-        errorBus.emit(0, "网络错误", "无法连接到服务器，请检查网络");
-        console.error("Network Error: No response received");
-      } else {
-        console.error("Request Error:", error.message);
-      }
-      return Promise.reject(error);
-    },
-  );
-
-  return instance;
-};
-
-const apiClient = createAxiosInstance();
-
-
-
-// ===== 工具函数 =====
-
-/**
- * 提取响应数据，处理统一响应格式
- */
-export function extractData<T>(response: { data: ApiResponse<T> }): T {
-  const { code, message, data } = response.data;
-  if (code !== 0) {
-    throw new Error(message || "Unknown error");
+  try {
+    payload = (await response.json()) as ApiResponse<T>;
+  } catch {
+    payload = null;
   }
-  return data;
-};
 
-/**
- * 处理 API 错误
- */
+  if (!response.ok || !payload) {
+    const message = payload?.message || `HTTP ${response.status}`;
+    errorBus.error("操作没有完成", {
+      message: "本地服务暂时不可用，请稍后重试。",
+      debugMessage: message,
+      status: response.status,
+      dedupeKey: `http:${response.status}:${message}`,
+    });
+    throw new Error(message);
+  }
+
+  return extractData(payload);
+}
+
+function getFriendlyInvokeError(error: unknown) {
+  const debugMessage =
+    error instanceof Error ? error.message : "IPC request failed";
+
+  if (debugMessage.includes("Tauri IPC is unavailable")) {
+    // 这个提示本身不是致命错误。
+    // 对 Electron 兼容链路来说，它只是在说明“当前没走 Tauri，而会继续走 HTTP 回退”。
+    return {
+      title: "当前运行在 Electron 模式",
+      message: "桌面 IPC 不可用时会自动切换到本地服务接口。",
+      debugMessage,
+      dedupeKey: "ipc-unavailable",
+      severity: "warning" as const,
+      durationMs: 2600,
+    };
+  }
+
+  return {
+    title: "操作没有完成",
+    message: "和本地后端通信时发生了问题，请稍后重试。",
+    debugMessage,
+    dedupeKey: "ipc-command-failed",
+  };
+}
+
+export function extractData<T>(response: ApiResponse<T>): T {
+  if (response.code !== 0) {
+    throw new Error(response.message || "Unknown backend error");
+  }
+  return response.data;
+}
+
 export function handleApiError(error: unknown): never {
-  if (axios.isAxiosError(error)) {
-    if (error.response?.data) {
-      const apiError = error.response.data as ApiError;
-      throw new Error(apiError.message || `HTTP ${error.response.status}`);
-    }
-    throw new Error(error.message || "Network error");
+  if (error instanceof Error) {
+    throw error;
   }
-  throw error;
+  throw new Error("Unknown IPC error");
+}
+
+const apiClient = {
+  invoke: invokeCommand,
 };
 
-
-
-// ===== 导出 =====
 export default apiClient;
-

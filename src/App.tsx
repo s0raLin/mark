@@ -9,7 +9,6 @@ import {
 import { useMemo } from "react";
 import { FileSystemProvider } from "./contexts/FileSystemContext";
 import Loading from "./components/Loading";
-import { FileOperationsProvider } from "./contexts/FileOperationContext";
 import { EditorStateProvider } from "./contexts/EditorStateContext";
 import { MarkdownSyncProvider } from "./contexts/MarkdownSyncContext";
 import { EditorThemeProvider } from "./contexts/EditorConfig/EditorThemeProvider";
@@ -22,8 +21,7 @@ function AppContent() {
       storageSync.isInitialized && storageSync.userData
         ? storageSync.userData.editorConfig
         : null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [storageSync.isInitialized],
+    [storageSync.isInitialized, storageSync.userData],
   );
 
   // 加载状态显示
@@ -33,22 +31,20 @@ function AppContent() {
 
   return (
     <FileSystemProvider>
-      <FileOperationsProvider>
-        <EditorThemeProvider initialConfig={initialConfig}>
-          <MarkdownSyncProvider>
-            <EditorStateProvider>
-              <ErrorProvider>
-                <div className="h-screen flex flex-col overflow-hidden">
-                  <div className="flex-1 overflow-hidden">
-                    <IndexRouter />
-                  </div>
+      <EditorThemeProvider initialConfig={initialConfig}>
+        <MarkdownSyncProvider>
+          <EditorStateProvider>
+            <ErrorProvider>
+              <div className="h-screen flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-hidden">
+                  <IndexRouter />
                 </div>
-                <ErrorToast />
-              </ErrorProvider>
-            </EditorStateProvider>
-          </MarkdownSyncProvider>
-        </EditorThemeProvider>
-      </FileOperationsProvider>
+              </div>
+              <ErrorToast />
+            </ErrorProvider>
+          </EditorStateProvider>
+        </MarkdownSyncProvider>
+      </EditorThemeProvider>
     </FileSystemProvider>
   );
 }

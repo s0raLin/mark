@@ -3,37 +3,25 @@
  * 统一管理所有前端 API 调用
  */
 
-// 类型导出
 export * from "./types";
-
-// API 客户端和函数导出
+export { IPC_COMMANDS } from "./commands";
 export { default as apiClient } from "./utils";
 
-// 用户数据相关 API
-export {
-  getUserData,
-  saveUserData,
-  getFileSystem,
-  saveFileSystem,
-  getEditorConfig,
-  saveEditorConfig,
-} from "./user";
-
-// 文件操作相关 API
+export { getUserSettings, updateUserSettings } from "./resources/users";
+export { getEditorConfig, updateEditorConfig } from "./resources/editorConfig";
+export { getFileSystemTree, updateFileSystemTree } from "./resources/fileSystem";
 export {
   getFileContent,
-  saveFileContent,
-  createFileOnServer,
-  createFolderOnServer,
-  moveNodeOnServer,
-  renameNodeOnServer,
-  deleteNodeOnServer,
-  searchFiles,
-} from "./file";
+  updateFileContent,
+  createFileResource,
+  createFolderResource,
+  moveFileNode,
+  renameFileNode,
+  deleteFileNode,
+} from "./resources/files";
+export { queryFiles } from "./resources/search";
 
-// 上传相关 API
 export {
   uploadImage,
   uploadFont,
 } from "./upload";
-

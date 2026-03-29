@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ChevronRight, FileText, Folder, Search, X, Filter, Calendar } from "lucide-react";
 import { cn } from "@/utils/cn";
-import { searchFiles } from "@/api/client";
+import { queryFiles } from "@/api/client";
 import { useTranslation } from "react-i18next";
 import type { FileNode } from "@/types/filesystem";
 import { ModalShell } from "../ModalShell";
@@ -46,7 +46,7 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
     debounceRef.current = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const data = await searchFiles(query.trim());
+        const data = await queryFiles(query.trim());
         const enriched = data.map(r => ({
           ...r,
           updatedAt: nodes.find(n => n.id === r.id)?.updatedAt,

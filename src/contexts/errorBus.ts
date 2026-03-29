@@ -1,25 +1,104 @@
-// 全局事件总线，让 apiClient 拦截器能触发 ErrorContext
-// 支持队列：handler 注册前的错误会在注册后立即回放
-type ErrorHandler = (status: number, message: string, detail?: string) => void;
+export type ErrorSeverity = "error" | "warning" | "info";
 
-type QueuedError = { status: number; message: string; detail?: string };
+export interface ErrorEvent {
+  severity?: ErrorSeverity;
+  title: string;
+  message?: string;
+  debugMessage?: string;
+  status?: number;
+  durationMs?: number;
+  dedupeKey?: string;
+}
 
-let handler: ErrorHandler | null = null;
-const queue: QueuedError[] = [];
+type ErrorListener = (event: ErrorEvent) => void;
+
+const listeners = new Set<ErrorListener>();
+const queue: ErrorEvent[] = [];
+
+function publish(event: ErrorEvent) {
+  if (listeners.size === 0) {
+    queue.push(event);
+    return;
+  }
+
+  for (const listener of listeners) {
+    listener(event);
+  }
+}
+
+function formatDebugMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  return undefined;
+}
 
 export const errorBus = {
-  setHandler(fn: ErrorHandler) {
-    handler = fn;
+  subscribe(listener: ErrorListener) {
+    listeners.add(listener);
+
     while (queue.length > 0) {
-      const err = queue.shift()!;
-      fn(err.status, err.message, err.detail);
+      const event = queue.shift();
+      if (event) {
+        listener(event);
+      }
     }
+
+    return () => {
+      listeners.delete(listener);
+    };
   },
-  emit(status: number, message: string, detail?: string) {
-    if (handler) {
-      handler(status, message, detail);
-    } else {
-      queue.push({ status, message, detail });
-    }
+
+  emit(event: ErrorEvent) {
+    publish(event);
+  },
+
+  error(
+    title: string,
+    options?: Omit<ErrorEvent, "severity" | "title">,
+  ) {
+    publish({
+      severity: "error",
+      title,
+      ...options,
+    });
+  },
+
+  warning(
+    title: string,
+    options?: Omit<ErrorEvent, "severity" | "title">,
+  ) {
+    publish({
+      severity: "warning",
+      title,
+      ...options,
+    });
+  },
+
+  info(
+    title: string,
+    options?: Omit<ErrorEvent, "severity" | "title">,
+  ) {
+    publish({
+      severity: "info",
+      title,
+      ...options,
+    });
+  },
+
+  fromException(
+    title: string,
+    error: unknown,
+    options?: Omit<ErrorEvent, "severity" | "title" | "debugMessage">,
+  ) {
+    publish({
+      severity: "error",
+      title,
+      debugMessage: formatDebugMessage(error),
+      ...options,
+    });
   },
 };

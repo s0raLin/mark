@@ -187,6 +187,11 @@ export interface SaveUserDataResponse {
   updatedAt: string; // ISO 8601
 }
 
+export interface SaveResponse {
+  success: boolean;
+  updatedAt: string;
+}
+
 /**
  * 获取文件内容请求
  */
@@ -218,5 +223,23 @@ export interface SaveFileContentRequest {
  */
 export interface SaveFileContentResponse {
   success: boolean;
-  updatedAt: number;
+  updatedAt: string;
+}
+
+export interface CreateNodeResponse {
+  id: string;
+  name: string;
+  fileSystem: StorageFileSystem;
+}
+
+export interface MutateNodeResponse {
+  id: string;
+  fileSystem: StorageFileSystem;
+}
+
+export interface SearchFileResult {
+  id: string;
+  name: string;
+  snippet: string;
+  matchType: "name" | "content";
 }

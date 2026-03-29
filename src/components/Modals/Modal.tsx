@@ -7,11 +7,9 @@ import { SearchModal } from "./SearchModal/SearchModal";
 import { LauncherModal } from "./LauncherModal/LauncherModal";
 import { SparkleDust } from "../../components/Modals/SparkleDust/SparkleDust";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import type { FileNode } from "@/types/filesystem";
 import { useEditorConfigContext } from "@/contexts/EditorConfig/EditorThemeProvider";
 import { useMarkdownSyncContext } from "@/contexts/MarkdownSyncContext";
 import { useFileSystemContext } from "@/contexts/FileSystemContext";
-import { useFileOperations } from "@/contexts/hooks/useFileOperations";
 import { useEditorStateContext } from "@/contexts/EditorStateContext";
 
 interface ModalProps {

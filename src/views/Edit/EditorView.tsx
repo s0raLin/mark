@@ -10,9 +10,7 @@ import { useModalRoute, ROUTES } from "../../hooks/useModalRoute";
 
 import { useStorageSyncContext } from "@/contexts/StorageContext";
 import { useFileSystemContext } from "@/contexts/FileSystemContext";
-import { useFileOperationsContext } from "@/contexts/FileOperationContext";
 import { useEditorStateContext } from "@/contexts/EditorStateContext";
-import { useMarkdownSyncContext } from "@/contexts/MarkdownSyncContext";
 import { useEditorConfigContext } from "@/contexts/EditorConfig/EditorThemeProvider";
 
 // ── EditorView ───────────────────────────────────────────────────────────────-
@@ -27,10 +25,7 @@ export default function EditorView() {
   // 路由管理的模态框状态
   const { isModalOpen, openModal, closeModal } = useModalRoute();
 
-  // 文件系统 Hook
   const fileSystem = useFileSystemContext();
-
-  // 编辑器主题 Hook
   const editorTheme = useEditorConfigContext();
 
   // 数据变化时自动保存（文件内容已保存到真实.md文件，不再保存到JSON配置）
@@ -94,14 +89,7 @@ export default function EditorView() {
     editorTheme.autoSaveInterval,
   ]);
 
-  // 文件操作 Hook
-  const fileOperations = useFileOperationsContext();
-
-  // 编辑器状态 Hook
   const editorState = useEditorStateContext();
-
-  // Markdown 同步 Hook
-  const markdownSync = useMarkdownSyncContext();
 
   return (
     <div className="app-m3-shell h-screen flex flex-col overflow-hidden font-display text-slate-700 relative">

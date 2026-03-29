@@ -25,13 +25,13 @@ export interface FileSystemAPI {
   /** 打开文件，加载其内容到编辑器 */
   openFile: (id: string) => void;
   /** 新建文件，返回新节点 id */
-  createFile: (name: string, parentId?: string | null, opts?: { open?: boolean; initialContent?: string }) => string;
+  createFile: (name: string, parentId?: string | null, opts?: { open?: boolean; initialContent?: string }) => Promise<string>;
   /** 新建文件夹，返回新节点 id */
-  createFolder: (name: string, parentId?: string | null) => string;
+  createFolder: (name: string, parentId?: string | null) => Promise<string>;
   /** 删除节点（递归删除子节点） */
-  deleteNode: (id: string) => void;
+  deleteNode: (id: string) => Promise<void>;
   /** 重命名节点 */
-  renameNode: (id: string, newName: string) => void;
+  renameNode: (id: string, newName: string) => Promise<void>;
 
   // ── 固定 / 展开 ──────────────────────────────────────────
   /** 切换节点的固定状态 */
@@ -45,7 +45,7 @@ export interface FileSystemAPI {
   /** 调整根目录列表中的顺序 */
   reorderExplorer: (fromIndex: number, toIndex: number) => void;
   /** 将节点移动到新父节点下，并插入到 insertBeforeId 之前（null 表示追加到末尾） */
-  moveNode: (id: string, newParentId: string | null, insertBeforeId: string | null) => void;
+  moveNode: (id: string, newParentId: string | null, insertBeforeId: string | null) => Promise<void>;
 
   // ── 查询 ─────────────────────────────────────────────────
   /** 按 id 查找节点 */
