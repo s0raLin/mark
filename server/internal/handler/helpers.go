@@ -2,12 +2,10 @@ package handler
 
 import (
 	"fmt"
-	"math/rand"
 	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"server/internal/model"
@@ -73,7 +71,12 @@ func saveUpload(c *gin.Context, file *multipart.FileHeader, ext string) (string,
 		return "", false
 	}
 
-	filename := fmt.Sprintf("%d-%d%s", time.Now().UnixMilli(), rand.Intn(1_000_000_000), ext)
+	filename, err := sanitizedUploadName(file.Filename, ext)
+	if err != nil {
+		api.BadRequest(c, err.Error())
+		return "", false
+	}
+
 	dst := filepath.Join(repository.UploadsDir, filename)
 	if err := c.SaveUploadedFile(file, dst); err != nil {
 		api.InternalError(c, err)
@@ -81,6 +84,42 @@ func saveUpload(c *gin.Context, file *multipart.FileHeader, ext string) (string,
 	}
 
 	return filename, true
+}
+
+func sanitizedUploadName(filename string, ext string) (string, error) {
+	stem := strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))
+	stem = strings.TrimSpace(stem)
+	if stem == "" || ext == "" {
+		return "", fmt.Errorf("invalid file name")
+	}
+
+	var builder strings.Builder
+	lastDash := false
+	for _, ch := range strings.ToLower(stem) {
+		switch {
+		case ch >= 'a' && ch <= 'z':
+			builder.WriteRune(ch)
+			lastDash = false
+		case ch >= '0' && ch <= '9':
+			builder.WriteRune(ch)
+			lastDash = false
+		case ch == '-' || ch == '_':
+			builder.WriteRune(ch)
+			lastDash = false
+		default:
+			if !lastDash {
+				builder.WriteByte('-')
+				lastDash = true
+			}
+		}
+	}
+
+	normalized := strings.Trim(builder.String(), "-")
+	if normalized == "" {
+		return "", fmt.Errorf("invalid file name")
+	}
+
+	return normalized + ext, nil
 }
 
 type updateUserSettingsRequest struct {

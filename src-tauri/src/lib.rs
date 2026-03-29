@@ -36,11 +36,14 @@ pub fn run() {
             // uploads
             commands::uploads_store_image,
             commands::uploads_store_font,
+            commands::uploads_list_images,
+            commands::uploads_delete_image,
             // desktop helpers
             commands::desktop_open_external,
             commands::desktop_close_window,
             commands::desktop_get_window_position,
             commands::desktop_set_window_position,
+            commands::desktop_list_system_fonts,
             // search
             commands::search_query_files,
         ])

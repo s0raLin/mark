@@ -3,12 +3,12 @@ import {
   Eye,
   FileText,
   Palette,
-  PlusCircle,
   Sparkles,
   Terminal,
+  Trash2,
   X,
 } from "lucide-react";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { ThemeOption } from "./ThemeOption";
@@ -17,7 +17,13 @@ import { AccentCircle } from "./AccentCircle";
 import { ColorPicker } from "./ColorPicker";
 import { cn } from "@/utils/cn";
 import { ACCENT_COLORS, EDITOR_THEMES, PREVIEW_THEMES } from "@/constants/theme";
-import { uploadFont, uploadImage } from "@/api/client";
+import {
+  deleteUploadedImage,
+  listSystemFonts,
+  listUploadedImages,
+  uploadImage,
+  type UploadedImageAsset,
+} from "@/api/client";
 import { applyM3Theme } from "@/utils/applyM3Theme";
 
 // Live preview: reuse the same applyM3Theme so colors match exactly
@@ -94,8 +100,6 @@ interface SettingEditorProps {
   setBlurAmount: (amount: number) => void;
   bgImage: string;
   setBgImage: (url: string) => void;
-  customFonts: { name: string; url: string }[];
-  addCustomFont: (font: { name: string; url: string }) => void;
 }
 
 export default function SettingEditor({
@@ -110,17 +114,18 @@ export default function SettingEditor({
   previewFontSize, setPreviewFontSize,
   blurAmount, setBlurAmount,
   bgImage, setBgImage,
-  customFonts, addCustomFont,
 }: SettingEditorProps) {
   const { t } = useTranslation();
   const [bgUploading, setBgUploading] = useState(false);
-  const [fontUploading, setFontUploading] = useState(false);
+  const [imagesLoading, setImagesLoading] = useState(true);
+  const [systemFontsLoading, setSystemFontsLoading] = useState(true);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImageAsset[]>([]);
+  const [systemFonts, setSystemFonts] = useState<string[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 });
   const pickerBtnRef = useRef<HTMLButtonElement>(null);
   const pickerPopoverRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
-  const fontInputRef = useRef<HTMLInputElement>(null);
   const handlerRef = useRef<((e: MouseEvent) => void) | null>(null);
 
   useEffect(() => {
@@ -148,36 +153,97 @@ export default function SettingEditor({
     setPickerOpen(true);
   };
 
-  function injectFontFace(font: { name: string; url: string }) {
-    const styleId = `custom-font-${font.name.replace(/\s/g, "-")}`;
-    if (document.getElementById(styleId)) return;
-    const style = document.createElement("style");
-    style.id = styleId;
-    style.textContent = `@font-face { font-family: "${font.name}"; src: url("${font.url}"); }`;
-    document.head.appendChild(style);
-  }
+  useEffect(() => {
+    let active = true;
+
+    void listUploadedImages()
+      .then((images) => {
+        if (active) {
+          setUploadedImages(images);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load uploaded images", err);
+      })
+      .finally(() => {
+        if (active) {
+          setImagesLoading(false);
+        }
+      });
+
+    void listSystemFonts()
+      .then((fonts) => {
+        if (active) {
+          setSystemFonts(fonts);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load system fonts", err);
+      })
+      .finally(() => {
+        if (active) {
+          setSystemFontsLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const interfaceFontOptions = useMemo(() => {
+    const preferred = [
+      "Quicksand",
+      "Bubblegum Sans",
+      "Patrick Hand",
+      "Comfortaa",
+      "Playfair Display",
+      fontChoice,
+    ];
+    return Array.from(new Set([...preferred, ...systemFonts].filter(Boolean))).sort((a, b) =>
+      a.localeCompare(b),
+    );
+  }, [fontChoice, systemFonts]);
+
+  const editorFontOptions = useMemo(() => {
+    const preferred = [
+      "JetBrains Mono",
+      "Fira Code",
+      "Source Code Pro",
+      "Cascadia Code",
+      "Inconsolata",
+      "monospace",
+      editorFont,
+    ];
+    return Array.from(new Set([...preferred, ...systemFonts].filter(Boolean))).sort((a, b) =>
+      a.localeCompare(b),
+    );
+  }, [editorFont, systemFonts]);
 
   const handleBgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setBgUploading(true);
-    try { const { url } = await uploadImage(file); setBgImage(url); }
+    try {
+      const image = await uploadImage(file);
+      setUploadedImages((prev) => [image, ...prev.filter((item) => item.name !== image.name)]);
+      setBgImage(image.url);
+    }
     catch (err) { console.error("Background upload failed", err); }
     finally { setBgUploading(false); e.target.value = ""; }
   };
 
-  const handleFontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setFontUploading(true);
+  const handleDeleteImage = async (image: UploadedImageAsset) => {
     try {
-      const { url, fontFamily } = await uploadFont(file);
-      const font = { name: fontFamily, url };
-      injectFontFace(font);
-      addCustomFont(font);
-      setFontChoice(fontFamily);
-    } catch (err) { console.error("Font upload failed", err); }
-    finally { setFontUploading(false); e.target.value = ""; }
+      const deleted = await deleteUploadedImage(image.name);
+      if (!deleted) return;
+      setUploadedImages((prev) => prev.filter((item) => item.name !== image.name));
+      if (bgImage === image.url) {
+        setBgImage("");
+      }
+    } catch (err) {
+      console.error("Failed to delete uploaded image", err);
+    }
   };
 
   return (
@@ -323,6 +389,60 @@ export default function SettingEditor({
                 </div>
               </div>
               <input ref={bgInputRef} type="file" accept="image/*" className="sr-only" onChange={handleBgUpload} />
+              <div className="settings-m3-inline-surface rounded-2xl p-4 flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <FieldLabel>{t("editor.uploadedImages")}</FieldLabel>
+                  <span className="text-[11px] font-medium text-slate-400">
+                    {imagesLoading ? t("editor.loadingAssets") : uploadedImages.length}
+                  </span>
+                </div>
+
+                {imagesLoading ? (
+                  <p className="text-xs text-slate-400">{t("editor.loadingAssets")}</p>
+                ) : uploadedImages.length === 0 ? (
+                  <p className="text-xs text-slate-400">{t("editor.noUploadedImages")}</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {uploadedImages.map((image) => {
+                      const active = bgImage === image.url;
+                      return (
+                        <div
+                          key={image.name}
+                          onClick={() => setBgImage(image.url)}
+                          className={cn(
+                            "group relative overflow-hidden rounded-2xl border text-left transition-all cursor-pointer",
+                            active
+                              ? "border-primary shadow-[0_0_0_1px_rgba(99,102,241,0.25)]"
+                              : "border-slate-200 hover:border-primary/40",
+                          )}
+                        >
+                          <img
+                            src={image.url}
+                            alt={image.name}
+                            className="h-28 w-full object-cover"
+                          />
+                          <div className="flex items-center justify-between gap-2 bg-white/90 px-3 py-2">
+                            <span className="truncate text-[11px] font-medium text-slate-600">
+                              {image.name}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                void handleDeleteImage(image);
+                              }}
+                              className="rounded-full p-1 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                              title={t("editor.deleteImage")}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right: Blur + Sparkle Dust */}
@@ -367,7 +487,7 @@ export default function SettingEditor({
       <section>
         <SectionTitle icon={<FileText className="w-4 h-4" />} label={t("editor.lettering")} />
         <div className="settings-m3-card rounded-2xl p-5 flex flex-col gap-6">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(240px,0.9fr)] items-start">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 items-start">
             {/* Font Choice */}
             <div className="settings-m3-inline-surface rounded-2xl p-4 flex flex-col gap-3 min-w-0">
               <FieldLabel>{t("editor.fontChoice")}</FieldLabel>
@@ -376,13 +496,11 @@ export default function SettingEditor({
                 onChange={(e) => setFontChoice(e.target.value)}
                 className="w-full min-w-0 bg-white border border-slate-200 rounded-xl text-sm py-2.5 px-3 focus:ring-primary focus:border-primary appearance-none text-slate-700 font-display"
               >
-                <option value="Quicksand">Quicksand (Default)</option>
-                <option value="Bubblegum Sans">Bubblegum Sans</option>
-                <option value="Patrick Hand">Patrick Hand</option>
-                <option value="Comfortaa">Comfortaa</option>
-                <option value="Playfair Display">Playfair Display</option>
-                {customFonts.map((f) => (
-                  <option key={f.name} value={f.name}>{f.name} ({t("editor.custom")})</option>
+                {interfaceFontOptions.map((font) => (
+                  <option key={font} value={font}>
+                    {font}
+                    {font === "Quicksand" ? " (Default)" : ""}
+                  </option>
                 ))}
               </select>
               <p className="text-xs text-slate-400 truncate">
@@ -399,14 +517,12 @@ export default function SettingEditor({
                 onChange={(e) => setEditorFont(e.target.value)}
                 className="w-full min-w-0 bg-white border border-slate-200 rounded-xl text-sm py-2.5 px-3 focus:ring-primary focus:border-primary appearance-none font-display text-slate-700"
               >
-                <option value="JetBrains Mono">JetBrains Mono (Default)</option>
-                <option value="Fira Code">Fira Code</option>
-                <option value="Source Code Pro">Source Code Pro</option>
-                <option value="Cascadia Code">Cascadia Code</option>
-                <option value="Inconsolata">Inconsolata</option>
-                <option value="monospace">System Monospace</option>
-                {customFonts.map((f) => (
-                  <option key={f.name} value={f.name}>{f.name} ({t("editor.custom")})</option>
+                {editorFontOptions.map((font) => (
+                  <option key={font} value={font}>
+                    {font}
+                    {font === "JetBrains Mono" ? " (Default)" : ""}
+                    {font === "monospace" ? " (System)" : ""}
+                  </option>
                 ))}
               </select>
               <p className="text-xs text-slate-400 truncate">
@@ -415,48 +531,22 @@ export default function SettingEditor({
               </p>
             </div>
 
-            {/* Import Custom Font */}
             <div className="settings-m3-inline-surface rounded-2xl p-4 flex flex-col gap-3 min-w-0">
-              <FieldLabel>{t("editor.importCustom")}</FieldLabel>
-              <button
-                onClick={() => fontInputRef.current?.click()}
-                disabled={fontUploading}
-                className="settings-m3-outlined-button flex items-center justify-between w-full min-h-11 border-2 border-dashed rounded-xl text-sm py-2.5 px-3 transition-all group disabled:opacity-60 font-display shrink-0"
-              >
-                <span className="text-slate-400 text-sm truncate pr-3">
-                  {fontUploading ? t("editor.uploading") : t("editor.uploadFont")}
-                </span>
-                {fontUploading
-                  ? <div className="w-4 h-4 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
-                  : <PlusCircle className="w-4 h-4 text-primary/60 group-hover:text-primary group-hover:rotate-90 transition-all" />}
-              </button>
-              <input ref={fontInputRef} type="file" accept=".ttf,.woff,.woff2,.otf" className="sr-only" onChange={handleFontUpload} />
+              <FieldLabel>{t("editor.systemFonts")}</FieldLabel>
               <p className="text-xs text-slate-400 leading-relaxed">
-                {customFonts.length > 0 ? `${customFonts.length} ${t("editor.custom")}` : t("editor.uploadFont")}
+                {systemFontsLoading
+                  ? t("editor.loadingFonts")
+                  : t("editor.systemFontsDesc", { count: systemFonts.length })}
               </p>
+              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <p className="truncate text-sm text-slate-600">
+                  {systemFontsLoading
+                    ? t("editor.loadingFonts")
+                    : systemFonts.slice(0, 6).join(", ") || t("editor.noSystemFonts")}
+                </p>
+              </div>
             </div>
           </div>
-
-          {customFonts.length > 0 && (
-            <div className="settings-m3-inline-surface rounded-2xl p-4 flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3">
-                <FieldLabel>{t("editor.importCustom")}</FieldLabel>
-                <span className="text-[11px] font-medium text-slate-400">{customFonts.length}</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {customFonts.map((f) => (
-                  <span
-                    key={f.name}
-                    className="max-w-full text-[11px] px-3 py-1 rounded-full bg-primary/10 text-primary truncate"
-                    style={{ fontFamily: f.name }}
-                    title={f.name}
-                  >
-                    {f.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Font Sizes */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

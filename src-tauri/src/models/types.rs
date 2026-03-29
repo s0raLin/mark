@@ -66,7 +66,7 @@ impl Default for StorageEditorConfig {
             editor_theme: "oneDark".into(),
             preview_theme: "theme-heart-classic".into(),
             font_choice: "Quicksand".into(),
-            editor_font: "Quicksand".into(),
+            editor_font: "JetBrains Mono".into(),
             font_size: 16,
             editor_font_size: 14,
             preview_font_size: 16,
@@ -145,8 +145,16 @@ pub struct SearchResult {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct StoredUploadResponse {
+    pub file_name: String,
     pub file_path: String,
     pub font_family: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct UploadedImageAsset {
+    pub name: String,
+    pub file_path: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -27,12 +27,15 @@ export const IPC_COMMANDS = {
   uploads: {
     storeImage: "uploads_store_image",
     storeFont: "uploads_store_font",
+    listImages: "uploads_list_images",
+    deleteImage: "uploads_delete_image",
   },
   desktop: {
     openExternal: "desktop_open_external",
     closeWindow: "desktop_close_window",
     getWindowPosition: "desktop_get_window_position",
     setWindowPosition: "desktop_set_window_position",
+    listSystemFonts: "desktop_list_system_fonts",
   },
   search: {
     queryFiles: "search_query_files",

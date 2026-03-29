@@ -104,8 +104,6 @@ export default function Modal({
             setBlurAmount={editorConfig.setBlurAmount}
             bgImage={editorConfig.bgImage}
             setBgImage={editorConfig.setBgImage}
-            customFonts={editorConfig.customFonts}
-            addCustomFont={editorConfig.addCustomFont}
             lang={editorConfig.lang}
             setLang={editorConfig.setLang}
           />

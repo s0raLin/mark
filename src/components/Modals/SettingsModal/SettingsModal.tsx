@@ -25,7 +25,6 @@ interface SettingsSnapshot {
   previewFontSize: number;
   blurAmount: number;
   bgImage: string;
-  customFonts: { name: string; url: string }[];
   lang: string;
 }
 
@@ -41,7 +40,6 @@ const DEFAULT_SETTINGS: SettingsSnapshot = {
   blurAmount: 0,
   bgImage: "",
   particlesOn: false,
-  customFonts: [],
   lang: "en",
 };
 
@@ -69,8 +67,6 @@ interface SettingsModalProps {
   setBlurAmount: React.Dispatch<React.SetStateAction<number>>;
   bgImage: string;
   setBgImage: React.Dispatch<React.SetStateAction<string>>;
-  customFonts: { name: string; url: string }[];
-  addCustomFont: (font: { name: string; url: string }) => void;
   lang: string;
   setLang: React.Dispatch<React.SetStateAction<string>>;
 }
@@ -88,7 +84,6 @@ export function SettingsModal({
   previewFontSize, setPreviewFontSize,
   blurAmount, setBlurAmount,
   bgImage, setBgImage,
-  customFonts, addCustomFont,
   lang, setLang,
 }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState("general");
@@ -100,7 +95,7 @@ export function SettingsModal({
     editorTheme, previewTheme, particlesOn,
     fontChoice, editorFont, accentColor,
     fontSize, editorFontSize, previewFontSize,
-    blurAmount, bgImage, customFonts,
+    blurAmount, bgImage,
     lang,
   }));
 
@@ -108,7 +103,7 @@ export function SettingsModal({
     editorTheme, previewTheme, particlesOn,
     fontChoice, editorFont, accentColor,
     fontSize, editorFontSize, previewFontSize,
-    blurAmount, bgImage, customFonts,
+    blurAmount, bgImage,
     lang,
   }));
 
@@ -133,9 +128,6 @@ export function SettingsModal({
     setPreviewFontSize(draft.previewFontSize);
     setBlurAmount(draft.blurAmount);
     setBgImage(draft.bgImage);
-    for (const font of draft.customFonts) {
-      if (!customFonts.find(f => f.name === font.name)) addCustomFont(font);
-    }
     // 语言切换在保存时生效
     if (draft.lang !== i18n.language) {
       i18n.changeLanguage(draft.lang);
@@ -249,11 +241,6 @@ export function SettingsModal({
                 setBlurAmount={set("blurAmount")}
                 bgImage={draft.bgImage}
                 setBgImage={set("bgImage")}
-                customFonts={draft.customFonts}
-                addCustomFont={(font) => setDraft(prev => ({
-                  ...prev,
-                  customFonts: [...prev.customFonts, font],
-                }))}
               />
             </div>
 

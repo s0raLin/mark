@@ -1,5 +1,6 @@
 import { errorBus } from "@/contexts/errorBus";
 import type { ApiResponse } from "@/api/client/types";
+import { convertFileSrc as tauriConvertFileSrc, invoke as tauriInvoke } from "@tauri-apps/api/core";
 
 type InvokeArgs = Record<string, unknown> | undefined;
 
@@ -9,7 +10,16 @@ type InvokeArgs = Record<string, unknown> | undefined;
 //
 // 业务层不应该关心自己当前跑在哪个桌面壳中，只应该调用资源客户端。
 export function hasTauriRuntime() {
-  return typeof window !== "undefined" && !!window.__TAURI__?.core?.invoke;
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
+  return Boolean(
+    window.__TAURI__?.core?.invoke
+      || window.__TAURI_INTERNALS__
+      || userAgent.includes("Tauri"),
+  );
 }
 
 export function hasElectronRuntime() {
@@ -22,11 +32,10 @@ export function hasElectronRuntime() {
 }
 
 function getTauriInvoke() {
-  const invoke = window.__TAURI__?.core?.invoke;
-  if (!invoke) {
+  if (!hasTauriRuntime()) {
     throw new Error("Tauri IPC is unavailable in the current runtime");
   }
-  return invoke;
+  return window.__TAURI__?.core?.invoke ?? tauriInvoke;
 }
 
 function getApiBaseUrl() {
@@ -39,19 +48,19 @@ export function toDesktopAssetUrl(pathOrUrl: string) {
     return pathOrUrl;
   }
 
-  const convertFileSrc = (window as Window & {
-    __TAURI__?: {
-      core?: {
-        convertFileSrc?: (path: string, protocol?: string) => string;
+  try {
+    const globalConvertFileSrc = (window as Window & {
+      __TAURI__?: {
+        core?: {
+          convertFileSrc?: (path: string, protocol?: string) => string;
+        };
       };
-    };
-  }).__TAURI__?.core?.convertFileSrc;
+    }).__TAURI__?.core?.convertFileSrc;
 
-  if (!convertFileSrc) {
+    return (globalConvertFileSrc ?? tauriConvertFileSrc)(pathOrUrl, "asset");
+  } catch {
     return pathOrUrl;
   }
-
-  return convertFileSrc(pathOrUrl, "asset");
 }
 
 export async function invokeCommand<T>(
@@ -68,24 +77,32 @@ export async function invokeCommand<T>(
 }
 
 export async function httpGet<T>(path: string): Promise<T> {
-  const response = await fetch(`${getApiBaseUrl()}${path}`);
-  return parseHttpResponse<T>(response);
+  try {
+    const response = await fetch(`${getApiBaseUrl()}${path}`);
+    return parseHttpResponse<T>(response);
+  } catch (error) {
+    handleHttpTransportError(error);
+  }
 }
 
 export async function httpSend<T>(
   path: string,
   init?: RequestInit,
 ): Promise<T> {
-  // 这里默认按 JSON 发送。
-  // 上传类接口仍然应单独处理，不应复用这个 helper。
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-    ...init,
-  });
-  return parseHttpResponse<T>(response);
+  try {
+    // 这里默认按 JSON 发送。
+    // 上传类接口仍然应单独处理，不应复用这个 helper。
+    const response = await fetch(`${getApiBaseUrl()}${path}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(init?.headers ?? {}),
+      },
+      ...init,
+    });
+    return parseHttpResponse<T>(response);
+  } catch (error) {
+    handleHttpTransportError(error);
+  }
 }
 
 async function parseHttpResponse<T>(response: Response): Promise<T> {
@@ -98,9 +115,12 @@ async function parseHttpResponse<T>(response: Response): Promise<T> {
   }
 
   if (!response.ok || !payload) {
+    const contentType = response.headers.get("content-type") || "";
     const message = payload?.message || `HTTP ${response.status}`;
     errorBus.error("操作没有完成", {
-      message: "本地服务暂时不可用，请稍后重试。",
+      message: contentType.includes("application/json")
+        ? "本地服务返回了异常结果，请稍后重试。"
+        : "本地服务没有正确响应，请确认后端已经启动。",
       debugMessage: message,
       status: response.status,
       dedupeKey: `http:${response.status}:${message}`,
@@ -134,6 +154,20 @@ function getFriendlyInvokeError(error: unknown) {
     debugMessage,
     dedupeKey: "ipc-command-failed",
   };
+}
+
+function handleHttpTransportError(error: unknown): never {
+  const debugMessage = error instanceof Error ? error.message : "HTTP request failed";
+  errorBus.error("操作没有完成", {
+    message: "连接不到本地后端，请确认本地服务已经启动。",
+    debugMessage,
+    dedupeKey: `http-transport:${debugMessage}`,
+  });
+
+  if (error instanceof Error) {
+    throw error;
+  }
+  throw new Error("HTTP request failed");
 }
 
 export function extractData<T>(response: ApiResponse<T>): T {

@@ -1,7 +1,7 @@
 use crate::models::types::{
     CreateNodeResponse, GetFileContentResponse, MutateNodeResponse, SaveResponse, SearchResult,
     StorageAppConfig, StorageEditorConfig, StorageFileNode, StorageFileSystem, StorageUserSettings,
-    StoredUploadResponse,
+    StoredUploadResponse, UploadedImageAsset,
 };
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -576,6 +576,66 @@ impl StorageRepo {
         )
     }
 
+    pub fn list_uploaded_images(&self) -> Result<Vec<UploadedImageAsset>, String> {
+        let mut images = Vec::new();
+
+        if !self.uploads_root.exists() {
+            return Ok(images);
+        }
+
+        let entries = fs::read_dir(&self.uploads_root).map_err(|err| err.to_string())?;
+        let mut files = Vec::new();
+
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if !path.is_file() {
+                continue;
+            }
+
+            let name = match path.file_name() {
+                Some(name) => name.to_string_lossy().to_string(),
+                None => continue,
+            };
+
+            let extension = path
+                .extension()
+                .map(|ext| format!(".{}", ext.to_string_lossy().to_lowercase()))
+                .unwrap_or_default();
+
+            if ![".jpg", ".jpeg", ".png", ".gif", ".webp"].contains(&extension.as_str()) {
+                continue;
+            }
+
+            let modified = entry
+                .metadata()
+                .ok()
+                .and_then(|metadata| metadata.modified().ok());
+
+            files.push((
+                modified,
+                UploadedImageAsset {
+                    name,
+                    file_path: path.to_string_lossy().to_string(),
+                },
+            ));
+        }
+
+        files.sort_by(|a, b| b.0.cmp(&a.0));
+        images.extend(files.into_iter().map(|(_, image)| image));
+        Ok(images)
+    }
+
+    pub fn delete_uploaded_image(&self, file_name: &str) -> Result<bool, String> {
+        let normalized = Self::sanitize_upload_file_name(file_name)?;
+        let path = self.uploads_root.join(normalized);
+        if !path.exists() {
+            return Ok(false);
+        }
+
+        fs::remove_file(path).map_err(|err| err.to_string())?;
+        Ok(true)
+    }
+
     pub fn store_uploaded_font(
         &self,
         file_name: &str,
@@ -601,11 +661,7 @@ impl StorageRepo {
         allowed_extensions: &[&str],
         font_family: Option<String>,
     ) -> Result<StoredUploadResponse, String> {
-        let file_name = Path::new(file_name)
-            .file_name()
-            .ok_or_else(|| "invalid file name".to_string())?
-            .to_string_lossy()
-            .to_string();
+        let file_name = Self::sanitize_upload_file_name(file_name)?;
 
         let extension = Path::new(&file_name)
             .extension()
@@ -621,23 +677,50 @@ impl StorageRepo {
 
         fs::create_dir_all(&self.uploads_root).map_err(|err| err.to_string())?;
 
-        let stored_file_name = format!(
-            "{}-{}{}",
-            Utc::now().timestamp_millis(),
-            Path::new(&file_name)
-                .file_stem()
-                .map(|stem| stem.to_string_lossy().replace(' ', "-"))
-                .filter(|stem| !stem.is_empty())
-                .unwrap_or_else(|| "upload".to_string()),
-            extension
-        );
-
-        let stored_path = self.uploads_root.join(stored_file_name);
+        let stored_path = self.uploads_root.join(&file_name);
         fs::write(&stored_path, bytes).map_err(|err| err.to_string())?;
 
         Ok(StoredUploadResponse {
+            file_name,
             file_path: stored_path.to_string_lossy().to_string(),
             font_family,
         })
+    }
+
+    fn sanitize_upload_file_name(file_name: &str) -> Result<String, String> {
+        let raw = Path::new(file_name)
+            .file_name()
+            .ok_or_else(|| "invalid file name".to_string())?
+            .to_string_lossy()
+            .trim()
+            .to_string();
+
+        let stem = Path::new(&raw)
+            .file_stem()
+            .map(|value| value.to_string_lossy().to_string())
+            .unwrap_or_default();
+        let ext = Path::new(&raw)
+            .extension()
+            .map(|value| value.to_string_lossy().to_lowercase())
+            .unwrap_or_default();
+
+        let normalized_stem = stem
+            .chars()
+            .map(|ch| match ch {
+                'a'..='z' | 'A'..='Z' | '0'..='9' => ch.to_ascii_lowercase(),
+                '-' | '_' => ch,
+                _ => '-',
+            })
+            .collect::<String>()
+            .split('-')
+            .filter(|segment| !segment.is_empty())
+            .collect::<Vec<_>>()
+            .join("-");
+
+        if normalized_stem.is_empty() || ext.is_empty() {
+            return Err("invalid file name".to_string());
+        }
+
+        Ok(format!("{normalized_stem}.{ext}"))
     }
 }

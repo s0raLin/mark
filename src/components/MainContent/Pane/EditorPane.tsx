@@ -150,6 +150,26 @@ const EDITABLE_EXTENSIONS = new Set([
   "csv", "log", "env", "gitignore",
 ]);
 
+function extractMarkdownImages(markdown: string) {
+  const images: Array<{ alt: string; url: string }> = [];
+  const seen = new Set<string>();
+  const imagePattern = /!\[([^\]]*)\]\(([^)\s]+(?:\s+"[^"]*")?)\)/g;
+
+  let match: RegExpExecArray | null;
+  while ((match = imagePattern.exec(markdown)) !== null) {
+    const alt = match[1]?.trim() || "Image";
+    const rawUrl = match[2]?.trim() || "";
+    const url = rawUrl.replace(/\s+".*"$/, "").replace(/^<|>$/g, "");
+    if (!url || seen.has(url)) {
+      continue;
+    }
+    seen.add(url);
+    images.push({ alt, url });
+  }
+
+  return images;
+}
+
 export default function EditorPane({
   markdown,
   setMarkdown,
@@ -165,6 +185,10 @@ export default function EditorPane({
   const ext = (fileName ?? "").includes(".") ? fileName.split(".").pop()!.toLowerCase() : "md";
   const isBinary = fileName ? !EDITABLE_EXTENSIONS.has(ext) : false;
   const fileTypeLabel = ext ? ext.toUpperCase() : "FILE";
+  const markdownImages = useMemo(
+    () => ((ext === "md" || ext === "markdown") ? extractMarkdownImages(markdown) : []),
+    [ext, markdown],
+  );
 
   const editorExtensions = useMemo(
     () => {
@@ -286,6 +310,28 @@ export default function EditorPane({
       <div className="app-m3-toolbar editor-toolbar h-14 border-b border-border-soft flex items-center justify-center px-4 gap-1 shrink-0 relative z-10">
         <Toolbar editorRef={editorRef} />
       </div>
+      {!isBinary && markdownImages.length > 0 && (
+        <div className="relative z-10 border-b border-border-soft px-4 py-3">
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {markdownImages.map((image) => (
+              <div
+                key={image.url}
+                className="min-w-[180px] max-w-[180px] overflow-hidden rounded-2xl border border-slate-200 bg-white/80 shadow-sm"
+              >
+                <img
+                  src={image.url}
+                  alt={image.alt}
+                  className="h-24 w-full object-cover"
+                />
+                <div className="px-3 py-2">
+                  <p className="truncate text-xs font-medium text-slate-600">{image.alt}</p>
+                  <p className="truncate text-[11px] text-slate-400">{image.url}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div
         className="flex-1 min-h-0 overflow-hidden relative z-10"
         onContextMenu={(e) => {

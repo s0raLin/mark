@@ -26,7 +26,7 @@ export function useEditorThemeEffects({
     editorFont,
     bgImage,
     lang,
-    customFonts
+    customFonts: _customFonts
 }: EditorThemeEffectsProps) {
 
     // ── 深色模式 class
@@ -93,20 +93,9 @@ export function useEditorThemeEffects({
             el.style.backgroundImage = "";
         }
     }, [bgImage]);
-
-
-    // 语言切换 + 加载自定义字体
+    // 语言切换
     useEffect(() => {
         i18n.changeLanguage(lang);
-        customFonts.forEach((font) => {
-            const styleId = `custom-font-${font.name.replace(/\s/g, "-")}`;
-            if (!document.getElementById(styleId)) {
-                const style = document.createElement("style");
-                style.id = styleId;
-                style.textContent = `@font-face { font-family: "${font.name}"; src: url("${font.url}"); }`;
-                document.head.appendChild(style);
-            }
-        })
-    })
+    }, [lang]);
 
 }

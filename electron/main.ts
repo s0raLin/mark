@@ -119,6 +119,84 @@ function registerWindowIpcHandlers() {
       shell.openExternal(url);
     }
   });
+  ipcMain.handle("list-system-fonts", async () => {
+    return listSystemFonts();
+  });
+}
+
+function collectCommandOutput(command: string, args: string[]) {
+  return new Promise<string>((resolve, reject) => {
+    const child = spawn(command, args);
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout.on("data", (chunk: Buffer) => {
+      stdout += chunk.toString();
+    });
+    child.stderr.on("data", (chunk: Buffer) => {
+      stderr += chunk.toString();
+    });
+    child.on("error", reject);
+    child.on("close", (code) => {
+      if (code === 0) {
+        resolve(stdout);
+        return;
+      }
+      reject(new Error(stderr.trim() || `${command} exited with code ${code}`));
+    });
+  });
+}
+
+function uniqueSortedFonts(rawFonts: string[]) {
+  return Array.from(
+    new Set(
+      rawFonts
+        .flatMap((line) => line.split(","))
+        .map((font) => font.trim())
+        .filter(Boolean),
+    ),
+  ).sort((a, b) => a.localeCompare(b));
+}
+
+async function listSystemFonts() {
+  try {
+    if (process.platform === "linux") {
+      const output = await collectCommandOutput("fc-list", ["--format=%{family}\\n"]);
+      return uniqueSortedFonts(output.split("\n"));
+    }
+
+    if (process.platform === "darwin") {
+      const output = await collectCommandOutput("system_profiler", ["SPFontsDataType", "-json"]);
+      const payload = JSON.parse(output) as {
+        SPFontsDataType?: Array<{ family?: string }>;
+      };
+      return uniqueSortedFonts(
+        (payload.SPFontsDataType ?? [])
+          .map((entry) => entry.family ?? "")
+          .filter(Boolean),
+      );
+    }
+
+    if (process.platform === "win32") {
+      const output = await collectCommandOutput("powershell", [
+        "-NoProfile",
+        "-Command",
+        "Get-ChildItem \"$env:WINDIR\\Fonts\" | Select-Object -ExpandProperty BaseName",
+      ]);
+      return uniqueSortedFonts(output.split("\n"));
+    }
+  } catch (error) {
+    console.error("Failed to list system fonts", error);
+  }
+
+  return [
+    "Quicksand",
+    "Playfair Display",
+    "JetBrains Mono",
+    "Fira Code",
+    "Source Code Pro",
+    "monospace",
+  ];
 }
 
 async function createMainWindow() {

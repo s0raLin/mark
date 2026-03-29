@@ -20,8 +20,11 @@ export {
   deleteFileNode,
 } from "./resources/files";
 export { queryFiles } from "./resources/search";
+export { listSystemFonts } from "./desktop";
 
 export {
+  deleteUploadedImage,
+  listUploadedImages,
   uploadImage,
   uploadFont,
 } from "./upload";

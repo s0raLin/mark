@@ -74,7 +74,9 @@ func registerRestRoutes(api *gin.RouterGroup) {
 	search.GET("/files", handler.SearchFiles)
 
 	uploads := api.Group("/uploads")
+	uploads.GET("/images", handler.ListImages)
 	uploads.POST("/images", handler.UploadImage)
+	uploads.DELETE("/images", handler.DeleteImage)
 	uploads.POST("/fonts", handler.UploadFont)
 }
 

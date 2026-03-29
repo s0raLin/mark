@@ -1,11 +1,18 @@
 import { IPC_COMMANDS } from "./commands";
-import type { ApiResponse, StoredUploadResponse } from "./types";
-import { extractData, hasTauriRuntime, invokeCommand, toDesktopAssetUrl } from "./utils";
+import type { ApiResponse, StoredUploadResponse, UploadedImageAsset } from "./types";
+import {
+  extractData,
+  hasTauriRuntime,
+  httpGet,
+  httpSend,
+  invokeCommand,
+  toDesktopAssetUrl,
+} from "./utils";
 
 /**
- * 上传背景图片
+ * 上传背景图片并返回可直接预览的资源地址。
  */
-export async function uploadImage(file: File): Promise<{ url: string }> {
+export async function uploadImage(file: File): Promise<UploadedImageAsset> {
   if (hasTauriRuntime()) {
     const response = await invokeCommand<ApiResponse<StoredUploadResponse>>(
       IPC_COMMANDS.uploads.storeImage,
@@ -16,6 +23,7 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
     );
     const data = extractData(response);
     return {
+      name: data.fileName,
       url: toDesktopAssetUrl(data.filePath),
     };
   }
@@ -27,9 +35,37 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
     const text = await res.text();
     throw new Error(`Upload failed: ${res.status} ${text}`);
   }
-  const json: ApiResponse<{ url: string }> = await res.json();
+  const json: ApiResponse<UploadedImageAsset> = await res.json();
   if (json.code !== 0) throw new Error(json.message || "Upload failed");
   return json.data;
+}
+
+export async function listUploadedImages(): Promise<UploadedImageAsset[]> {
+  if (hasTauriRuntime()) {
+    const response = await invokeCommand<
+      ApiResponse<Array<{ name: string; filePath: string }>>
+    >(IPC_COMMANDS.uploads.listImages);
+    return extractData(response).map((image) => ({
+      name: image.name,
+      url: toDesktopAssetUrl(image.filePath),
+    }));
+  }
+
+  return httpGet<UploadedImageAsset[]>("/uploads/images");
+}
+
+export async function deleteUploadedImage(name: string): Promise<boolean> {
+  if (hasTauriRuntime()) {
+    const response = await invokeCommand<ApiResponse<boolean>>(
+      IPC_COMMANDS.uploads.deleteImage,
+      { fileName: name },
+    );
+    return extractData(response);
+  }
+
+  return httpSend<boolean>(`/uploads/images?name=${encodeURIComponent(name)}`, {
+    method: "DELETE",
+  });
 }
 
 /**

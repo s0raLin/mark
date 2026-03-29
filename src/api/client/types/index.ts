@@ -250,6 +250,12 @@ export interface WindowPosition {
 }
 
 export interface StoredUploadResponse {
+  fileName: string;
   filePath: string;
   fontFamily?: string;
+}
+
+export interface UploadedImageAsset {
+  name: string;
+  url: string;
 }
