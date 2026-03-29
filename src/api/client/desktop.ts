@@ -85,3 +85,18 @@ export async function saveDesktopTextFile(
     { fileName, content, filters },
   )) ?? false;
 }
+
+export async function saveDesktopBinaryFile(
+  fileName: string,
+  contentBase64: string,
+  filters?: Array<{ name: string; extensions: string[] }>,
+) {
+  if (getDesktopRuntime() !== "tauri") {
+    return false;
+  }
+
+  return (await invokeDesktopCommand<boolean>(
+    IPC_COMMANDS.desktop.saveBinaryFile,
+    { fileName, contentBase64, filters },
+  )) ?? false;
+}

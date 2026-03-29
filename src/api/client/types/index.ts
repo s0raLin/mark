@@ -209,6 +209,7 @@ export interface GetFileContentResponse {
   kind: "text" | "image" | "audio" | "video" | "binary";
   mimeType?: string;
   mediaDataUrl?: string;
+  contentBase64?: string;
   size?: number;
   editable?: boolean;
   previewable?: boolean;

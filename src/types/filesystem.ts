@@ -16,6 +16,8 @@ export interface FileSystemAPI {
   // ── 状态 ────────────────────────────────────────────────
   nodes: FileNode[];
   activeFileId: string;           // 当前打开的文件 id
+  selectedNodeIds: Set<string>;   // 当前在侧边栏选中的节点
+  trashFolderId: string | null;   // 回收站目录 id
   pinnedIds: string[];            // 已固定节点的 id 列表
   pinnedFiles: FileNode[];        // 已固定节点（兼容旧引用）
   pinnedNodes: FileNode[];        // 已固定节点
@@ -24,6 +26,26 @@ export interface FileSystemAPI {
   // ── 文件操作 ─────────────────────────────────────────────
   /** 打开文件，加载其内容到编辑器 */
   openFile: (id: string) => void;
+  /** 用给定节点集合替换当前选择 */
+  replaceNodeSelection: (ids: string[], anchorId?: string | null) => void;
+  /** 切换节点选中态 */
+  toggleNodeSelection: (id: string) => void;
+  /** 清空当前节点选择 */
+  clearNodeSelection: () => void;
+  /** 判断节点当前是否被选中 */
+  isNodeSelected: (id: string) => boolean;
+  /** 获取回收站中的根节点 */
+  getTrashNodes: () => FileNode[];
+  /** 将节点移动到回收站，若已在回收站内则彻底删除 */
+  deleteSelectedNodes: (ids?: string[]) => Promise<void>;
+  /** 复制节点到内部剪贴板 */
+  copySelectedNodes: (ids?: string[]) => void;
+  /** 剪切节点到内部剪贴板 */
+  cutSelectedNodes: (ids?: string[]) => void;
+  /** 粘贴到目标目录，默认粘贴到当前上下文目录 */
+  pasteNodes: (targetFolderId?: string | null) => Promise<void>;
+  /** 当前是否存在可粘贴内容 */
+  canPasteNodes: () => boolean;
   /** 新建文件，返回新节点 id */
   createFile: (
     name: string,

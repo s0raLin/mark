@@ -492,6 +492,7 @@ impl StorageRepo {
                 kind: "text".to_string(),
                 mime_type: Some("text/plain".to_string()),
                 media_data_url: None,
+                content_base64: None,
                 size: Some(bytes.len() as u64),
                 editable: true,
                 previewable: true,
@@ -509,6 +510,7 @@ impl StorageRepo {
             mime_type: Some(mime_type.clone()),
             media_data_url: previewable
                 .then(|| format!("data:{};base64,{}", mime_type, STANDARD.encode(&bytes))),
+            content_base64: Some(STANDARD.encode(&bytes)),
             size: Some(bytes.len() as u64),
             editable: false,
             previewable,

@@ -25,6 +25,7 @@ export {
   getDesktopWindowPosition,
   listSystemFonts,
   openExternalUrl,
+  saveDesktopBinaryFile,
   saveDesktopTextFile,
   setDesktopWindowPosition,
 } from "./desktop";

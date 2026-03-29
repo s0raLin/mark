@@ -1,10 +1,12 @@
 use crate::commands::ok;
 use crate::models::types::{ApiResponse, WindowPosition};
+use base64::engine::general_purpose::STANDARD;
+use base64::Engine;
 use rfd::FileDialog;
+use serde::Deserialize;
 use std::fs;
 use std::process::Command;
 use tauri::{PhysicalPosition, Position, WebviewWindow};
-use serde::Deserialize;
 
 #[tauri::command]
 pub fn desktop_get_window_position(
@@ -80,6 +82,37 @@ pub fn desktop_save_text_file(
     };
 
     fs::write(path, content).map_err(|err| err.to_string())?;
+    Ok(ok(true))
+}
+
+#[tauri::command]
+pub fn desktop_save_binary_file(
+    file_name: String,
+    content_base64: String,
+    filters: Option<Vec<SaveFilter>>,
+) -> Result<ApiResponse<bool>, String> {
+    let mut dialog = FileDialog::new().set_file_name(&file_name);
+
+    if let Some(filters) = filters.as_ref() {
+        for filter in filters {
+            let extensions = filter
+                .extensions
+                .iter()
+                .map(String::as_str)
+                .collect::<Vec<_>>();
+            dialog = dialog.add_filter(&filter.name, &extensions);
+        }
+    }
+
+    let Some(path) = dialog.save_file() else {
+        return Ok(ok(false));
+    };
+
+    let bytes = STANDARD
+        .decode(content_base64)
+        .map_err(|err| err.to_string())?;
+
+    fs::write(path, bytes).map_err(|err| err.to_string())?;
     Ok(ok(true))
 }
 

@@ -112,6 +112,7 @@ pub struct GetFileContentResponse {
     pub kind: String,
     pub mime_type: Option<String>,
     pub media_data_url: Option<String>,
+    pub content_base64: Option<String>,
     pub size: Option<u64>,
     pub editable: bool,
     pub previewable: bool,

@@ -1,5 +1,4 @@
-import { useState } from "react";
-import showdown from "showdown";
+import { useMemo, useState } from "react";
 import {
   Code, Image as ImageIcon, FileText, Folder, Download, Share2, PlusCircle,
 } from "lucide-react";
@@ -9,7 +8,19 @@ import { FormatOption } from "./FormatOption";
 import { ModalHeader } from "../ModalHeader";
 import { ModalShell } from "../ModalShell";
 import { errorBus } from "@/contexts/errorBus";
-import { hasTauriRuntime, saveDesktopTextFile } from "@/api/client";
+import { openExternalUrl } from "@/api/client";
+import {
+  buildExportDocument,
+  buildPdfArtifact,
+  buildPngArtifact,
+  buildZipArtifact,
+  deriveDocumentTitle,
+  ExportFormat,
+  ExportPreset,
+  saveExportArtifact,
+  sanitizeFileStem,
+  shareExportArtifact,
+} from "./exportUtils";
 
 interface ExportModalProps {
   markdown: string;
@@ -18,110 +29,164 @@ interface ExportModalProps {
 
 export function ExportModal({ markdown, onClose }: ExportModalProps) {
   const { t } = useTranslation();
-  const [selectedFormat, setSelectedFormat] = useState<"pdf" | "html" | "png" | "zip">("pdf");
-  const [selectedPreset, setSelectedPreset] = useState<"modern" | "ivory" | "terminal" | "academic">("modern");
-  const [customCss, setCustomCss] = useState(`body {\n  font-family: 'Quicksand', sans-serif;\n  line-height: 1.8;\n}`);
+  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>("pdf");
+  const [selectedPreset, setSelectedPreset] = useState<ExportPreset>("modern");
+  const [customCss, setCustomCss] = useState(`.notemark-export-root {\n  font-family: 'Quicksand', sans-serif;\n  line-height: 1.8;\n}`);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   const presetCssMap = {
     modern: `
-      body { font-family: 'Quicksand', sans-serif; background: #f8fafc; color: #334155; }
-      h1 { color: #0f172a; border-bottom: 2px solid #ff8fab; }
-      h2, h3 { color: #1e293b; }
-      a { color: #ff8fab; }
+      .notemark-export-root { font-family: 'Quicksand', sans-serif; background: #f8fafc; color: #334155; }
+      .notemark-export-content h1 { color: #0f172a; border-bottom: 2px solid #ff8fab; }
+      .notemark-export-content h2, .notemark-export-content h3 { color: #1e293b; }
+      .notemark-export-content a { color: #ff8fab; }
     `,
     ivory: `
-      body { font-family: Georgia, 'Times New Roman', serif; background: #fffdf7; color: #4b3621; }
-      h1, h2, h3 { color: #3d2f1e; }
-      blockquote { border-left-color: #c08457; color: #7c5c3b; background: #fff7e6; }
-      code, pre { background: #f5efe2; color: #5b4330; }
-      a { color: #b45309; }
+      .notemark-export-root { font-family: Georgia, 'Times New Roman', serif; background: #fffdf7; color: #4b3621; }
+      .notemark-export-content h1, .notemark-export-content h2, .notemark-export-content h3 { color: #3d2f1e; }
+      .notemark-export-content blockquote { border-left-color: #c08457; color: #7c5c3b; background: #fff7e6; }
+      .notemark-export-content code, .notemark-export-content pre { background: #f5efe2; color: #5b4330; }
+      .notemark-export-content a { color: #b45309; }
     `,
     terminal: `
-      body { font-family: 'JetBrains Mono', monospace; background: #0f172a; color: #d1fae5; }
-      h1, h2, h3 { color: #86efac; border-bottom-color: #14532d; }
-      code, pre { background: #111827; color: #a7f3d0; }
-      blockquote { border-left-color: #22c55e; color: #bbf7d0; background: rgba(34,197,94,0.08); }
-      th { background: #111827; }
-      th, td { border-color: #1f2937; }
-      a { color: #5eead4; }
+      .notemark-export-root { font-family: 'JetBrains Mono', monospace; background: #0f172a; color: #d1fae5; }
+      .notemark-export-hero, .notemark-export-meta div { background: rgba(15, 23, 42, 0.88); border-color: #14532d; }
+      .notemark-export-hero h1, .notemark-export-content h1, .notemark-export-content h2, .notemark-export-content h3 { color: #86efac; border-bottom-color: #14532d; }
+      .notemark-export-subtitle, .notemark-export-meta span, .notemark-export-content p, .notemark-export-content li { color: #bbf7d0; }
+      .notemark-export-meta strong { color: #dcfce7; }
+      .notemark-export-content code, .notemark-export-content pre { background: #111827; color: #a7f3d0; }
+      .notemark-export-content blockquote { border-left-color: #22c55e; color: #bbf7d0; background: rgba(34,197,94,0.08); }
+      .notemark-export-content th { background: #111827; }
+      .notemark-export-content th, .notemark-export-content td { border-color: #1f2937; }
+      .notemark-export-content a { color: #5eead4; }
     `,
     academic: `
-      body { font-family: 'Playfair Display', Georgia, serif; background: #ffffff; color: #1f2937; max-width: 900px; }
-      h1, h2, h3 { color: #111827; letter-spacing: 0.01em; }
-      p, li { font-size: 1.02rem; }
-      blockquote { border-left-color: #6366f1; color: #4b5563; background: #f8fafc; }
-      a { color: #4338ca; }
+      .notemark-export-root { font-family: 'Playfair Display', Georgia, serif; background: #ffffff; color: #1f2937; max-width: 900px; }
+      .notemark-export-content h1, .notemark-export-content h2, .notemark-export-content h3 { color: #111827; letter-spacing: 0.01em; }
+      .notemark-export-content p, .notemark-export-content li { font-size: 1.02rem; }
+      .notemark-export-content blockquote { border-left-color: #6366f1; color: #4b5563; background: #f8fafc; }
+      .notemark-export-content a { color: #4338ca; }
     `,
   } as const;
 
-  const handleExport = async () => {
-    if (selectedFormat === "html") {
-      const converter = new showdown.Converter({
-        tables: true, tasklists: true, strikethrough: true, ghCodeBlocks: true,
-      });
-      const htmlContent = converter.makeHtml(markdown);
-      const presetCss = presetCssMap[selectedPreset];
-      const fullHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NoteMark Export</title>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Quicksand', sans-serif; line-height: 1.6; color: #334155; max-width: 800px; margin: 40px auto; padding: 0 20px; background-color: #fdfdfd; }
-        h1 { color: #1e293b; border-bottom: 2px solid #ff8fab; padding-bottom: 10px; }
-        h2, h3 { color: #1e293b; margin-top: 30px; }
-        code { background-color: #f1f5f9; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
-        pre { background-color: #f1f5f9; padding: 15px; border-radius: 8px; overflow-x: auto; }
-        pre code { background: none; padding: 0; }
-        blockquote { border-left: 4px solid #ff8fab; padding-left: 15px; color: #64748b; font-style: italic; margin: 16px 0; }
-        img { max-width: 100%; border-radius: 8px; }
-        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
-        th { background-color: #f8fafc; }
-        a { color: #ff8fab; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        ${presetCss}
-        ${customCss}
-    </style>
-</head>
-<body>${htmlContent}</body>
-</html>`;
-      if (hasTauriRuntime()) {
-        const saved = await saveDesktopTextFile(
-          "notemark-export.html",
-          fullHtml,
-          [{ name: "HTML", extensions: ["html"] }],
-        );
+  const exportDocument = useMemo(
+    () => buildExportDocument({
+      markdown,
+      presetCss: presetCssMap[selectedPreset],
+      customCss,
+      title: deriveDocumentTitle(markdown),
+      includeMetadata: true,
+    }),
+    [customCss, markdown, selectedPreset],
+  );
 
-        if (!saved) {
-          errorBus.warning("已取消导出", {
-            message: "你还没有选择保存位置。",
-            dedupeKey: "export-cancelled",
-            durationMs: 2200,
-          });
-        }
+  const baseFileStem = useMemo(
+    () => sanitizeFileStem(exportDocument.title),
+    [exportDocument.title],
+  );
+
+  const getFilters = (format: ExportFormat) => {
+    if (format === "html") {
+      return [{ name: "HTML", extensions: ["html"] }];
+    }
+    if (format === "pdf") {
+      return [{ name: "PDF", extensions: ["pdf"] }];
+    }
+    if (format === "png") {
+      return [{ name: "PNG", extensions: ["png"] }];
+    }
+    return [{ name: "ZIP", extensions: ["zip"] }];
+  };
+
+  const buildArtifact = async (format: ExportFormat) => {
+    if (format === "html") {
+      return {
+        fileName: `${baseFileStem}.html`,
+        mimeType: "text/html",
+        text: exportDocument.fullHtml,
+      };
+    }
+
+    if (format === "png") {
+      return buildPngArtifact(baseFileStem, exportDocument);
+    }
+
+    if (format === "pdf") {
+      return buildPdfArtifact(baseFileStem, exportDocument);
+    }
+
+    return buildZipArtifact(baseFileStem, markdown, exportDocument);
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const artifact = await buildArtifact(selectedFormat);
+      const saved = await saveExportArtifact(artifact, getFilters(selectedFormat));
+
+      if (!saved) {
+        errorBus.warning("已取消导出", {
+          message: "你还没有选择保存位置。",
+          dedupeKey: "export-cancelled",
+          durationMs: 2200,
+        });
         return;
       }
 
-      const blob = new Blob([fullHtml], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "notemark-export.html";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } else {
-      errorBus.info("该导出格式还在完善中", {
-        message: `目前已完整支持带自定义样式的 HTML 导出，${selectedFormat.toUpperCase()} 会继续补上。`,
-        dedupeKey: `export-format-pending:${selectedFormat}`,
-        durationMs: 3200,
+      errorBus.info("导出完成", {
+        message: `${artifact.fileName} 已准备好。`,
+        dedupeKey: `export-success:${artifact.fileName}`,
+        durationMs: 2200,
       });
+    } catch (error) {
+      errorBus.fromException("导出失败", error, {
+        message: "导出过程中遇到了一点问题，请稍后再试。",
+        dedupeKey: `export-failed:${selectedFormat}`,
+      });
+    } finally {
+      setIsExporting(false);
     }
+  };
+
+  const handleShare = async () => {
+    setIsSharing(true);
+    try {
+      const artifact = await buildArtifact(selectedFormat);
+      const shared = await shareExportArtifact(artifact);
+      if (!shared) {
+        errorBus.info("当前环境不支持系统分享", {
+          message: "你可以先导出文件，再通过系统应用发送给别人。",
+          dedupeKey: "share-not-supported",
+          durationMs: 3000,
+        });
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        errorBus.warning("已取消分享", {
+          message: "本次分享没有继续。",
+          dedupeKey: "share-cancelled",
+          durationMs: 2200,
+        });
+        return;
+      }
+
+      errorBus.fromException("分享失败", error, {
+        message: "当前文件还没有成功分享到系统面板。",
+        dedupeKey: `share-failed:${selectedFormat}`,
+      });
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const handleOpenCssDocs = () => {
+    if (typeof window !== "undefined" && !window.__TAURI__ && !window.__TAURI_INTERNALS__) {
+      window.open("https://developer.mozilla.org/docs/Web/CSS", "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    openExternalUrl("https://developer.mozilla.org/docs/Web/CSS");
   };
 
   const previewLabel: Record<string, string> = {
@@ -215,9 +280,13 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-bold text-slate-600">{t("exportModal.customCss")}</label>
-                    <span className="text-xs text-primary font-bold cursor-pointer hover:underline">
+                    <button
+                      type="button"
+                      onClick={handleOpenCssDocs}
+                      className="text-xs text-primary font-bold cursor-pointer hover:underline"
+                    >
                       {t("exportModal.viewDocs")}
-                    </span>
+                    </button>
                   </div>
                   <textarea
                     className="w-full h-36 rounded-xl border-2 border-primary/10 bg-primary/5 text-xs font-mono p-4 focus:ring-primary focus:border-primary transition-all"
@@ -325,14 +394,19 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
             <div className="modal-m3-footer p-8 space-y-4">
               <button
                 onClick={handleExport}
+                disabled={isExporting || isSharing}
                 className="modal-m3-filled-button w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold active:scale-[0.98] transition-all"
               >
                 <Download className="w-5 h-5" />
-                {t("exportModal.exportBtn")} {selectedFormat.toUpperCase()}
+                {isExporting ? "导出中..." : `${t("exportModal.exportBtn")} ${selectedFormat.toUpperCase()}`}
               </button>
-              <button className="modal-m3-outlined-button w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold active:scale-[0.98] transition-all">
+              <button
+                onClick={handleShare}
+                disabled={isExporting || isSharing}
+                className="modal-m3-outlined-button w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold active:scale-[0.98] transition-all disabled:opacity-60"
+              >
                 <Share2 className="w-5 h-5" />
-                {t("exportModal.shareLink")}
+                {isSharing ? "准备分享..." : t("exportModal.shareLink")}
               </button>
               <p className="text-center text-[12px] text-primary/40 mt-3 font-semibold uppercase tracking-wider">
                 {t("exportModal.preserved")}

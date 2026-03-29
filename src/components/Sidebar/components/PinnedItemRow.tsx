@@ -13,9 +13,20 @@ import { importDroppedIntoFs } from "../utils";
 interface PinnedItemRowProps {
   node: FileNode;
   fs: FileSystemAPI;
+  isSelected: boolean;
+  selectionCount: number;
+  onNodeClick: (node: FileNode, event: React.MouseEvent<HTMLDivElement>) => void;
+  onNodeContextMenu: (node: FileNode, event: React.MouseEvent<HTMLDivElement>) => void;
 }
 
-export default function PinnedItemRow({ node, fs }: PinnedItemRowProps) {
+export default function PinnedItemRow({
+  node,
+  fs,
+  isSelected,
+  selectionCount,
+  onNodeClick,
+  onNodeContextMenu,
+}: PinnedItemRowProps) {
   const [renaming, setRenaming] = useState(false);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
   const [isDragOverFolder, setIsDragOverFolder] = useState(false);
@@ -70,15 +81,13 @@ export default function PinnedItemRow({ node, fs }: PinnedItemRowProps) {
     <div>
       <div
         onContextMenu={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (node.type === "file") fs.openFile(node.id);
+          if (renaming) return;
+          onNodeContextMenu(node, e);
           setCtxMenu({ x: e.clientX, y: e.clientY });
         }}
-        onClick={() => {
+        onClick={(e) => {
           if (renaming) return;
-          if (node.type === "file") fs.openFile(node.id);
-          else fs.toggleFolder(node.id);
+          onNodeClick(node, e);
         }}
         onDragOver={handleOSDragOver}
         onDragLeave={handleOSDragLeave}
@@ -87,7 +96,11 @@ export default function PinnedItemRow({ node, fs }: PinnedItemRowProps) {
         data-node-id={node.id}
         className={cn(
           "group/sidebar-row flex items-center gap-2 rounded-xl px-2 py-2 transition-colors select-none cursor-pointer",
-          isActive ? "bg-primary/[0.12] text-primary font-semibold" : "hover:bg-primary/[0.08] text-slate-600",
+          isActive
+            ? "bg-primary/[0.12] text-primary font-semibold"
+            : isSelected
+              ? "bg-primary/[0.08] text-primary/90 ring-1 ring-primary/15"
+              : "hover:bg-primary/[0.08] text-slate-600",
           (isDragOverFolder) && "bg-primary/[0.08] ring-1 ring-primary/30",
         )}
       >
@@ -108,7 +121,7 @@ export default function PinnedItemRow({ node, fs }: PinnedItemRowProps) {
             onCancel={() => setRenaming(false)}
           />
         ) : (
-          <span className={cn("flex-1 truncate text-sm", isActive && "font-bold")}>
+          <span className={cn("flex-1 truncate text-sm", (isActive || isSelected) && "font-bold")}>
             {node.name}
           </span>
         )}
@@ -119,9 +132,14 @@ export default function PinnedItemRow({ node, fs }: PinnedItemRowProps) {
             y={ctxMenu.y}
             node={node}
             isPinned
+            selectionCount={selectionCount}
+            canPaste={fs.canPasteNodes()}
             onRename={() => setRenaming(true)}
-            onDelete={() => fs.deleteNode(node.id)}
+            onDelete={() => fs.deleteSelectedNodes([node.id])}
             onTogglePin={() => fs.togglePin(node.id)}
+            onCopy={() => fs.copySelectedNodes([node.id])}
+            onCut={() => fs.cutSelectedNodes([node.id])}
+            onPaste={node.type === "folder" ? () => void fs.pasteNodes(node.id) : undefined}
             onClose={() => setCtxMenu(null)}
             onNewFile={node.type === "folder" ? () => setNewItem("file") : undefined}
             onNewFolder={node.type === "folder" ? () => setNewItem("folder") : undefined}
@@ -148,7 +166,17 @@ export default function PinnedItemRow({ node, fs }: PinnedItemRowProps) {
           <DragList
             nodes={children}
             parentId={node.id}
-            renderNode={(child) => <TreeNode node={child} depth={1} fs={fs} />}
+            renderNode={(child) => (
+              <TreeNode
+                node={child}
+                depth={1}
+                fs={fs}
+                isSelected={fs.isNodeSelected(child.id)}
+                selectionCount={selectionCount}
+                onNodeClick={onNodeClick}
+                onNodeContextMenu={onNodeContextMenu}
+              />
+            )}
           />
           {children.length === 0 && (
             <p className="text-[11px] text-slate-300 px-4 py-1">Empty folder</p>

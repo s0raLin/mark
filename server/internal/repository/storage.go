@@ -540,6 +540,7 @@ func (r *StorageRepo) GetFileContent(id string) (model.GetFileContentResponse, b
 		Content:     "",
 		Kind:        kind,
 		MimeType:    mimeType,
+		ContentBase64: base64.StdEncoding.EncodeToString(data),
 		Size:        int64(len(data)),
 		Editable:    false,
 		Previewable: kind != "binary",

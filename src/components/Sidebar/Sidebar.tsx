@@ -1,6 +1,13 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { SidebarItem } from "./SidebarItem";
-import { FilePlus, FolderPlus, Search, Settings } from "lucide-react";
+import {
+  ClipboardPaste,
+  FilePlus,
+  FolderPlus,
+  Search,
+  Settings,
+  Trash2,
+} from "lucide-react";
 import { cn } from "@/utils/cn";
 import { SidebarProps, DragContext, ResolvedDrop } from "./types";
 import { NewItemDialog, DragList, TreeNode, PinnedItemRow } from "./components";
@@ -18,6 +25,7 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen }
 
   const draggingIdRef = useRef<string | null>(null);
   const dropTargetRef = useRef<ResolvedDrop | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
 
   const setDraggingId = useCallback((id: string | null) => {
     draggingIdRef.current = id;
@@ -35,6 +43,123 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen }
 
   const rootNodes = fs.getRootNodes();
   const pinnedNodes = fs.pinnedNodes;
+  const trashNodes = fs.getTrashNodes();
+  const selectionCount = fs.selectedNodeIds.size;
+
+  const visibleNodeIds = useMemo(() => {
+    const orderedIds: string[] = [];
+    const visited = new Set<string>();
+
+    const walk = (node: typeof rootNodes[number]) => {
+      if (!visited.has(node.id)) {
+        orderedIds.push(node.id);
+        visited.add(node.id);
+      }
+      if (node.type === "folder" && fs.expandedFolders.has(node.id)) {
+        fs.getChildren(node.id).forEach(walk);
+      }
+    };
+
+    pinnedNodes.forEach(walk);
+    rootNodes.forEach(walk);
+    trashNodes.forEach(walk);
+    return orderedIds;
+  }, [fs, pinnedNodes, rootNodes, trashNodes]);
+
+  const focusSidebar = useCallback(() => {
+    rootRef.current?.focus();
+  }, []);
+
+  const selectRange = useCallback((targetId: string) => {
+    const anchorId = fs.selectionAnchorId ?? fs.activeFileId ?? targetId;
+    const startIndex = visibleNodeIds.indexOf(anchorId);
+    const endIndex = visibleNodeIds.indexOf(targetId);
+
+    if (startIndex === -1 || endIndex === -1) {
+      fs.replaceNodeSelection([targetId], targetId);
+      return;
+    }
+
+    const [from, to] = startIndex < endIndex ? [startIndex, endIndex] : [endIndex, startIndex];
+    fs.replaceNodeSelection(visibleNodeIds.slice(from, to + 1), anchorId);
+  }, [fs, visibleNodeIds]);
+
+  const handleNodeClick = useCallback((node: typeof rootNodes[number], event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    focusSidebar();
+
+    const isAdditive = event.metaKey || event.ctrlKey;
+    if (event.shiftKey) {
+      selectRange(node.id);
+      return;
+    }
+
+    if (isAdditive) {
+      fs.toggleNodeSelection(node.id);
+      return;
+    }
+
+    fs.replaceNodeSelection([node.id], node.id);
+    if (node.type === "folder") {
+      fs.toggleFolder(node.id);
+    } else {
+      fs.openFile(node.id);
+    }
+  }, [focusSidebar, fs, selectRange]);
+
+  const handleNodeContextMenu = useCallback((node: typeof rootNodes[number], event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    focusSidebar();
+
+    if (!fs.isNodeSelected(node.id)) {
+      fs.replaceNodeSelection([node.id], node.id);
+    }
+
+    if (node.type === "file") {
+      fs.openFile(node.id);
+    }
+  }, [focusSidebar, fs]);
+
+  const handleSidebarKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    const isModifier = event.ctrlKey || event.metaKey;
+    const lowerKey = event.key.toLowerCase();
+
+    if (isModifier && lowerKey === "a") {
+      event.preventDefault();
+      if (visibleNodeIds.length === 0) {
+        fs.clearNodeSelection();
+        return;
+      }
+
+      fs.replaceNodeSelection(visibleNodeIds, fs.selectionAnchorId ?? visibleNodeIds[0]);
+      return;
+    }
+
+    if (isModifier && lowerKey === "c") {
+      event.preventDefault();
+      fs.copySelectedNodes();
+      return;
+    }
+
+    if (isModifier && lowerKey === "x") {
+      event.preventDefault();
+      fs.cutSelectedNodes();
+      return;
+    }
+
+    if (isModifier && lowerKey === "v") {
+      event.preventDefault();
+      void fs.pasteNodes();
+      return;
+    }
+
+    if (event.key === "Delete" || event.key === "Backspace") {
+      event.preventDefault();
+      void fs.deleteSelectedNodes();
+    }
+  }, [fs, visibleNodeIds]);
   const isExternalFileDrag = useCallback((dataTransfer: DataTransfer | null) => {
     if (!dataTransfer) {
       return false;
@@ -130,10 +255,18 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen }
   return (
     <DragContext.Provider value={{ draggingId, draggingIdRef, setDraggingId, dropTarget, setDropTarget }}>
       <div
+        ref={rootRef}
+        tabIndex={0}
         className={cn("app-m3-sidebar-content flex flex-col h-full transition-colors duration-200 relative", isDragOver && "bg-primary/[0.04]")}
+        onMouseDown={focusSidebar}
+        onKeyDown={handleSidebarKeyDown}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onClick={() => {
+          focusSidebar();
+          fs.clearNodeSelection();
+        }}
         onContextMenu={(e) => {
           if ((e.target as HTMLElement).closest("[data-node-id]")) return;
           e.preventDefault();
@@ -154,7 +287,16 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen }
               <DragList
                 nodes={pinnedNodes}
                 parentId={null}
-                renderNode={(node) => <PinnedItemRow node={node} fs={fs} />}
+                renderNode={(node) => (
+                  <PinnedItemRow
+                    node={node}
+                    fs={fs}
+                    isSelected={fs.isNodeSelected(node.id)}
+                    selectionCount={selectionCount}
+                    onNodeClick={handleNodeClick}
+                    onNodeContextMenu={handleNodeContextMenu}
+                  />
+                )}
               />
             </section>
           )}
@@ -194,7 +336,61 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen }
               <DragList
                 nodes={rootNodes}
                 parentId={null}
-                renderNode={(node) => <TreeNode node={node} depth={0} fs={fs} />}
+                renderNode={(node) => (
+                  <TreeNode
+                    node={node}
+                    depth={0}
+                    fs={fs}
+                    isSelected={fs.isNodeSelected(node.id)}
+                    selectionCount={selectionCount}
+                    onNodeClick={handleNodeClick}
+                    onNodeContextMenu={handleNodeContextMenu}
+                  />
+                )}
+              />
+            )}
+          </section>
+
+          <section>
+            <div className="px-3 mb-2 flex items-center justify-between">
+              <h2 className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-primary/60">Recycle Bin</h2>
+              <div className="flex items-center gap-1">
+                <button
+                  title="Paste into recycle bin"
+                  onClick={() => void fs.pasteNodes(fs.trashFolderId)}
+                  disabled={!fs.trashFolderId || !fs.canPasteNodes()}
+                  className="p-1 rounded-lg hover:bg-primary/10 transition-colors disabled:opacity-40"
+                >
+                  <ClipboardPaste className="w-3.5 h-3.5 text-primary/50 hover:text-primary" />
+                </button>
+                <button
+                  title="Delete selected"
+                  onClick={() => void fs.deleteSelectedNodes()}
+                  disabled={selectionCount === 0}
+                  className="p-1 rounded-lg hover:bg-primary/10 transition-colors disabled:opacity-40"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-primary/50 hover:text-primary" />
+                </button>
+              </div>
+            </div>
+
+            {trashNodes.length === 0 ? (
+              <p className="text-xs text-slate-300 px-3 py-2">Recycle bin is empty</p>
+            ) : (
+              <DragList
+                nodes={trashNodes}
+                parentId={fs.trashFolderId}
+                renderNode={(node) => (
+                  <TreeNode
+                    node={node}
+                    depth={0}
+                    fs={fs}
+                    isSelected={fs.isNodeSelected(node.id)}
+                    selectionCount={selectionCount}
+                    onNodeClick={handleNodeClick}
+                    onNodeContextMenu={handleNodeContextMenu}
+                  />
+                )}
               />
             )}
           </section>

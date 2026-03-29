@@ -37,6 +37,7 @@ export const IPC_COMMANDS = {
     setWindowPosition: "desktop_set_window_position",
     listSystemFonts: "desktop_list_system_fonts",
     saveTextFile: "desktop_save_text_file",
+    saveBinaryFile: "desktop_save_binary_file",
   },
   search: {
     queryFiles: "search_query_files",

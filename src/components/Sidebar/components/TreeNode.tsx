@@ -12,9 +12,21 @@ interface TreeNodeProps {
   node: FileNode;
   depth: number;
   fs: FileSystemAPI;
+  isSelected: boolean;
+  selectionCount: number;
+  onNodeClick: (node: FileNode, event: React.MouseEvent<HTMLDivElement>) => void;
+  onNodeContextMenu: (node: FileNode, event: React.MouseEvent<HTMLDivElement>) => void;
 }
 
-export default function TreeNode({ node, depth, fs }: TreeNodeProps) {
+export default function TreeNode({
+  node,
+  depth,
+  fs,
+  isSelected,
+  selectionCount,
+  onNodeClick,
+  onNodeContextMenu,
+}: TreeNodeProps) {
   const [renaming, setRenaming] = useState(false);
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
   const [newItem, setNewItem] = useState<"file" | "folder" | null>(null);
@@ -23,7 +35,11 @@ export default function TreeNode({ node, depth, fs }: TreeNodeProps) {
   const isActive = fs.activeFileId === node.id;
   const isOpen = node.type === "folder" && fs.expandedFolders.has(node.id);
   const children = node.type === "folder" ? fs.getChildren(node.id) : [];
-  const isPinned = fs.pinnedIds.includes(node.id);
+  const trashRootId = fs.trashFolderId;
+  const isInTrash = Boolean(
+    trashRootId && (node.parentId === trashRootId || node.id === trashRootId),
+  );
+  const isPinned = !isInTrash && fs.pinnedIds.includes(node.id);
   const isExternalFileDrag = useCallback((dataTransfer: DataTransfer | null) => {
     if (!dataTransfer) {
       return false;
@@ -71,15 +87,13 @@ export default function TreeNode({ node, depth, fs }: TreeNodeProps) {
     <div style={{ paddingLeft: depth > 0 ? `${depth * 12}px` : 0 }}>
       <div
         onContextMenu={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (node.type === "file") fs.openFile(node.id);
+          if (renaming) return;
+          onNodeContextMenu(node, e);
           setCtxMenu({ x: e.clientX, y: e.clientY });
         }}
-        onClick={() => {
+        onClick={(e) => {
           if (renaming) return;
-          if (node.type === "folder") fs.toggleFolder(node.id);
-          else fs.openFile(node.id);
+          onNodeClick(node, e);
         }}
         onDragOver={handleOSDragOver}
         onDragLeave={handleOSDragLeave}
@@ -88,7 +102,11 @@ export default function TreeNode({ node, depth, fs }: TreeNodeProps) {
         data-node-id={node.id}
         className={cn(
           "group/sidebar-row flex items-center gap-2 rounded-xl px-2 py-2 transition-colors select-none cursor-pointer",
-          isActive ? "bg-primary/[0.12] text-primary font-semibold" : "hover:bg-primary/[0.08] text-slate-600",
+          isActive
+            ? "bg-primary/[0.12] text-primary font-semibold"
+            : isSelected
+              ? "bg-primary/[0.08] text-primary/90 ring-1 ring-primary/15"
+              : "hover:bg-primary/[0.08] text-slate-600",
           (isDragOverFolder) && "bg-primary/[0.08] ring-1 ring-primary/30",
           isPinned && !isActive && "bg-amber-50/50",
         )}
@@ -111,7 +129,7 @@ export default function TreeNode({ node, depth, fs }: TreeNodeProps) {
             onCancel={() => setRenaming(false)}
           />
         ) : (
-          <span className={cn("flex-1 truncate text-sm", isActive && "font-bold")}>
+          <span className={cn("flex-1 truncate text-sm", (isActive || isSelected) && "font-bold")}>
             {node.name}
           </span>
         )}
@@ -123,7 +141,17 @@ export default function TreeNode({ node, depth, fs }: TreeNodeProps) {
           <DragList
             nodes={children}
             parentId={node.id}
-            renderNode={(child) => <TreeNode node={child} depth={depth + 1} fs={fs} />}
+            renderNode={(child) => (
+              <TreeNode
+                node={child}
+                depth={depth + 1}
+                fs={fs}
+                isSelected={fs.isNodeSelected(child.id)}
+                selectionCount={selectionCount}
+                onNodeClick={onNodeClick}
+                onNodeContextMenu={onNodeContextMenu}
+              />
+            )}
           />
           {children.length === 0 && (
             <p className="text-[11px] text-slate-300 px-4 py-1">Empty folder</p>
@@ -137,9 +165,15 @@ export default function TreeNode({ node, depth, fs }: TreeNodeProps) {
           y={ctxMenu.y}
           node={node}
           isPinned={isPinned}
+          canPin={!isInTrash}
+          selectionCount={selectionCount}
+          canPaste={fs.canPasteNodes()}
           onRename={() => setRenaming(true)}
-          onDelete={() => fs.deleteNode(node.id)}
+          onDelete={() => fs.deleteSelectedNodes([node.id])}
           onTogglePin={() => fs.togglePin(node.id)}
+          onCopy={() => fs.copySelectedNodes([node.id])}
+          onCut={() => fs.cutSelectedNodes([node.id])}
+          onPaste={node.type === "folder" ? () => void fs.pasteNodes(node.id) : undefined}
           onClose={() => setCtxMenu(null)}
           onNewFile={node.type === "folder" ? () => setNewItem("file") : undefined}
           onNewFolder={node.type === "folder" ? () => setNewItem("folder") : undefined}

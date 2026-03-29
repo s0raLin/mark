@@ -88,6 +88,7 @@ type GetFileContentResponse struct {
 	Kind        string `json:"kind"`
 	MimeType    string `json:"mimeType,omitempty"`
 	MediaDataURL string `json:"mediaDataUrl,omitempty"`
+	ContentBase64 string `json:"contentBase64,omitempty"`
 	Size        int64  `json:"size,omitempty"`
 	Editable    bool   `json:"editable"`
 	Previewable bool   `json:"previewable"`
