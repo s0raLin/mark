@@ -14,7 +14,6 @@ import { EditorStateProvider } from "./contexts/EditorStateContext";
 import { MarkdownSyncProvider } from "./contexts/MarkdownSyncContext";
 import { EditorThemeProvider } from "./contexts/EditorConfig/EditorThemeProvider";
 
-
 function AppContent() {
   const storageSync = useStorageSyncContext();
 

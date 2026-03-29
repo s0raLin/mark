@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ChevronRight, FileText, Folder, Search, X, Filter, Calendar } from "lucide-react";
-import { motion } from "motion/react";
 import { cn } from "@/utils/cn";
 import { searchFiles } from "@/api/client";
 import { useTranslation } from "react-i18next";

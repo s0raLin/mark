@@ -9,12 +9,17 @@ directories:
 files:
   - dist/**/*
   - dist-electron/**/*
+  - "!images/**/*"
+  - "!server/cmd/server/data/**/*"
+  - "!dist/uploads/**/*"
 
 extraResources:
   - from: server/cmd/server
     to: server
     filter:
       - "**/*"
+      - "!data/**/*"
+      - "!public/uploads/**/*"
 
 # Electron 镜像配置
 electronDownload:

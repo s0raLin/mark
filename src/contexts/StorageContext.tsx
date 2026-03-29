@@ -1,10 +1,11 @@
 import {
   StorageUserSettings,
-  getUserData,
+  // getUserData,
   StorageFileSystem,
   StorageEditorConfig,
-  saveUserData,
+  // saveUserData,
 } from "@/api/client";
+import {getUserData, saveUserData} from "@/services/user"
 import i18n from "@/i18n";
 import {
   useState,

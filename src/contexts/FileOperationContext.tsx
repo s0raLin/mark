@@ -1,15 +1,5 @@
-import {
-  createFileOnServer,
-  saveFileContent,
-  createFolderOnServer,
-  deleteNodeOnServer,
-  renameNodeOnServer,
-  moveNodeOnServer,
-} from "@/api/client";
 import { FileNode, FileSystemAPI } from "@/types/filesystem";
-import { createContext, ReactNode, useCallback, useContext } from "react";
-import { ensureFileExtension } from "./utils/fileSystemUtils";
-import { useFileSystemContext } from "./FileSystemContext";
+import { createContext, ReactNode, useContext } from "react";
 import { useFileOperations } from "./hooks/useFileOperations";
 
 interface FileOperationsProps {

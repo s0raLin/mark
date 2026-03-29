@@ -6,7 +6,8 @@ import type {
 } from "@/api/client/types";
 
 // ===== 配置 =====
-const API_BASE_URL = "/api";
+// 开发环境使用相对路径（通过vite代理），生产环境使用完整URL
+const API_BASE_URL = import.meta.env.DEV ? "/api" : "http://localhost:8080/api";
 const REQUEST_TIMEOUT = 10000; // 10秒超时
 
 // ===== 创建 axios 实例 =====
