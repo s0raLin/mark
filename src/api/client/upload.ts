@@ -1,12 +1,28 @@
-import { ApiResponse } from "./types";
+import { IPC_COMMANDS } from "./commands";
+import type { ApiResponse, StoredUploadResponse } from "./types";
+import { extractData, hasTauriRuntime, invokeCommand, toDesktopAssetUrl } from "./utils";
 
 /**
  * 上传背景图片
  */
 export async function uploadImage(file: File): Promise<{ url: string }> {
+  if (hasTauriRuntime()) {
+    const response = await invokeCommand<ApiResponse<StoredUploadResponse>>(
+      IPC_COMMANDS.uploads.storeImage,
+      {
+        fileName: file.name,
+        bytes: Array.from(new Uint8Array(await file.arrayBuffer())),
+      },
+    );
+    const data = extractData(response);
+    return {
+      url: toDesktopAssetUrl(data.filePath),
+    };
+  }
+
   const formData = new FormData();
   formData.append("image", file);
-  const res = await fetch("/api/upload", { method: "POST", body: formData });
+  const res = await fetch("/api/uploads/images", { method: "POST", body: formData });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Upload failed: ${res.status} ${text}`);
@@ -20,9 +36,24 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
  * 上传自定义字体
  */
 export async function uploadFont(file: File): Promise<{ url: string; fontFamily: string }> {
+  if (hasTauriRuntime()) {
+    const response = await invokeCommand<ApiResponse<StoredUploadResponse>>(
+      IPC_COMMANDS.uploads.storeFont,
+      {
+        fileName: file.name,
+        bytes: Array.from(new Uint8Array(await file.arrayBuffer())),
+      },
+    );
+    const data = extractData(response);
+    return {
+      url: toDesktopAssetUrl(data.filePath),
+      fontFamily: data.fontFamily ?? file.name,
+    };
+  }
+
   const formData = new FormData();
   formData.append("font", file);
-  const res = await fetch("/api/upload-font", { method: "POST", body: formData });
+  const res = await fetch("/api/uploads/fonts", { method: "POST", body: formData });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Upload failed: ${res.status} ${text}`);

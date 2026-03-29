@@ -4,14 +4,19 @@ import type {
   StorageFileSystem,
 } from "../types";
 import { IPC_COMMANDS } from "../commands";
-import { extractData, handleApiError, hasTauriRuntime, invokeCommand } from "../utils";
-import { getUserSettings, updateUserSettings } from "./users";
+import {
+  extractData,
+  handleApiError,
+  hasTauriRuntime,
+  httpGet,
+  httpSend,
+  invokeCommand,
+} from "../utils";
 
 export async function getFileSystemTree(): Promise<StorageFileSystem> {
   try {
     if (!hasTauriRuntime()) {
-      const settings = await getUserSettings();
-      return settings.fileSystem;
+      return httpGet<StorageFileSystem>("/file-system");
     }
 
     const response = await invokeCommand<ApiResponse<StorageFileSystem>>(
@@ -28,10 +33,9 @@ export async function updateFileSystemTree(
 ): Promise<SaveResponse> {
   try {
     if (!hasTauriRuntime()) {
-      const settings = await getUserSettings();
-      return updateUserSettings({
-        fileSystem,
-        editorConfig: settings.editorConfig,
+      return httpSend<SaveResponse>("/file-system", {
+        method: "PUT",
+        body: JSON.stringify({ fileSystem }),
       });
     }
 

@@ -18,7 +18,7 @@ import {
 export async function getUserSettings(): Promise<StorageUserSettings> {
   try {
     if (!hasTauriRuntime()) {
-      return httpGet<StorageUserSettings>("/user/data");
+      return httpGet<StorageUserSettings>("/users/me/settings");
     }
 
     const response = await invokeCommand<ApiResponse<StorageUserSettings>>(
@@ -36,8 +36,8 @@ export async function updateUserSettings(data: {
 }): Promise<SaveResponse> {
   try {
     if (!hasTauriRuntime()) {
-      return httpSend<SaveResponse>("/user/data", {
-        method: "POST",
+      return httpSend<SaveResponse>("/users/me/settings", {
+        method: "PUT",
         body: JSON.stringify(data),
       });
     }

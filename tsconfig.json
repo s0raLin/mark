@@ -23,5 +23,11 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "dist",
+    "dist-electron",
+    "release",
+    "src-tauri/target"
+  ]
 }

@@ -33,6 +33,14 @@ pub fn run() {
             commands::file_nodes_move,
             commands::file_nodes_rename,
             commands::file_nodes_delete,
+            // uploads
+            commands::uploads_store_image,
+            commands::uploads_store_font,
+            // desktop helpers
+            commands::desktop_open_external,
+            commands::desktop_close_window,
+            commands::desktop_get_window_position,
+            commands::desktop_set_window_position,
             // search
             commands::search_query_files,
         ])

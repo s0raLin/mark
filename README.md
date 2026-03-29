@@ -35,8 +35,13 @@ pnpm dev:electron
 ### Tauri 开发模式
 
 ```bash
-cd src-tauri
-cargo tauri dev
+pnpm dev:tauri
+```
+
+### Tauri Linux 打包
+
+```bash
+pnpm build:tauri:linux
 ```
 
 ### 常用检查

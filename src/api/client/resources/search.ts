@@ -13,7 +13,7 @@ export async function queryFiles(
 ): Promise<SearchFileResult[]> {
   try {
     if (!hasTauriRuntime()) {
-      return httpGet<SearchFileResult[]>(`/files/search?q=${encodeURIComponent(query)}`);
+      return httpGet<SearchFileResult[]>(`/search/files?q=${encodeURIComponent(query)}`);
     }
 
     const response = await invokeCommand<ApiResponse<SearchFileResult[]>>(

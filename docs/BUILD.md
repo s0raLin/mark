@@ -7,7 +7,7 @@
 - `Electron + Go`
   这是当前更完整的旧发布链路，已经配置了 `electron-builder`。
 - `Tauri + Rust`
-  这是新的桌面链路，适合本地开发与后续迁移，但当前仓库里还没有完整替换 Electron 的正式发布流程。
+  这是新的桌面链路，当前已经可以直接构建 Linux `deb` 和 `AppImage`，并可继续通过 Tauri 配置文件扩展到更多 bundle 类型或平台。
 
 这份文档主要说明：
 
@@ -158,15 +158,34 @@ pnpm dist:linux
 ### 本地调试
 
 ```bash
-cd src-tauri
-cargo tauri dev
+pnpm dev:tauri
 ```
 
 ### 生产构建
 
 ```bash
-cd src-tauri
-cargo tauri build
+pnpm build:tauri
+```
+
+### Linux 打包
+
+默认的 Linux Tauri 配置会产出 `deb` 和 `AppImage`：
+
+```bash
+pnpm build:tauri:linux
+```
+
+如果只想构建单一格式：
+
+```bash
+pnpm build:tauri:deb
+pnpm build:tauri:appimage
+```
+
+如果你需要看到完整构建过程：
+
+```bash
+pnpm build:tauri:verbose
 ```
 
 ### Tauri 配置位置
@@ -174,6 +193,7 @@ cargo tauri build
 配置文件：
 
 - `src-tauri/tauri.conf.json`
+- `src-tauri/tauri.linux.conf.json`
 
 关键项：
 
@@ -185,10 +205,67 @@ cargo tauri build
   Tauri 开发前自动执行的前端命令
 - `build.beforeBuildCommand`
   Tauri 构建前自动执行的前端命令
+- `identifier`
+  应用包唯一标识，不能使用默认的 `com.tauri.dev`
+- `bundle.targets`
+  控制当前平台要输出哪些 bundle 类型
+
+### Linux bundle 的当前约定
+
+Linux 平台的 bundle 类型单独放在：
+
+- `src-tauri/tauri.linux.conf.json`
+
+当前内容等价于：
+
+```json
+{
+  "bundle": {
+    "targets": ["deb", "appimage"]
+  }
+}
+```
+
+这样做的好处是：
+
+- 主配置文件保留通用设置
+- Linux 打包规则独立维护
+- 后续新增 Windows / macOS 配置时，可以继续添加 `tauri.windows.conf.json`、`tauri.macos.conf.json`
+- 如果要做特定发布变体，也可以继续用 `cargo tauri build --config <file>` 追加配置
+
+### 如何扩展到别的 bundle 或平台
+
+有两种推荐方式：
+
+1. 改平台配置文件
+
+例如把 Linux 增加 `rpm`：
+
+```json
+{
+  "bundle": {
+    "targets": ["deb", "appimage", "rpm"]
+  }
+}
+```
+
+2. 构建时临时覆盖
+
+```bash
+cd src-tauri
+cargo tauri build --bundles deb,appimage,rpm
+```
+
+或者追加一个专门的配置文件：
+
+```bash
+cd src-tauri
+cargo tauri build --config ./tauri.release.conf.json
+```
 
 ### Tauri 当前状态说明
 
-虽然 Tauri 已经具备核心运行能力，但仓库整体仍处于双运行时过渡阶段：
+虽然 Tauri 已经具备核心运行能力，并且现在已经整理出 Linux 的 `deb + AppImage` 打包流程，但仓库整体仍处于双运行时过渡阶段：
 
 - 前端优先支持 Tauri IPC
 - Electron 仍保留本地服务回退
@@ -248,6 +325,17 @@ pnpm build:go
 - 是否安装了系统依赖
 - Rust 版本是否满足要求
 - `pnpm build` 是否能先成功
+- Linux 上是否安装了 `webkit2gtk`、`libsoup3` 等 Tauri 依赖
+
+### 4. `tsc --noEmit` 扫到了 `src-tauri/target`
+
+仓库已经在 `tsconfig.json` 中排除了：
+
+- `src-tauri/target`
+- `dist`
+- `dist-electron`
+
+如果你重新调整了 TypeScript 配置，请确保这些构建产物目录不要被纳入检查。
 
 ## 后续建议
 

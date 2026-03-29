@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ModalHeader } from "../ModalHeader";
 import { ModalShell } from "../ModalShell";
 import { useEditorConfigContext } from "@/contexts/EditorConfig/EditorThemeProvider";
+import { closeElectronWindow } from "@/utils/electron";
 
 interface LauncherModalProps {
   onClose: () => void;
@@ -14,13 +15,6 @@ interface LauncherModalProps {
   darkMode?: boolean;
   onDarkModeToggle?: () => void;
 }
-
-const getElectronIPC = () => {
-  try {
-    return (window as Window & { require?: (m: string) => { ipcRenderer: { send: (ch: string) => void } } })
-      .require?.("electron")?.ipcRenderer ?? null;
-  } catch { return null; }
-};
 
 export function LauncherModal({
   onClose,
@@ -97,7 +91,7 @@ export function LauncherModal({
           icon: <Power className="w-6 h-6" />,
           iconBg: "bg-red-100 text-red-500",
           label: t("launcher.quit"),
-          onClick: () => { getElectronIPC()?.send("window-close"); },
+          onClick: () => { closeElectronWindow(); },
         },
       ],
     },

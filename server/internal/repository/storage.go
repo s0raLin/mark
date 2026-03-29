@@ -299,6 +299,38 @@ func (r *StorageRepo) GetFullUserData() model.StorageUserSettings {
 	}
 }
 
+func (r *StorageRepo) GetEditorConfig() model.StorageEditorConfig {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.config.EditorConfig
+}
+
+func (r *StorageRepo) SaveEditorConfig(cfg model.StorageEditorConfig) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.config.EditorConfig = cfg
+	r.config.UpdatedAt = time.Now()
+	return r.saveConfig()
+}
+
+func (r *StorageRepo) GetFileSystem() model.StorageFileSystem {
+	return r.buildFileSystem()
+}
+
+func (r *StorageRepo) SaveFileSystem(fs model.StorageFileSystem) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.config.UpdatedAt = time.Now()
+	if err := r.saveConfig(); err != nil {
+		return err
+	}
+
+	r.updateDirMetas(fs)
+	return nil
+}
+
 // SaveFullUserData 同步磁盘文件结构 + 保存编辑器配置
 // 前端传来的 fileSystem 包含期望的节点树，我们据此更新 .meta.json（order/pinned）
 // 实际的文件/目录移动由专用 API 完成，这里只更新元数据

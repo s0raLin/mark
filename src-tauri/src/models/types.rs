@@ -141,3 +141,17 @@ pub struct SearchResult {
     pub snippet: String,
     pub match_type: String,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct StoredUploadResponse {
+    pub file_path: String,
+    pub font_family: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct WindowPosition {
+    pub x: i32,
+    pub y: i32,
+}

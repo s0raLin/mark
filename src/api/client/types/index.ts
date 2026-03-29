@@ -243,3 +243,13 @@ export interface SearchFileResult {
   snippet: string;
   matchType: "name" | "content";
 }
+
+export interface WindowPosition {
+  x: number;
+  y: number;
+}
+
+export interface StoredUploadResponse {
+  filePath: string;
+  fontFamily?: string;
+}

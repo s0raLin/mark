@@ -22,7 +22,7 @@ export async function getFileContent(
 ): Promise<GetFileContentResponse> {
   try {
     if (!hasTauriRuntime()) {
-      return httpGet<GetFileContentResponse>(`/file/${id}/content`);
+      return httpGet<GetFileContentResponse>(`/files/content?id=${encodeURIComponent(id)}`);
     }
 
     const response = await invokeCommand<ApiResponse<GetFileContentResponse>>(
@@ -41,9 +41,9 @@ export async function updateFileContent(
 ): Promise<SaveFileContentResponse> {
   try {
     if (!hasTauriRuntime()) {
-      return httpSend<SaveFileContentResponse>(`/file/${id}/content`, {
+      return httpSend<SaveFileContentResponse>("/files/content", {
         method: "PUT",
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ id, content }),
       });
     }
 
@@ -64,7 +64,7 @@ export async function createFileResource(
 ): Promise<CreateNodeResponse> {
   try {
     if (!hasTauriRuntime()) {
-      const data = await httpSend<{ id: string; name: string }>("/files/create", {
+      const data = await httpSend<{ id: string; name: string }>("/files", {
         method: "POST",
         body: JSON.stringify({ parentId, name, content }),
       });
@@ -90,7 +90,7 @@ export async function createFolderResource(
 ): Promise<CreateNodeResponse> {
   try {
     if (!hasTauriRuntime()) {
-      const data = await httpSend<{ id: string; name: string }>("/files/mkdir", {
+      const data = await httpSend<{ id: string; name: string }>("/folders", {
         method: "POST",
         body: JSON.stringify({ parentId, name }),
       });
@@ -116,8 +116,8 @@ export async function moveFileNode(
 ): Promise<MutateNodeResponse> {
   try {
     if (!hasTauriRuntime()) {
-      const data = await httpSend<{ id: string }>("/files/move", {
-        method: "POST",
+      const data = await httpSend<{ id: string }>("/file-nodes/parent", {
+        method: "PATCH",
         body: JSON.stringify({ id, newParentId }),
       });
       return {
@@ -142,8 +142,8 @@ export async function renameFileNode(
 ): Promise<MutateNodeResponse> {
   try {
     if (!hasTauriRuntime()) {
-      const data = await httpSend<{ id: string }>("/files/rename", {
-        method: "POST",
+      const data = await httpSend<{ id: string }>("/file-nodes/name", {
+        method: "PATCH",
         body: JSON.stringify({ id, newName }),
       });
       return {
@@ -165,7 +165,7 @@ export async function renameFileNode(
 export async function deleteFileNode(id: string): Promise<StorageFileSystem> {
   try {
     if (!hasTauriRuntime()) {
-      await httpSend<{ success: boolean }>(`/file/${id}`, {
+      await httpSend<{ success: boolean }>(`/file-nodes?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
       });
       return getFileSystemTree();

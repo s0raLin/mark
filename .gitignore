@@ -10,7 +10,10 @@ coverage/
 
 release/
 public/
+server/server
 server/cmd/server/server
+server/cmd/server/server.exe
+server/cmd/server/data/
 
 dist-electron/
 server/.idea

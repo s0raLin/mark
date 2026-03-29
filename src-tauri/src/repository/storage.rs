@@ -1,7 +1,7 @@
 use crate::models::types::{
-    CreateNodeResponse, GetFileContentResponse, MutateNodeResponse, SaveResponse,
-    SearchResult, StorageAppConfig, StorageEditorConfig, StorageFileNode, StorageFileSystem,
-    StorageUserSettings,
+    CreateNodeResponse, GetFileContentResponse, MutateNodeResponse, SaveResponse, SearchResult,
+    StorageAppConfig, StorageEditorConfig, StorageFileNode, StorageFileSystem, StorageUserSettings,
+    StoredUploadResponse,
 };
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -45,6 +45,8 @@ pub struct StorageRepo {
     config: StorageAppConfig,
     /// 用户文件实际落盘的根目录。
     files_root: PathBuf,
+    /// 上传资源落盘目录。
+    uploads_root: PathBuf,
     /// 用户配置 JSON 路径。
     config_path: PathBuf,
 }
@@ -60,9 +62,11 @@ impl StorageRepo {
             .unwrap_or_else(|| PathBuf::from("."))
             .join("notemark");
         let files_root = app_data.join("files");
+        let uploads_root = app_data.join("uploads");
         let config_path = app_data.join("userdata.json");
 
         let _ = fs::create_dir_all(&files_root);
+        let _ = fs::create_dir_all(&uploads_root);
         let _ = fs::create_dir_all(&app_data);
 
         let mut repo = Self {
@@ -74,6 +78,7 @@ impl StorageRepo {
                 updated_at: Utc::now(),
             },
             files_root,
+            uploads_root,
             config_path,
         };
         repo.load_config();
@@ -150,8 +155,11 @@ impl StorageRepo {
             .enumerate()
             .map(|(idx, name)| (name.clone(), idx))
             .collect();
-        let pinned_map: HashMap<String, bool> =
-            meta.pinned.iter().map(|name| (name.clone(), true)).collect();
+        let pinned_map: HashMap<String, bool> = meta
+            .pinned
+            .iter()
+            .map(|name| (name.clone(), true))
+            .collect();
 
         let mut current_level = Vec::new();
         let mut nested = Vec::new();
@@ -204,11 +212,7 @@ impl StorageRepo {
         let mut grouped: HashMap<String, Vec<NodeEntry>> = HashMap::new();
 
         for entry in entries {
-            let parent = entry
-                .node
-                .parent_id
-                .clone()
-                .unwrap_or_default();
+            let parent = entry.node.parent_id.clone().unwrap_or_default();
             grouped.entry(parent).or_default().push(entry);
         }
 
@@ -300,7 +304,10 @@ impl StorageRepo {
     /// - 根级排序
     /// - 文件夹内部排序
     /// - pinned 状态
-    pub fn save_file_system(&mut self, file_system: StorageFileSystem) -> Result<SaveResponse, String> {
+    pub fn save_file_system(
+        &mut self,
+        file_system: StorageFileSystem,
+    ) -> Result<SaveResponse, String> {
         self.update_dir_metas(&file_system)?;
         self.config.updated_at = Utc::now();
         self.save_config()?;
@@ -315,7 +322,10 @@ impl StorageRepo {
         self.config.editor_config.clone()
     }
 
-    pub fn save_editor_config(&mut self, editor_config: StorageEditorConfig) -> Result<SaveResponse, String> {
+    pub fn save_editor_config(
+        &mut self,
+        editor_config: StorageEditorConfig,
+    ) -> Result<SaveResponse, String> {
         self.config.editor_config = editor_config;
         self.config.updated_at = Utc::now();
         self.save_config()?;
@@ -551,5 +561,83 @@ impl StorageRepo {
         }
 
         Ok(())
+    }
+
+    pub fn store_uploaded_image(
+        &self,
+        file_name: &str,
+        bytes: &[u8],
+    ) -> Result<StoredUploadResponse, String> {
+        self.store_uploaded_file(
+            file_name,
+            bytes,
+            &[".jpg", ".jpeg", ".png", ".gif", ".webp"],
+            None,
+        )
+    }
+
+    pub fn store_uploaded_font(
+        &self,
+        file_name: &str,
+        bytes: &[u8],
+    ) -> Result<StoredUploadResponse, String> {
+        let font_family = Path::new(file_name)
+            .file_stem()
+            .map(|name| name.to_string_lossy().to_string())
+            .filter(|name| !name.is_empty());
+
+        self.store_uploaded_file(
+            file_name,
+            bytes,
+            &[".ttf", ".woff", ".woff2", ".otf"],
+            font_family,
+        )
+    }
+
+    fn store_uploaded_file(
+        &self,
+        file_name: &str,
+        bytes: &[u8],
+        allowed_extensions: &[&str],
+        font_family: Option<String>,
+    ) -> Result<StoredUploadResponse, String> {
+        let file_name = Path::new(file_name)
+            .file_name()
+            .ok_or_else(|| "invalid file name".to_string())?
+            .to_string_lossy()
+            .to_string();
+
+        let extension = Path::new(&file_name)
+            .extension()
+            .map(|ext| format!(".{}", ext.to_string_lossy().to_lowercase()))
+            .ok_or_else(|| "file extension is required".to_string())?;
+
+        if !allowed_extensions
+            .iter()
+            .any(|allowed| *allowed == extension)
+        {
+            return Err("unsupported file type".to_string());
+        }
+
+        fs::create_dir_all(&self.uploads_root).map_err(|err| err.to_string())?;
+
+        let stored_file_name = format!(
+            "{}-{}{}",
+            Utc::now().timestamp_millis(),
+            Path::new(&file_name)
+                .file_stem()
+                .map(|stem| stem.to_string_lossy().replace(' ', "-"))
+                .filter(|stem| !stem.is_empty())
+                .unwrap_or_else(|| "upload".to_string()),
+            extension
+        );
+
+        let stored_path = self.uploads_root.join(stored_file_name);
+        fs::write(&stored_path, bytes).map_err(|err| err.to_string())?;
+
+        Ok(StoredUploadResponse {
+            file_path: stored_path.to_string_lossy().to_string(),
+            font_family,
+        })
     }
 }

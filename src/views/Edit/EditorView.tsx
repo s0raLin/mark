@@ -12,6 +12,12 @@ import { useStorageSyncContext } from "@/contexts/StorageContext";
 import { useFileSystemContext } from "@/contexts/FileSystemContext";
 import { useEditorStateContext } from "@/contexts/EditorStateContext";
 import { useEditorConfigContext } from "@/contexts/EditorConfig/EditorThemeProvider";
+import {
+  getElectronWindowPosition,
+  isElectronRuntime,
+  isTauriRuntime,
+  moveElectronWindow,
+} from "@/utils/electron";
 
 // ── EditorView ───────────────────────────────────────────────────────────────-
 
@@ -104,20 +110,15 @@ export default function EditorView() {
           const target = e.target as HTMLElement;
           if (target.closest("button") || target.closest("input")) return;
           if (e.button !== 0) return;
-
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const ipc = (window as any).require?.("electron")?.ipcRenderer;
-          if (!ipc) return;
+          if (!isElectronRuntime() && !isTauriRuntime()) return;
 
           const startScreenX = e.screenX;
           const startScreenY = e.screenY;
 
-          // 异步获取窗口初始位置后开始监听拖拽
-          ipc
-            .invoke("get-window-pos")
+          getElectronWindowPosition()
             .then(([winX, winY]: [number, number]) => {
               const onMove = (me: MouseEvent) => {
-                ipc.send("window-move", {
+                moveElectronWindow({
                   x: Math.round(winX + me.screenX - startScreenX),
                   y: Math.round(winY + me.screenY - startScreenY),
                 });

@@ -1,5 +1,7 @@
 use crate::commands::ok;
-use crate::models::types::{ApiResponse, SaveResponse, StorageEditorConfig, StorageFileSystem, StorageUserSettings};
+use crate::models::types::{
+    ApiResponse, SaveResponse, StorageEditorConfig, StorageFileSystem, StorageUserSettings,
+};
 use crate::repository::storage::get_storage;
 
 #[tauri::command]

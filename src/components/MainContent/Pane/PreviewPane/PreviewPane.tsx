@@ -9,14 +9,7 @@ import { useMemo, memo, useCallback } from "react";
 import { cn } from "@/utils/cn";
 import { useMarkdownWorker } from "../../hooks/useMarkdownWorker";
 import { MarkdownBlock } from "./MarkdownBlock/MarkdownBlock";
-
-// 获取 Electron IPC 对象
-const getElectronIPC = () => {
-  try {
-    return (window as Window & { require?: (m: string) => { ipcRenderer: { send: (ch: string, ...args: unknown[]) => void } } })
-      .require?.("electron")?.ipcRenderer ?? null;
-  } catch { return null; }
-};
+import { openExternalUrl } from "@/utils/electron";
 
 interface PreviewPaneProps {
   previewRef: React.RefObject<HTMLDivElement>;
@@ -38,13 +31,13 @@ export default function PreviewPane({
     const target = e.target as HTMLElement;
     const anchor = target.closest("a");
     if (anchor) {
-      const href = anchor.getAttribute("href");
-      if (href && (href.startsWith("http://") || href.startsWith("https://"))) {
-        e.preventDefault();
-        e.stopPropagation();
-        getElectronIPC()?.send("open-external", href);
+        const href = anchor.getAttribute("href");
+        if (href && (href.startsWith("http://") || href.startsWith("https://"))) {
+          e.preventDefault();
+          e.stopPropagation();
+          openExternalUrl(href);
+        }
       }
-    }
   }, []);
 
   return (

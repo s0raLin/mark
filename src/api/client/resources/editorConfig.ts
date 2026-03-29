@@ -4,14 +4,19 @@ import type {
   StorageEditorConfig,
 } from "../types";
 import { IPC_COMMANDS } from "../commands";
-import { extractData, handleApiError, hasTauriRuntime, invokeCommand } from "../utils";
-import { getUserSettings, updateUserSettings } from "./users";
+import {
+  extractData,
+  handleApiError,
+  hasTauriRuntime,
+  httpGet,
+  httpSend,
+  invokeCommand,
+} from "../utils";
 
 export async function getEditorConfig(): Promise<StorageEditorConfig> {
   try {
     if (!hasTauriRuntime()) {
-      const settings = await getUserSettings();
-      return settings.editorConfig;
+      return httpGet<StorageEditorConfig>("/editor-config");
     }
 
     const response = await invokeCommand<ApiResponse<StorageEditorConfig>>(
@@ -28,10 +33,9 @@ export async function updateEditorConfig(
 ): Promise<SaveResponse> {
   try {
     if (!hasTauriRuntime()) {
-      const settings = await getUserSettings();
-      return updateUserSettings({
-        fileSystem: settings.fileSystem,
-        editorConfig,
+      return httpSend<SaveResponse>("/editor-config", {
+        method: "PUT",
+        body: JSON.stringify({ editorConfig }),
       });
     }
 

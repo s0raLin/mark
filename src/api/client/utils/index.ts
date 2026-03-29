@@ -34,6 +34,26 @@ function getApiBaseUrl() {
   return "/api";
 }
 
+export function toDesktopAssetUrl(pathOrUrl: string) {
+  if (!hasTauriRuntime()) {
+    return pathOrUrl;
+  }
+
+  const convertFileSrc = (window as Window & {
+    __TAURI__?: {
+      core?: {
+        convertFileSrc?: (path: string, protocol?: string) => string;
+      };
+    };
+  }).__TAURI__?.core?.convertFileSrc;
+
+  if (!convertFileSrc) {
+    return pathOrUrl;
+  }
+
+  return convertFileSrc(pathOrUrl, "asset");
+}
+
 export async function invokeCommand<T>(
   cmd: string,
   args?: InvokeArgs,
