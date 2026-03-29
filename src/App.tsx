@@ -24,11 +24,6 @@ function AppContent() {
     [storageSync.isInitialized, storageSync.userData],
   );
 
-  // 加载状态显示
-  if (storageSync.isLoading) {
-    return <Loading message="正在加载数据..." show={true} />;
-  }
-
   return (
     <FileSystemProvider>
       <EditorThemeProvider initialConfig={initialConfig}>
@@ -40,6 +35,7 @@ function AppContent() {
                   <IndexRouter />
                 </div>
               </div>
+              <Loading message="正在加载数据..." show={storageSync.isLoading} />
               <ErrorToast />
             </ErrorProvider>
           </EditorStateProvider>

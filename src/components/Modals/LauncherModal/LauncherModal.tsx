@@ -15,11 +15,7 @@ import { useTranslation } from "react-i18next";
 import { ModalHeader } from "../ModalHeader";
 import { ModalShell } from "../ModalShell";
 import { useEditorConfigContext } from "@/contexts/EditorConfig/EditorThemeProvider";
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { emit } from '@tauri-apps/api/event';
-import { useEffect } from "react";
-
-const appWindow = getCurrentWindow();
+import { closeDesktopWindow } from "@/api/client";
 
 interface LauncherModalProps {
   onClose: () => void;
@@ -132,32 +128,12 @@ export function LauncherModal({
           iconBg: "bg-red-100 text-red-500",
           label: t("launcher.quit"),
           onClick: async () => {
-            await appWindow.close();
+            await closeDesktopWindow();
           },
         },
       ],
     },
   ];
-
-
-  useEffect(() => {
-    const unlisten = appWindow.onCloseRequested(async (event) => {
-      //阻止默认行为
-      event.preventDefault()
-
-      //添加关闭动画
-      document.body.classList.add('window-closing')
-      
-      //等待动画完成后发送事件到后端处理
-      setTimeout(async () => {
-        await emit('close_requested')
-      }, 200)
-    })
-
-    return () => {
-      unlisten.then(fn => fn())
-    }
-  }, [])
 
   return (
     <ModalShell onClose={onClose} className="w-full max-w-xl rounded-3xl">

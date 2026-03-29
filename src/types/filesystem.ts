@@ -25,9 +25,15 @@ export interface FileSystemAPI {
   /** 打开文件，加载其内容到编辑器 */
   openFile: (id: string) => void;
   /** 新建文件，返回新节点 id */
-  createFile: (name: string, parentId?: string | null, opts?: { open?: boolean; initialContent?: string }) => Promise<string>;
+  createFile: (
+    name: string,
+    parentId?: string | null,
+    opts?: { open?: boolean; initialContent?: string; initialBinaryContentBase64?: string },
+  ) => Promise<string>;
   /** 新建文件夹，返回新节点 id */
   createFolder: (name: string, parentId?: string | null) => Promise<string>;
+  /** 清空当前工作区 */
+  resetWorkspace: () => Promise<void>;
   /** 删除节点（递归删除子节点） */
   deleteNode: (id: string) => Promise<void>;
   /** 重命名节点 */

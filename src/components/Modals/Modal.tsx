@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
-import React from "react";
+import React, { startTransition } from "react";
 import { ExportModal } from "./ExportModal/ExportModal";
 import { SaveAsModal } from "./SaveAsModal/SaveAsModal";
 import { SettingsModal } from "./SettingsModal/SettingsModal";
@@ -25,6 +25,8 @@ interface ModalProps {
   onLauncherSettings?: () => void;
   onLauncherExport?: () => void;
   onLauncherViewMode?: (mode: "split" | "editor" | "preview") => void;
+  onOpenWorkspace?: () => void;
+  onNewProject?: () => void;
 }
 
 export default function Modal({
@@ -32,6 +34,8 @@ export default function Modal({
   setIsSaveAsModalOpen,
   setIsSettingsModalOpen,
   setIsSearchModalOpen,
+  onOpenWorkspace,
+  onNewProject,
 }: ModalProps) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -70,10 +74,10 @@ export default function Modal({
         {modal === "launcher" && (
           <LauncherModal
             key="launcher"
-            onClose={() => navigate("/")}
-            onSearch={() => navigate("/?modal=search")}
-            onSettings={() => navigate("/?modal=settings")}
-            onExport={() => navigate("/?modal=export")}
+            onClose={() => startTransition(() => navigate("/"))}
+            onSearch={() => startTransition(() => navigate("/?modal=search"))}
+            onSettings={() => startTransition(() => navigate("/?modal=settings"))}
+            onExport={() => startTransition(() => navigate("/?modal=export"))}
             darkMode={editorConfig.darkMode}
             onDarkModeToggle={() => editorConfig.setDarkMode((prev) => !prev)}
           />
@@ -106,6 +110,12 @@ export default function Modal({
             setBgImage={editorConfig.setBgImage}
             lang={editorConfig.lang}
             setLang={editorConfig.setLang}
+            autoSave={editorConfig.autoSave}
+            setAutoSave={editorConfig.setAutoSave}
+            autoSaveInterval={editorConfig.autoSaveInterval}
+            setAutoSaveInterval={editorConfig.setAutoSaveInterval}
+            onOpenWorkspace={onOpenWorkspace}
+            onNewProject={onNewProject}
           />
         )}
         {modal === "search" && (

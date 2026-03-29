@@ -1,12 +1,25 @@
-import { Layout, Terminal } from "lucide-react";
+import { FolderOpen, Layout, PlusSquare, Terminal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ShortcutRow } from "./ShortcutRow";
-import { useEditorConfigContext } from "@/contexts/EditorConfig/EditorThemeProvider";
 
+interface SettingGeneralProps {
+  autoSave: boolean;
+  setAutoSave: (value: boolean) => void;
+  autoSaveInterval: number;
+  setAutoSaveInterval: (value: number) => void;
+  onOpenWorkspace?: () => void;
+  onNewProject?: () => void;
+}
 
-export default function SettingGeneral() {
+export default function SettingGeneral({
+  autoSave,
+  setAutoSave,
+  autoSaveInterval,
+  setAutoSaveInterval,
+  onOpenWorkspace,
+  onNewProject,
+}: SettingGeneralProps) {
   const { t } = useTranslation();
-  const { autoSave, setAutoSave, autoSaveInterval, setAutoSaveInterval } = useEditorConfigContext();
 
   return (
     <div className="space-y-10">
@@ -16,16 +29,29 @@ export default function SettingGeneral() {
           {t("general.workspace")}
         </h2>
         <div className="space-y-3">
-          <div className="settings-m3-card p-5 rounded-2xl flex items-center justify-between">
+          <div className="settings-m3-card p-5 rounded-2xl flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-slate-700">{t("general.workspaceName")}</p>
               <p className="text-xs text-slate-400 mt-0.5">{t("general.workspaceNameDesc")}</p>
             </div>
-            <input
-              type="text"
-              defaultValue="NoteBuddy"
-              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-primary focus:border-primary"
-            />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onOpenWorkspace}
+                className="modal-m3-outlined-button inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-slate-600"
+              >
+                <FolderOpen className="h-4 w-4" />
+                打开文件夹
+              </button>
+              <button
+                type="button"
+                onClick={onNewProject}
+                className="modal-m3-filled-button inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+              >
+                <PlusSquare className="h-4 w-4" />
+                新建空项目
+              </button>
+            </div>
           </div>
           <div className="settings-m3-card p-5 rounded-2xl flex items-center justify-between">
             <div>

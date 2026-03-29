@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import {
   Layout, Settings, Download, Palette, Smile, RotateCcw, Sparkles,
 } from "lucide-react";
@@ -26,6 +26,8 @@ interface SettingsSnapshot {
   blurAmount: number;
   bgImage: string;
   lang: string;
+  autoSave: boolean;
+  autoSaveInterval: number;
 }
 
 const DEFAULT_SETTINGS: SettingsSnapshot = {
@@ -41,6 +43,8 @@ const DEFAULT_SETTINGS: SettingsSnapshot = {
   bgImage: "",
   particlesOn: false,
   lang: "en",
+  autoSave: true,
+  autoSaveInterval: 1000,
 };
 
 interface SettingsModalProps {
@@ -69,6 +73,12 @@ interface SettingsModalProps {
   setBgImage: React.Dispatch<React.SetStateAction<string>>;
   lang: string;
   setLang: React.Dispatch<React.SetStateAction<string>>;
+  autoSave: boolean;
+  setAutoSave: React.Dispatch<React.SetStateAction<boolean>>;
+  autoSaveInterval: number;
+  setAutoSaveInterval: React.Dispatch<React.SetStateAction<number>>;
+  onOpenWorkspace?: () => void;
+  onNewProject?: () => void;
 }
 
 export function SettingsModal({
@@ -85,6 +95,10 @@ export function SettingsModal({
   blurAmount, setBlurAmount,
   bgImage, setBgImage,
   lang, setLang,
+  autoSave, setAutoSave,
+  autoSaveInterval, setAutoSaveInterval,
+  onOpenWorkspace,
+  onNewProject,
 }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState("general");
   const { t, i18n } = useTranslation();
@@ -97,6 +111,7 @@ export function SettingsModal({
     fontSize, editorFontSize, previewFontSize,
     blurAmount, bgImage,
     lang,
+    autoSave, autoSaveInterval,
   }));
 
   const [saved, setSaved] = useState<SettingsSnapshot>(() => ({
@@ -105,6 +120,7 @@ export function SettingsModal({
     fontSize, editorFontSize, previewFontSize,
     blurAmount, bgImage,
     lang,
+    autoSave, autoSaveInterval,
   }));
 
   // isDirty：draft 与上次保存的值比较
@@ -128,6 +144,8 @@ export function SettingsModal({
     setPreviewFontSize(draft.previewFontSize);
     setBlurAmount(draft.blurAmount);
     setBgImage(draft.bgImage);
+    setAutoSave(draft.autoSave);
+    setAutoSaveInterval(draft.autoSaveInterval);
     // 语言切换在保存时生效
     if (draft.lang !== i18n.language) {
       i18n.changeLanguage(draft.lang);
@@ -185,6 +203,61 @@ export function SettingsModal({
 
   useEffect(() => restoreCommittedAccentColor, []);
 
+  const renderedPanel = useMemo(() => {
+    if (activeTab === "general") {
+      return (
+        <General
+          autoSave={draft.autoSave}
+          setAutoSave={set("autoSave")}
+          autoSaveInterval={draft.autoSaveInterval}
+          setAutoSaveInterval={set("autoSaveInterval")}
+          onOpenWorkspace={onOpenWorkspace}
+          onNewProject={onNewProject}
+        />
+      );
+    }
+
+    if (activeTab === "editor") {
+      return (
+        <SettingEditor
+          editorTheme={draft.editorTheme}
+          setEditorTheme={set("editorTheme")}
+          previewTheme={draft.previewTheme}
+          setPreviewTheme={set("previewTheme")}
+          particlesOn={draft.particlesOn}
+          setParticlesOn={set("particlesOn")}
+          fontChoice={draft.fontChoice}
+          setFontChoice={set("fontChoice")}
+          editorFont={draft.editorFont}
+          setEditorFont={set("editorFont")}
+          accentColor={draft.accentColor}
+          setAccentColor={set("accentColor")}
+          fontSize={draft.fontSize}
+          setFontSize={set("fontSize")}
+          editorFontSize={draft.editorFontSize}
+          setEditorFontSize={set("editorFontSize")}
+          previewFontSize={draft.previewFontSize}
+          setPreviewFontSize={set("previewFontSize")}
+          blurAmount={draft.blurAmount}
+          setBlurAmount={set("blurAmount")}
+          bgImage={draft.bgImage}
+          setBgImage={set("bgImage")}
+        />
+      );
+    }
+
+    if (activeTab === "export") {
+      return <SettingExport />;
+    }
+
+    return (
+      <SettingAccount
+        draftLang={draft.lang}
+        setDraftLang={set("lang")}
+      />
+    );
+  }, [activeTab, draft]);
+
   return (
     <ModalShell onClose={handleClose} className="w-full max-w-5xl rounded-3xl h-[85vh]">
         <ModalHeader
@@ -199,7 +272,11 @@ export function SettingsModal({
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  startTransition(() => {
+                    setActiveTab(tab.id);
+                  });
+                }}
                 data-active={activeTab === tab.id}
                 className={cn(
                   "modal-m3-nav-button flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all",
@@ -215,42 +292,7 @@ export function SettingsModal({
           </aside>
 
           <div className="flex-1 overflow-y-auto p-10">
-            <div className={activeTab === "general" ? undefined : "hidden"}><General /></div>
-
-            <div className={activeTab === "editor" ? undefined : "hidden"}>
-              <SettingEditor
-                editorTheme={draft.editorTheme}
-                setEditorTheme={set("editorTheme")}
-                previewTheme={draft.previewTheme}
-                setPreviewTheme={set("previewTheme")}
-                particlesOn={draft.particlesOn}
-                setParticlesOn={set("particlesOn")}
-                fontChoice={draft.fontChoice}
-                setFontChoice={set("fontChoice")}
-                editorFont={draft.editorFont}
-                setEditorFont={set("editorFont")}
-                accentColor={draft.accentColor}
-                setAccentColor={set("accentColor")}
-                fontSize={draft.fontSize}
-                setFontSize={set("fontSize")}
-                editorFontSize={draft.editorFontSize}
-                setEditorFontSize={set("editorFontSize")}
-                previewFontSize={draft.previewFontSize}
-                setPreviewFontSize={set("previewFontSize")}
-                blurAmount={draft.blurAmount}
-                setBlurAmount={set("blurAmount")}
-                bgImage={draft.bgImage}
-                setBgImage={set("bgImage")}
-              />
-            </div>
-
-            <div className={activeTab === "export" ? undefined : "hidden"}><SettingExport /></div>
-            <div className={activeTab === "account" ? undefined : "hidden"}>
-              <SettingAccount
-                draftLang={draft.lang}
-                setDraftLang={set("lang")}
-              />
-            </div>
+            {renderedPanel}
           </div>
         </div>
 

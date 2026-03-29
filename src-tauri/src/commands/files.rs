@@ -4,6 +4,7 @@ use crate::models::types::{
     StorageFileSystem,
 };
 use crate::repository::storage::get_storage;
+use base64::{engine::general_purpose::STANDARD, Engine as _};
 
 #[tauri::command]
 pub fn files_get_content(id: String) -> Result<ApiResponse<GetFileContentResponse>, String> {
@@ -27,9 +28,17 @@ pub fn files_create(
     parent_id: String,
     name: String,
     content: String,
+    content_base64: Option<String>,
 ) -> Result<ApiResponse<CreateNodeResponse>, String> {
     let repo = get_storage();
     let guard = repo.lock().map_err(|err| err.to_string())?;
+    if let Some(encoded) = content_base64 {
+        let data = STANDARD
+            .decode(encoded)
+            .map_err(|err| format!("invalid base64 file content: {err}"))?;
+        return Ok(ok(guard.create_file_data(&parent_id, &name, &data)?));
+    }
+
     Ok(ok(guard.create_file(&parent_id, &name, &content)?))
 }
 

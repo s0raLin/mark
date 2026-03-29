@@ -533,11 +533,20 @@ impl StorageRepo {
         name: &str,
         content: &str,
     ) -> Result<CreateNodeResponse, String> {
+        self.create_file_data(parent_id, name, content.as_bytes())
+    }
+
+    pub fn create_file_data(
+        &self,
+        parent_id: &str,
+        name: &str,
+        data: &[u8],
+    ) -> Result<CreateNodeResponse, String> {
         // 创建后直接返回最新文件树快照，前端无需自行推导新结构。
         let dir = self.id_to_abs(parent_id);
         fs::create_dir_all(&dir).map_err(|err| err.to_string())?;
         let file_path = dir.join(name);
-        fs::write(&file_path, content).map_err(|err| err.to_string())?;
+        fs::write(&file_path, data).map_err(|err| err.to_string())?;
         Ok(CreateNodeResponse {
             id: self.abs_to_id(&file_path),
             name: name.to_string(),

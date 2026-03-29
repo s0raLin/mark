@@ -53,9 +53,12 @@ export function FileSystemProvider({
 }): ReactNode {
   const { userData, isInitialized } = useStorageSyncContext();
   const initialState = buildFileSystemState(userData?.fileSystem);
+  const hasPersistedFileSystem = userData?.fileSystem !== undefined;
 
   const [nodes, setNodes] = useState<FileNode[]>(() =>
-    initialState.nodes.length > 0 ? initialState.nodes : getDefaultNodes(),
+    initialState.nodes.length > 0 || hasPersistedFileSystem
+      ? initialState.nodes
+      : getDefaultNodes(),
   );
   const [pinnedIds, setPinnedIds] = useState<string[]>(() => initialState.pinnedIds);
   const [explorerOrder, setExplorerOrder] = useState<string[]>(() =>
@@ -74,22 +77,21 @@ export function FileSystemProvider({
   const applyStorageFileSystem = useCallback((fileSystem: StorageFileSystem) => {
     // 所有文件树变更最终都应收敛到后端快照，而不是由前端自行推导最终结果。
     const nextState = buildFileSystemState(fileSystem);
-    const nextNodes =
-      nextState.nodes.length > 0 ? nextState.nodes : getDefaultNodes();
+    const nextNodes = nextState.nodes;
 
     setNodes(nextNodes);
     setPinnedIds(nextState.pinnedIds);
     setExplorerOrder(
       nextState.explorerOrder.length > 0
         ? nextState.explorerOrder
-        : [DEFAULT_FILE_ID],
+        : [],
     );
     setFolderOrder(nextState.folderOrder);
     setActiveFileId((prev) => {
       if (prev && nextNodes.some((node) => node.id === prev)) {
         return prev;
       }
-      return nextState.activeFileId || DEFAULT_FILE_ID;
+      return nextState.activeFileId || "";
     });
   }, []);
 
@@ -136,7 +138,7 @@ export function FileSystemProvider({
     async (
       name: string,
       parentId: string | null = null,
-      opts?: { open?: boolean; initialContent?: string },
+      opts?: { open?: boolean; initialContent?: string; initialBinaryContentBase64?: string },
     ): Promise<string> => {
       const fileName = ensureFileExtension(name);
       if (!fileName.trim()) return "";
@@ -147,7 +149,12 @@ export function FileSystemProvider({
         opts?.initialContent ??
         (fileName.endsWith(".md") ? `# ${baseName}\n\n` : "");
 
-      const response = await createFileResource(parentId ?? "", fileName, content);
+      const response = await createFileResource(
+        parentId ?? "",
+        fileName,
+        opts?.initialBinaryContentBase64 ? "" : content,
+        opts?.initialBinaryContentBase64,
+      );
       applyStorageFileSystem(response.fileSystem);
       if (opts?.open !== false) {
         setActiveFileId(response.id);
@@ -172,6 +179,20 @@ export function FileSystemProvider({
     },
     [applyStorageFileSystem],
   );
+
+  const resetWorkspace = useCallback(async (): Promise<void> => {
+    const rootNodeIds = nodes
+      .filter((node) => node.parentId === null)
+      .map((node) => node.id);
+
+    for (const id of rootNodeIds) {
+      const fileSystem = await deleteFileNode(id);
+      applyStorageFileSystem(fileSystem);
+    }
+
+    setExpandedFolders(new Set());
+    setActiveFileId("");
+  }, [applyStorageFileSystem, nodes]);
 
   const deleteNode = useCallback(
     async (id: string): Promise<void> => {
@@ -344,6 +365,7 @@ export function FileSystemProvider({
       openFile,
       createFile,
       createFolder,
+      resetWorkspace,
       deleteNode,
       renameNode,
       togglePin,
@@ -367,6 +389,7 @@ export function FileSystemProvider({
       applyStorageFileSystem,
       createFile,
       createFolder,
+      resetWorkspace,
       deleteNode,
       expandedFolders,
       getChildren,

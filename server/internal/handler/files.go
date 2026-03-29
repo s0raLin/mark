@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/base64"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -91,7 +92,22 @@ func CreateFile(c *gin.Context) {
 		return
 	}
 
-	newID, err := storageRepo().CreateFile(req.ParentID, req.Name, req.Content)
+	var (
+		newID string
+		err   error
+	)
+
+	if req.ContentBase64 != "" {
+		data, decodeErr := base64.StdEncoding.DecodeString(req.ContentBase64)
+		if decodeErr != nil {
+			api.BadRequest(c, "invalid base64 file content")
+			return
+		}
+		newID, err = storageRepo().CreateFileData(req.ParentID, req.Name, data)
+	} else {
+		newID, err = storageRepo().CreateFile(req.ParentID, req.Name, req.Content)
+	}
+
 	if err != nil {
 		api.InternalError(c, err)
 		return

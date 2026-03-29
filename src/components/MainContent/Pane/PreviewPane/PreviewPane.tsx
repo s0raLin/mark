@@ -9,7 +9,7 @@ import { useCallback } from "react";
 import { cn } from "@/utils/cn";
 import { useMarkdownWorker } from "../../hooks/useMarkdownWorker";
 import { MarkdownBlock } from "./MarkdownBlock/MarkdownBlock";
-import { openExternalUrl } from "@/utils/electron";
+import { openExternalUrl } from "@/api/client";
 import type { GetFileContentResponse } from "@/api/client";
 import { FileType2, Music4 } from "lucide-react";
 

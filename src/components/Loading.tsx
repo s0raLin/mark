@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const BOOTSTRAP_THEME_STORAGE_KEY = "notemark:bootstrap-theme";
+
 interface LoadingProps {
   /** 加载提示文本 */
   message?: string;
@@ -7,13 +9,62 @@ interface LoadingProps {
   show?: boolean;
 }
 
-/**
- * 加载页面组件
- * 始终使用浅色模式
- */
 export default function Loading({ message = "加载中...", show = true }: LoadingProps) {
   const [progress, setProgress] = useState(0);
   const [dots, setDots] = useState("");
+  const [bootstrapTheme, setBootstrapTheme] = useState(() => {
+    if (typeof window === "undefined") {
+      return { darkMode: false, accentColor: "#ff9a9e" };
+    }
+
+    try {
+      const raw = window.localStorage.getItem(BOOTSTRAP_THEME_STORAGE_KEY);
+      if (!raw) {
+        return { darkMode: document.documentElement.classList.contains("dark"), accentColor: "#ff9a9e" };
+      }
+
+      const parsed = JSON.parse(raw) as { darkMode?: boolean; accentColor?: string } | null;
+      return {
+        darkMode: Boolean(parsed?.darkMode),
+        accentColor: parsed?.accentColor || "#ff9a9e",
+      };
+    } catch {
+      return { darkMode: document.documentElement.classList.contains("dark"), accentColor: "#ff9a9e" };
+    }
+  });
+  const isDark = bootstrapTheme.darkMode;
+
+  const backgroundColor = isDark
+    ? "var(--bootstrap-bg, #111827)"
+    : "var(--bootstrap-bg, #f8fafc)";
+  const textColor = isDark
+    ? "var(--bootstrap-fg, #e5e7eb)"
+    : "var(--bootstrap-fg, #0f172a)";
+  const mutedTextColor = isDark ? "rgba(226, 232, 240, 0.72)" : "#64748b";
+  const trackColor = isDark ? "rgba(148, 163, 184, 0.22)" : "#e2e8f0";
+  const accentColor = bootstrapTheme.accentColor || "var(--bootstrap-accent, var(--md-sys-color-primary, #ff9a9e))";
+  const accentSoftColor = isDark ? "rgba(255, 154, 158, 0.16)" : "rgba(255, 154, 158, 0.14)";
+
+  useEffect(() => {
+    if (!show || typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const raw = window.localStorage.getItem(BOOTSTRAP_THEME_STORAGE_KEY);
+      if (!raw) {
+        return;
+      }
+
+      const parsed = JSON.parse(raw) as { darkMode?: boolean; accentColor?: string } | null;
+      setBootstrapTheme({
+        darkMode: Boolean(parsed?.darkMode),
+        accentColor: parsed?.accentColor || "#ff9a9e",
+      });
+    } catch {
+      // ignore malformed cache
+    }
+  }, [show]);
 
   // 模拟进度条动画
   useEffect(() => {
@@ -58,7 +109,7 @@ export default function Loading({ message = "加载中...", show = true }: Loadi
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#ffffff",
+        background: `radial-gradient(circle at top, ${accentSoftColor}, transparent 42%), ${backgroundColor}`,
         zIndex: 9999,
         transition: "background-color 0.3s ease",
       }}
@@ -85,7 +136,7 @@ export default function Loading({ message = "加载中...", show = true }: Loadi
             cy="60"
             r="54"
             fill="none"
-            stroke="var(--color-border-soft, var(--md-sys-color-outline-variant, #e0e0e0))"
+            stroke={trackColor}
             strokeWidth="4"
           />
           <circle
@@ -93,7 +144,7 @@ export default function Loading({ message = "加载中...", show = true }: Loadi
             cy="60"
             r="54"
             fill="none"
-            stroke="var(--md-sys-color-primary, var(--color-primary, #6750a4))"
+            stroke={accentColor}
             strokeWidth="4"
             strokeLinecap="round"
             strokeDasharray="339.292"
@@ -127,21 +178,21 @@ export default function Loading({ message = "加载中...", show = true }: Loadi
           >
             <path
               d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z"
-              fill="var(--md-sys-color-primary-container, var(--color-accent, #e8def8))"
-              stroke="var(--md-sys-color-primary, var(--color-primary, #6750a4))"
+              fill={isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.88)"}
+              stroke={accentColor}
               strokeWidth="1.5"
             />
             <path
               d="M14 2V8H20"
               fill="none"
-              stroke="var(--md-sys-color-primary, var(--color-primary, #6750a4))"
+              stroke={accentColor}
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             <path
               d="M8 13H16M8 17H12"
-              stroke="var(--md-sys-color-primary, var(--color-primary, #6750a4))"
+              stroke={accentColor}
               strokeWidth="1.5"
               strokeLinecap="round"
             />
@@ -154,7 +205,7 @@ export default function Loading({ message = "加载中...", show = true }: Loadi
         style={{
           fontSize: "32px",
           fontWeight: 600,
-          color: "var(--color-primary-text, var(--md-sys-color-on-surface, #1c1b1f))",
+          color: textColor,
           marginBottom: "16px",
           fontFamily: "var(--font-display, 'Quicksand', sans-serif)",
           letterSpacing: "-0.02em",
@@ -167,7 +218,7 @@ export default function Loading({ message = "加载中...", show = true }: Loadi
       <p
         style={{
           fontSize: "14px",
-          color: "var(--md-sys-color-on-surface-variant, #49454f)",
+          color: mutedTextColor,
           marginBottom: "32px",
           minHeight: "20px",
         }}
@@ -181,7 +232,7 @@ export default function Loading({ message = "加载中...", show = true }: Loadi
         style={{
           width: "200px",
           height: "4px",
-          backgroundColor: "var(--color-border-soft, var(--md-sys-color-outline-variant, #e0e0e0))",
+          backgroundColor: trackColor,
           borderRadius: "2px",
           overflow: "hidden",
         }}
@@ -190,7 +241,7 @@ export default function Loading({ message = "加载中...", show = true }: Loadi
           style={{
             width: `${progress}%`,
             height: "100%",
-            backgroundColor: "var(--md-sys-color-primary, var(--color-primary, #6750a4))",
+            backgroundColor: accentColor,
             borderRadius: "2px",
             transition: "width 0.3s ease",
           }}
@@ -203,7 +254,7 @@ export default function Loading({ message = "加载中...", show = true }: Loadi
           position: "absolute",
           bottom: "24px",
           fontSize: "12px",
-          color: "var(--md-sys-color-on-surface-variant, #49454f)",
+          color: mutedTextColor,
           opacity: 0.6,
         }}
       >

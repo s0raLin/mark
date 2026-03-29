@@ -198,7 +198,9 @@ export default function EditorPane({
 
   // 根据文件扩展名选择语言扩展
   const ext = (fileName ?? "").includes(".") ? fileName.split(".").pop()!.toLowerCase() : "md";
-  const isBinary = activeFileContent ? activeFileContent.kind !== "text" : (fileName ? !EDITABLE_EXTENSIONS.has(ext) : false);
+  const isBinary = activeFileContent
+    ? activeFileContent.editable === false || activeFileContent.kind !== "text"
+    : (fileName ? !EDITABLE_EXTENSIONS.has(ext) : false);
   const fileTypeLabel = ext ? ext.toUpperCase() : "FILE";
   const fileKind = activeFileContent?.kind ?? (isBinary ? "binary" : "text");
   const mediaDataUrl = activeFileContent?.mediaDataUrl;

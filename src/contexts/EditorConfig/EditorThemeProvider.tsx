@@ -10,9 +10,12 @@ import React, {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useState,
 } from "react";
 import { useEditorThemeEffects } from "./hooks/useEditorThemeEffects";
+
+const BOOTSTRAP_THEME_STORAGE_KEY = "notemark:bootstrap-theme";
 
 export interface EditorConfigContextProps {
   editorTheme: EditorTheme;
@@ -69,14 +72,53 @@ const defaultConfig: StorageEditorConfig = {
   autoSaveInterval: 500,
 };
 
+function readBootstrapTheme(): Partial<StorageEditorConfig> {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const raw = window.localStorage.getItem(BOOTSTRAP_THEME_STORAGE_KEY);
+    if (!raw) {
+      return {};
+    }
+
+    const parsed = JSON.parse(raw) as Partial<StorageEditorConfig> | null;
+    if (!parsed || typeof parsed !== "object") {
+      return {};
+    }
+
+    return {
+      darkMode: typeof parsed.darkMode === "boolean" ? parsed.darkMode : undefined,
+      accentColor: typeof parsed.accentColor === "string" ? parsed.accentColor : undefined,
+      fontChoice: typeof parsed.fontChoice === "string" ? parsed.fontChoice : undefined,
+      editorFont: typeof parsed.editorFont === "string" ? parsed.editorFont : undefined,
+      previewFontSize: typeof parsed.previewFontSize === "number" ? parsed.previewFontSize : undefined,
+      editorFontSize: typeof parsed.editorFontSize === "number" ? parsed.editorFontSize : undefined,
+      blurAmount: typeof parsed.blurAmount === "number" ? parsed.blurAmount : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 export function EditorThemeProvider({
   children,
   initialConfig,
 }: EditorConfigProps): ReactNode {
   const [config, setConfigState] = useState<StorageEditorConfig>(() => ({
     ...defaultConfig,
+    ...readBootstrapTheme(),
     ...initialConfig,
   }));
+
+  useEffect(() => {
+    if (!initialConfig) {
+      return;
+    }
+
+    setConfigState((prev) => ({ ...prev, ...initialConfig }));
+  }, [initialConfig]);
 
   // 辅助函数
   const setConfig = useCallback(

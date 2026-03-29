@@ -1,7 +1,10 @@
 use crate::commands::ok;
 use crate::models::types::{ApiResponse, WindowPosition};
+use rfd::FileDialog;
+use std::fs;
 use std::process::Command;
 use tauri::{PhysicalPosition, Position, WebviewWindow};
+use serde::Deserialize;
 
 #[tauri::command]
 pub fn desktop_get_window_position(
@@ -45,6 +48,39 @@ pub fn desktop_open_external(url: String) -> Result<ApiResponse<bool>, String> {
 #[tauri::command]
 pub fn desktop_list_system_fonts() -> Result<ApiResponse<Vec<String>>, String> {
     Ok(ok(list_system_fonts()?))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SaveFilter {
+    name: String,
+    extensions: Vec<String>,
+}
+
+#[tauri::command]
+pub fn desktop_save_text_file(
+    file_name: String,
+    content: String,
+    filters: Option<Vec<SaveFilter>>,
+) -> Result<ApiResponse<bool>, String> {
+    let mut dialog = FileDialog::new().set_file_name(&file_name);
+
+    if let Some(filters) = filters.as_ref() {
+        for filter in filters {
+            let extensions = filter
+                .extensions
+                .iter()
+                .map(String::as_str)
+                .collect::<Vec<_>>();
+            dialog = dialog.add_filter(&filter.name, &extensions);
+        }
+    }
+
+    let Some(path) = dialog.save_file() else {
+        return Ok(ok(false));
+    };
+
+    fs::write(path, content).map_err(|err| err.to_string())?;
+    Ok(ok(true))
 }
 
 fn open_external_url(url: &str) -> Result<(), String> {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { startTransition, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, FileText, Folder, Search, X, Filter, Calendar } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { queryFiles } from "@/api/client";
@@ -31,6 +31,32 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const deferredQuery = useDeferredValue(query);
+  const trimmedDeferredQuery = deferredQuery.trim();
+  const nodeById = useMemo(() => new Map(nodes.map((node) => [node.id, node])), [nodes]);
+  const now = Date.now();
+
+  const matchesDateRange = useCallback((updatedAt?: number) => {
+    if (dateRange === "all" || !updatedAt) {
+      return true;
+    }
+
+    const diff = now - updatedAt;
+    const day = 1000 * 3600 * 24;
+    if (dateRange === "today") return diff <= day;
+    if (dateRange === "week") return diff <= day * 7;
+    if (dateRange === "month") return diff <= day * 30;
+    return true;
+  }, [dateRange, now]);
+
+  const matchesSelectedType = useCallback((name: string) => {
+    if (selectedType === "all") {
+      return true;
+    }
+
+    const ext = name.includes(".") ? `.${name.split(".").pop()!.toLowerCase()}` : "";
+    return ext === selectedType;
+  }, [selectedType]);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
@@ -42,14 +68,14 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!query.trim()) { setRawResults([]); setSelectedIdx(0); return; }
+    if (!trimmedDeferredQuery) { setRawResults([]); setSelectedIdx(0); return; }
     debounceRef.current = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const data = await queryFiles(query.trim());
+        const data = await queryFiles(trimmedDeferredQuery);
         const enriched = data.map(r => ({
           ...r,
-          updatedAt: nodes.find(n => n.id === r.id)?.updatedAt,
+          updatedAt: nodeById.get(r.id)?.updatedAt,
         }));
         setRawResults(enriched);
         setSelectedIdx(0);
@@ -60,25 +86,15 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
       }
     }, 200);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [query, nodes]);
+  }, [nodeById, trimmedDeferredQuery]);
 
   useEffect(() => { setSelectedIdx(0); }, [selectedType, dateRange]);
 
-  const results = rawResults.filter(r => {
-    if (selectedType !== "all") {
-      const ext = r.name.includes(".") ? "." + r.name.split(".").pop()!.toLowerCase() : "";
-      if (ext !== selectedType) return false;
-    }
-    if (dateRange !== "all" && r.updatedAt) {
-      const now = Date.now();
-      const diff = now - r.updatedAt;
-      const day = 1000 * 3600 * 24;
-      if (dateRange === "today" && diff > day) return false;
-      if (dateRange === "week" && diff > day * 7) return false;
-      if (dateRange === "month" && diff > day * 30) return false;
-    }
-    return true;
-  });
+  const results = useMemo(() => {
+    return rawResults.filter((result) => {
+      return matchesSelectedType(result.name) && matchesDateRange(result.updatedAt);
+    });
+  }, [matchesDateRange, matchesSelectedType, rawResults]);
 
   useEffect(() => {
     const el = listRef.current?.querySelector(`[data-idx="${selectedIdx}"]`);
@@ -86,9 +102,16 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
   }, [selectedIdx]);
 
   const handleOpen = useCallback((id: string) => {
-    const node = nodes.find(n => n.id === id);
-    if (node?.type === "file") { onOpenFile(id); onClose(); }
-  }, [nodes, onOpenFile, onClose]);
+    const node = nodeById.get(id);
+    if (node?.type !== "file") {
+      return;
+    }
+
+    startTransition(() => {
+      onOpenFile(id);
+      onClose();
+    });
+  }, [nodeById, onClose, onOpenFile]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") { e.preventDefault(); setSelectedIdx(i => Math.min(i + 1, results.length - 1)); }
@@ -109,22 +132,13 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
     );
   };
 
-  const fileNodes = nodes.filter(n => {
-    if (n.type !== "file") return false;
-    if (selectedType !== "all") {
-      const ext = n.name.includes(".") ? "." + n.name.split(".").pop()!.toLowerCase() : "";
-      if (ext !== selectedType) return false;
-    }
-    if (dateRange !== "all" && n.updatedAt) {
-      const now = Date.now();
-      const diff = now - n.updatedAt;
-      const day = 1000 * 3600 * 24;
-      if (dateRange === "today" && diff > day) return false;
-      if (dateRange === "week" && diff > day * 7) return false;
-      if (dateRange === "month" && diff > day * 30) return false;
-    }
-    return true;
-  });
+  const fileNodes = useMemo(() => {
+    return nodes.filter((node) => {
+      return node.type === "file"
+        && matchesSelectedType(node.name)
+        && matchesDateRange(node.updatedAt);
+    });
+  }, [matchesDateRange, matchesSelectedType, nodes]);
 
   const dateLabels: Record<string, string> = {
     all: t("search.dateAll"),
@@ -235,7 +249,7 @@ export function SearchModal({ onClose, nodes, onOpenFile }: SearchModalProps) {
           ) : results.length > 0 ? (
             <div className="space-y-1">
               {results.map((result, idx) => {
-                const node = nodes.find(n => n.id === result.id);
+                const node = nodeById.get(result.id);
                 const isFolder = node?.type === "folder";
                 return (
                   <div

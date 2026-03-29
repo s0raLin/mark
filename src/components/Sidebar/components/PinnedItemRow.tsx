@@ -20,31 +20,51 @@ export default function PinnedItemRow({ node, fs }: PinnedItemRowProps) {
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
   const [isDragOverFolder, setIsDragOverFolder] = useState(false);
   const [newItem, setNewItem] = useState<"file" | "folder" | null>(null);
+  const isExternalFileDrag = useCallback((dataTransfer: DataTransfer | null) => {
+    if (!dataTransfer) {
+      return false;
+    }
+
+    return Array.from(dataTransfer.types ?? []).includes("Files");
+  }, []);
 
   const isActive = fs.activeFileId === node.id;
   const isOpen = node.type === "folder" && fs.expandedFolders.has(node.id);
   const children = isOpen ? fs.getChildren(node.id) : [];
 
   const handleOSDragOver = useCallback((e: React.DragEvent) => {
+    if (!isExternalFileDrag(e.dataTransfer)) {
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
+    e.dataTransfer.dropEffect = "copy";
     if (node.type === "folder") setIsDragOverFolder(true);
-  }, [node.type]);
+  }, [isExternalFileDrag, node.type]);
 
   const handleOSDragLeave = useCallback((e: React.DragEvent) => {
+    if (!isExternalFileDrag(e.dataTransfer)) {
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
     setIsDragOverFolder(false);
-  }, []);
+  }, [isExternalFileDrag]);
 
   const handleOSDrop = useCallback(async (e: React.DragEvent) => {
+    if (!isExternalFileDrag(e.dataTransfer)) {
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
     setIsDragOverFolder(false);
     if (node.type !== "folder") return;
     await importDroppedIntoFs(e.dataTransfer, fs, node.id);
     if (!fs.expandedFolders.has(node.id)) fs.toggleFolder(node.id);
-  }, [node, fs]);
+  }, [fs, isExternalFileDrag, node]);
 
   return (
     <div>

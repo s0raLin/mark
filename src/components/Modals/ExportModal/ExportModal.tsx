@@ -8,6 +8,8 @@ import { useTranslation } from "react-i18next";
 import { FormatOption } from "./FormatOption";
 import { ModalHeader } from "../ModalHeader";
 import { ModalShell } from "../ModalShell";
+import { errorBus } from "@/contexts/errorBus";
+import { hasTauriRuntime, saveDesktopTextFile } from "@/api/client";
 
 interface ExportModalProps {
   markdown: string;
@@ -17,13 +19,48 @@ interface ExportModalProps {
 export function ExportModal({ markdown, onClose }: ExportModalProps) {
   const { t } = useTranslation();
   const [selectedFormat, setSelectedFormat] = useState<"pdf" | "html" | "png" | "zip">("pdf");
+  const [selectedPreset, setSelectedPreset] = useState<"modern" | "ivory" | "terminal" | "academic">("modern");
+  const [customCss, setCustomCss] = useState(`body {\n  font-family: 'Quicksand', sans-serif;\n  line-height: 1.8;\n}`);
 
-  const handleExport = () => {
+  const presetCssMap = {
+    modern: `
+      body { font-family: 'Quicksand', sans-serif; background: #f8fafc; color: #334155; }
+      h1 { color: #0f172a; border-bottom: 2px solid #ff8fab; }
+      h2, h3 { color: #1e293b; }
+      a { color: #ff8fab; }
+    `,
+    ivory: `
+      body { font-family: Georgia, 'Times New Roman', serif; background: #fffdf7; color: #4b3621; }
+      h1, h2, h3 { color: #3d2f1e; }
+      blockquote { border-left-color: #c08457; color: #7c5c3b; background: #fff7e6; }
+      code, pre { background: #f5efe2; color: #5b4330; }
+      a { color: #b45309; }
+    `,
+    terminal: `
+      body { font-family: 'JetBrains Mono', monospace; background: #0f172a; color: #d1fae5; }
+      h1, h2, h3 { color: #86efac; border-bottom-color: #14532d; }
+      code, pre { background: #111827; color: #a7f3d0; }
+      blockquote { border-left-color: #22c55e; color: #bbf7d0; background: rgba(34,197,94,0.08); }
+      th { background: #111827; }
+      th, td { border-color: #1f2937; }
+      a { color: #5eead4; }
+    `,
+    academic: `
+      body { font-family: 'Playfair Display', Georgia, serif; background: #ffffff; color: #1f2937; max-width: 900px; }
+      h1, h2, h3 { color: #111827; letter-spacing: 0.01em; }
+      p, li { font-size: 1.02rem; }
+      blockquote { border-left-color: #6366f1; color: #4b5563; background: #f8fafc; }
+      a { color: #4338ca; }
+    `,
+  } as const;
+
+  const handleExport = async () => {
     if (selectedFormat === "html") {
       const converter = new showdown.Converter({
         tables: true, tasklists: true, strikethrough: true, ghCodeBlocks: true,
       });
       const htmlContent = converter.makeHtml(markdown);
+      const presetCss = presetCssMap[selectedPreset];
       const fullHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,10 +83,29 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
         th { background-color: #f8fafc; }
         a { color: #ff8fab; text-decoration: none; }
         a:hover { text-decoration: underline; }
+        ${presetCss}
+        ${customCss}
     </style>
 </head>
 <body>${htmlContent}</body>
 </html>`;
+      if (hasTauriRuntime()) {
+        const saved = await saveDesktopTextFile(
+          "notemark-export.html",
+          fullHtml,
+          [{ name: "HTML", extensions: ["html"] }],
+        );
+
+        if (!saved) {
+          errorBus.warning("已取消导出", {
+            message: "你还没有选择保存位置。",
+            dedupeKey: "export-cancelled",
+            durationMs: 2200,
+          });
+        }
+        return;
+      }
+
       const blob = new Blob([fullHtml], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -60,7 +116,11 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } else {
-      alert(t("exportModal.comingSoon", { format: selectedFormat.toUpperCase() }));
+      errorBus.info("该导出格式还在完善中", {
+        message: `目前已完整支持带自定义样式的 HTML 导出，${selectedFormat.toUpperCase()} 会继续补上。`,
+        dedupeKey: `export-format-pending:${selectedFormat}`,
+        durationMs: 3200,
+      });
     }
   };
 
@@ -131,10 +191,25 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
                     {t("exportModal.presetThemes")}
                   </label>
                   <div className="flex flex-wrap gap-3">
-                    <button className="px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-bold shadow-sm shadow-primary/20">Modern Slate</button>
-                    <button className="px-5 py-2.5 rounded-xl bg-primary/10 text-slate-600 text-sm font-bold hover:bg-primary/20 transition-colors">Classic Ivory</button>
-                    <button className="px-5 py-2.5 rounded-xl bg-primary/10 text-slate-600 text-sm font-bold hover:bg-primary/20 transition-colors">Terminal Dark</button>
-                    <button className="px-5 py-2.5 rounded-xl bg-primary/10 text-slate-600 text-sm font-bold hover:bg-primary/20 transition-colors">Academic</button>
+                    {[
+                      ["modern", "Modern Slate"],
+                      ["ivory", "Classic Ivory"],
+                      ["terminal", "Terminal Dark"],
+                      ["academic", "Academic"],
+                    ].map(([id, label]) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setSelectedPreset(id as keyof typeof presetCssMap)}
+                        className={
+                          selectedPreset === id
+                            ? "px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-bold shadow-sm shadow-primary/20"
+                            : "px-5 py-2.5 rounded-xl bg-primary/10 text-slate-600 text-sm font-bold hover:bg-primary/20 transition-colors"
+                        }
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div className="space-y-3">
@@ -147,7 +222,8 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
                   <textarea
                     className="w-full h-36 rounded-xl border-2 border-primary/10 bg-primary/5 text-xs font-mono p-4 focus:ring-primary focus:border-primary transition-all"
                     placeholder="/* Add your custom CSS here */"
-                    defaultValue={`body {\n  font-family: 'Quicksand', sans-serif;\n  line-height: 1.8;\n}`}
+                    value={customCss}
+                    onChange={(event) => setCustomCss(event.target.value)}
                   />
                 </div>
               </div>

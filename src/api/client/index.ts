@@ -20,7 +20,21 @@ export {
   deleteFileNode,
 } from "./resources/files";
 export { queryFiles } from "./resources/search";
-export { listSystemFonts } from "./desktop";
+export {
+  closeDesktopWindow,
+  getDesktopWindowPosition,
+  listSystemFonts,
+  openExternalUrl,
+  saveDesktopTextFile,
+  setDesktopWindowPosition,
+} from "./desktop";
+export {
+  getDesktopRuntime,
+  getElectronIpc,
+  hasElectronRuntime,
+  hasTauriRuntime,
+  supportsDesktopShell,
+} from "./runtime";
 
 export {
   deleteUploadedImage,

@@ -1,4 +1,5 @@
 import {
+  startTransition,
   useState,
   useCallback,
   ReactNode,
@@ -76,6 +77,9 @@ export function EditorStateProvider({
   const [particlesOn, setParticlesOn] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const nodeById = useMemo(() => {
+    return new Map(nodes.map((node) => [node.id, node]));
+  }, [nodes]);
 
   const performSave = useCallback(() => {
     if (activeFileId) {
@@ -103,7 +107,9 @@ export function EditorStateProvider({
   );
 
   const handleViewModeChange = useCallback((mode: ViewMode) => {
-    setViewMode(mode);
+    startTransition(() => {
+      setViewMode(mode);
+    });
   }, []);
 
   const handleSaveAs = useCallback(() => {
@@ -124,19 +130,22 @@ export function EditorStateProvider({
 
   const handleOpenFile = useCallback(
     (id: string) => {
-      setActiveFileId(id);
-      const node = nodes.find((n) => n.id === id);
+      const node = nodeById.get(id);
       if (!node) return;
-      let parentId = node.parentId;
+
+      const nextExpanded = new Set(expandedFolders);
+      let parentId = node.parentId ?? null;
       while (parentId) {
-        if (!expandedFolders.has(parentId)) {
-          setExpandedFolders((prev) => new Set([...prev, parentId!]));
-        }
-        const parent = nodes.find((n) => n.id === parentId);
-        parentId = parent?.parentId ?? null;
+        nextExpanded.add(parentId);
+        parentId = nodeById.get(parentId)?.parentId ?? null;
       }
+
+      startTransition(() => {
+        setActiveFileId(id);
+        setExpandedFolders(nextExpanded);
+      });
     },
-    [setActiveFileId, nodes, expandedFolders, setExpandedFolders],
+    [expandedFolders, nodeById, setActiveFileId, setExpandedFolders],
   );
 
   const contextValue = useMemo(() => {

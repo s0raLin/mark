@@ -1,6 +1,7 @@
 import { errorBus } from "@/contexts/errorBus";
 import type { ApiResponse } from "@/api/client/types";
 import { convertFileSrc as tauriConvertFileSrc, invoke as tauriInvoke } from "@tauri-apps/api/core";
+import { hasElectronRuntime, hasTauriRuntime } from "@/api/client/runtime";
 
 type InvokeArgs = Record<string, unknown> | undefined;
 
@@ -9,27 +10,7 @@ type InvokeArgs = Record<string, unknown> | undefined;
 // - Electron 模式：回退到本地 `/api` 服务
 //
 // 业务层不应该关心自己当前跑在哪个桌面壳中，只应该调用资源客户端。
-export function hasTauriRuntime() {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
-  return Boolean(
-    window.__TAURI__?.core?.invoke
-      || window.__TAURI_INTERNALS__
-      || userAgent.includes("Tauri"),
-  );
-}
-
-export function hasElectronRuntime() {
-  if (typeof window === "undefined") return false;
-  try {
-    return typeof (window as Window & { require?: (module: string) => unknown }).require === "function";
-  } catch {
-    return false;
-  }
-}
+export { hasElectronRuntime, hasTauriRuntime } from "@/api/client/runtime";
 
 function getTauriInvoke() {
   if (!hasTauriRuntime()) {

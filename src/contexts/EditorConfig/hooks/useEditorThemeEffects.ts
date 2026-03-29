@@ -2,6 +2,7 @@ import i18n from "@/i18n";
 import { applyM3Theme } from "@/utils/applyM3Theme";
 import { useEffect } from "react";
 
+const BOOTSTRAP_THEME_STORAGE_KEY = "notemark:bootstrap-theme";
 
 interface EditorThemeEffectsProps {
     darkMode: boolean;
@@ -28,6 +29,48 @@ export function useEditorThemeEffects({
     lang,
     customFonts: _customFonts
 }: EditorThemeEffectsProps) {
+
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        const bootstrapTheme = {
+            darkMode,
+            accentColor,
+            previewFontSize,
+            editorFontSize,
+            blurAmount,
+            fontChoice,
+            editorFont,
+        };
+
+        window.localStorage.setItem(
+            BOOTSTRAP_THEME_STORAGE_KEY,
+            JSON.stringify(bootstrapTheme),
+        );
+        document.documentElement.style.colorScheme = darkMode ? "dark" : "light";
+        document.documentElement.style.setProperty(
+            "--bootstrap-bg",
+            darkMode ? "#111827" : "#f8fafc",
+        );
+        document.documentElement.style.setProperty(
+            "--bootstrap-fg",
+            darkMode ? "#e5e7eb" : "#0f172a",
+        );
+        document.documentElement.style.setProperty("--bootstrap-accent", accentColor);
+        document.documentElement.style.backgroundColor = darkMode ? "#111827" : "#f8fafc";
+        document.body.style.backgroundColor = darkMode ? "#111827" : "#f8fafc";
+        document.body.style.color = darkMode ? "#e5e7eb" : "#0f172a";
+    }, [
+        accentColor,
+        blurAmount,
+        darkMode,
+        editorFont,
+        editorFontSize,
+        fontChoice,
+        previewFontSize,
+    ]);
 
     // ── 深色模式 class
     useEffect(() => {

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"server/internal/model"
 	"github.com/gabriel-vasile/mimetype"
@@ -400,23 +402,30 @@ var textExtensions = map[string]struct{}{
 }
 
 var previewableMimeByExtension = map[string]string{
+	"avif": "image/avif",
 	"png": "image/png",
 	"jpg": "image/jpeg",
 	"jpeg": "image/jpeg",
 	"gif": "image/gif",
 	"webp": "image/webp",
 	"bmp": "image/bmp",
+	"ico": "image/x-icon",
+	"tif": "image/tiff",
+	"tiff": "image/tiff",
 	"svg": "image/svg+xml",
 	"mp4": "video/mp4",
 	"webm": "video/webm",
 	"ogg": "video/ogg",
+	"ogv": "video/ogg",
 	"mov": "video/quicktime",
+	"m4v": "video/x-m4v",
 	"mp3": "audio/mpeg",
 	"wav": "audio/wav",
 	"m4a": "audio/mp4",
 	"aac": "audio/aac",
 	"flac": "audio/flac",
 	"oga": "audio/ogg",
+	"opus": "audio/ogg",
 }
 
 func fileExt(id string) string {
@@ -436,6 +445,54 @@ func detectMimeType(id string, data []byte) string {
 		}
 	}
 	return mimeType
+}
+
+func isMediaMimeType(mimeType string) bool {
+	return strings.HasPrefix(mimeType, "image/") ||
+		strings.HasPrefix(mimeType, "video/") ||
+		strings.HasPrefix(mimeType, "audio/")
+}
+
+func isTextMimeType(mimeType string) bool {
+	if strings.HasPrefix(mimeType, "text/") {
+		return true
+	}
+
+	return strings.Contains(mimeType, "json") ||
+		strings.Contains(mimeType, "xml") ||
+		strings.Contains(mimeType, "yaml") ||
+		strings.Contains(mimeType, "javascript") ||
+		strings.Contains(mimeType, "typescript") ||
+		strings.Contains(mimeType, "x-sh") ||
+		strings.Contains(mimeType, "sql")
+}
+
+func isProbablyTextData(data []byte) bool {
+	if len(data) == 0 {
+		return true
+	}
+
+	sample := data
+	if len(sample) > 8192 {
+		sample = sample[:8192]
+	}
+
+	if bytes.IndexByte(sample, 0) >= 0 {
+		return false
+	}
+
+	if !utf8.Valid(sample) {
+		return false
+	}
+
+	controlCount := 0
+	for _, b := range sample {
+		if b < 0x20 && b != '\n' && b != '\r' && b != '\t' && b != '\f' {
+			controlCount++
+		}
+	}
+
+	return float64(controlCount)/float64(len(sample)) < 0.02
 }
 
 func classifyFileKind(mimeType string) string {
@@ -458,19 +515,25 @@ func (r *StorageRepo) GetFileContent(id string) (model.GetFileContentResponse, b
 		return model.GetFileContentResponse{}, false
 	}
 
-	if isTextFile(id) {
+	mimeType := detectMimeType(id, data)
+	looksLikeText := isTextFile(id) || (!isMediaMimeType(mimeType) && (isTextMimeType(mimeType) || isProbablyTextData(data)))
+
+	if looksLikeText {
+		if mimeType == "" || mimeType == "application/octet-stream" {
+			mimeType = "text/plain"
+		}
+
 		return model.GetFileContentResponse{
 			ID:          id,
 			Content:     string(data),
 			Kind:        "text",
-			MimeType:    "text/plain",
+			MimeType:    mimeType,
 			Size:        int64(len(data)),
 			Editable:    true,
 			Previewable: true,
 		}, true
 	}
 
-	mimeType := detectMimeType(id, data)
 	kind := classifyFileKind(mimeType)
 	response := model.GetFileContentResponse{
 		ID:          id,
@@ -498,6 +561,10 @@ func (r *StorageRepo) SaveFileContent(id, content string) error {
 
 // CreateFile 创建文件，返回新 ID
 func (r *StorageRepo) CreateFile(parentID, name, content string) (string, error) {
+	return r.CreateFileData(parentID, name, []byte(content))
+}
+
+func (r *StorageRepo) CreateFileData(parentID, name string, data []byte) (string, error) {
 	var dirPath string
 	if parentID == "" {
 		dirPath = FilesRootDir
@@ -506,7 +573,7 @@ func (r *StorageRepo) CreateFile(parentID, name, content string) (string, error)
 	}
 	os.MkdirAll(dirPath, 0755)
 	filePath := filepath.Join(dirPath, name)
-	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filePath, data, 0644); err != nil {
 		return "", err
 	}
 	return absPathToID(filePath), nil

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { startTransition, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 // 模态框常量对象
@@ -52,21 +52,27 @@ export function useModalRoute(): UseModalRouteReturn {
 
   // 打开指定模态框
   const openModal = useCallback((modal: ModalRoute) => {
-    if (modal === ROUTES.HOME) {
-      navigate('/');
-    } else {
-      navigate(`/?modal=${modal}`);
-    }
+    startTransition(() => {
+      if (modal === ROUTES.HOME) {
+        navigate('/');
+      } else {
+        navigate(`/?modal=${modal}`);
+      }
+    });
   }, [navigate]);
 
   // 关闭模态框（返回编辑器主页）
   const closeModal = useCallback(() => {
-    navigate('/');
+    startTransition(() => {
+      navigate('/');
+    });
   }, [navigate]);
 
   // 关闭所有模态框
   const closeAllModals = useCallback(() => {
-    navigate('/');
+    startTransition(() => {
+      navigate('/');
+    });
   }, [navigate]);
 
   return {

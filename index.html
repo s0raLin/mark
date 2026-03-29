@@ -5,10 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>notemark - Cute Markdown Editor</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      (() => {
+        const storageKey = "notemark:bootstrap-theme";
+        const fallback = {
+          darkMode: false,
+          accentColor: "#ff9a9e",
+          fontChoice: "Quicksand",
+          editorFont: "JetBrains Mono",
+          previewFontSize: 16,
+          editorFontSize: 14,
+          blurAmount: 0,
+        };
+
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey) || "null") || fallback;
+          const root = document.documentElement;
+          const applyBodyTheme = () => {
+            const body = document.body;
+            if (!body) {
+              return;
+            }
+
+            body.style.margin = "0";
+            body.style.backgroundColor = isDark ? "#111827" : "#f8fafc";
+            body.style.color = isDark ? "#e5e7eb" : "#0f172a";
+          };
+          const isDark = Boolean(saved.darkMode);
+
+          root.classList.toggle("dark", isDark);
+          root.style.colorScheme = isDark ? "dark" : "light";
+          root.style.setProperty("--markdown-font-size", `${saved.previewFontSize || fallback.previewFontSize}px`);
+          root.style.setProperty("--editor-font-size", `${saved.editorFontSize || fallback.editorFontSize}px`);
+          root.style.setProperty("--editor-blur", `${saved.blurAmount || fallback.blurAmount}px`);
+          root.style.setProperty(
+            "--font-display",
+            saved.fontChoice === "Quicksand" ? '"Quicksand", sans-serif' : `"${saved.fontChoice || fallback.fontChoice}", sans-serif`,
+          );
+          root.style.setProperty(
+            "--editor-font",
+            saved.editorFont === "monospace" ? "monospace" : `"${saved.editorFont || fallback.editorFont}", monospace`,
+          );
+          root.style.setProperty("--bootstrap-accent", saved.accentColor || fallback.accentColor);
+
+          root.style.backgroundColor = isDark ? "#111827" : "#f8fafc";
+          root.style.setProperty("--bootstrap-bg", isDark ? "#111827" : "#f8fafc");
+          root.style.setProperty("--bootstrap-fg", isDark ? "#e5e7eb" : "#0f172a");
+          applyBodyTheme();
+          document.addEventListener("DOMContentLoaded", applyBodyTheme, { once: true });
+        } catch {
+          document.documentElement.style.backgroundColor = "#f8fafc";
+          document.addEventListener("DOMContentLoaded", () => {
+            if (!document.body) {
+              return;
+            }
+            document.body.style.margin = "0";
+            document.body.style.backgroundColor = "#f8fafc";
+          }, { once: true });
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

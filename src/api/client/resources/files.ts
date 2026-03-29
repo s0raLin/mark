@@ -61,12 +61,13 @@ export async function createFileResource(
   parentId: string,
   name: string,
   content: string,
+  contentBase64?: string,
 ): Promise<CreateNodeResponse> {
   try {
     if (!hasTauriRuntime()) {
       const data = await httpSend<{ id: string; name: string }>("/files", {
         method: "POST",
-        body: JSON.stringify({ parentId, name, content }),
+        body: JSON.stringify({ parentId, name, content, contentBase64 }),
       });
       return {
         ...data,
@@ -76,7 +77,7 @@ export async function createFileResource(
 
     const response = await invokeCommand<ApiResponse<CreateNodeResponse>>(
       IPC_COMMANDS.files.create,
-      { parentId, name, content },
+      { parentId, name, content, contentBase64 },
     );
     return extractData(response);
   } catch (error) {

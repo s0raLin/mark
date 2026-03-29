@@ -24,28 +24,48 @@ export default function TreeNode({ node, depth, fs }: TreeNodeProps) {
   const isOpen = node.type === "folder" && fs.expandedFolders.has(node.id);
   const children = node.type === "folder" ? fs.getChildren(node.id) : [];
   const isPinned = fs.pinnedIds.includes(node.id);
+  const isExternalFileDrag = useCallback((dataTransfer: DataTransfer | null) => {
+    if (!dataTransfer) {
+      return false;
+    }
+
+    return Array.from(dataTransfer.types ?? []).includes("Files");
+  }, []);
 
   // OS file drag-over
   const handleOSDragOver = useCallback((e: React.DragEvent) => {
+    if (!isExternalFileDrag(e.dataTransfer)) {
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
+    e.dataTransfer.dropEffect = "copy";
     if (node.type === "folder") setIsDragOverFolder(true);
-  }, [node.type]);
+  }, [isExternalFileDrag, node.type]);
 
   const handleOSDragLeave = useCallback((e: React.DragEvent) => {
+    if (!isExternalFileDrag(e.dataTransfer)) {
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
     setIsDragOverFolder(false);
-  }, []);
+  }, [isExternalFileDrag]);
 
   const handleOSDrop = useCallback(async (e: React.DragEvent) => {
+    if (!isExternalFileDrag(e.dataTransfer)) {
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
     setIsDragOverFolder(false);
     if (node.type !== "folder") return;
     await importDroppedIntoFs(e.dataTransfer, fs, node.id);
     if (!fs.expandedFolders.has(node.id)) fs.toggleFolder(node.id);
-  }, [node, fs]);
+  }, [fs, isExternalFileDrag, node]);
 
   return (
     <div style={{ paddingLeft: depth > 0 ? `${depth * 12}px` : 0 }}>

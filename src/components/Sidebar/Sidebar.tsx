@@ -35,6 +35,13 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen }
 
   const rootNodes = fs.getRootNodes();
   const pinnedNodes = fs.pinnedNodes;
+  const isExternalFileDrag = useCallback((dataTransfer: DataTransfer | null) => {
+    if (!dataTransfer) {
+      return false;
+    }
+
+    return Array.from(dataTransfer.types ?? []).includes("Files");
+  }, []);
 
   // Global pointerup — single source of truth for executing the drop
   useEffect(() => {
@@ -85,12 +92,21 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen }
 
   // OS file drop
   const handleDragOver = useCallback((e: React.DragEvent) => {
+    if (!isExternalFileDrag(e.dataTransfer)) {
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
-    if (e.dataTransfer.types.includes("Files")) setIsDragOver(true);
-  }, []);
+    e.dataTransfer.dropEffect = "copy";
+    setIsDragOver(true);
+  }, [isExternalFileDrag]);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
+    if (!isExternalFileDrag(e.dataTransfer)) {
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
@@ -98,14 +114,18 @@ export default function Sidebar({ setIsSettingsModalOpen, setIsSearchModalOpen }
         e.clientY <= rect.top || e.clientY >= rect.bottom) {
       setIsDragOver(false);
     }
-  }, []);
+  }, [isExternalFileDrag]);
 
   const handleDrop = useCallback(async (e: React.DragEvent) => {
+    if (!isExternalFileDrag(e.dataTransfer)) {
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
     await importDroppedIntoFs(e.dataTransfer, fs, null);
-  }, [fs]);
+  }, [fs, isExternalFileDrag]);
 
   return (
     <DragContext.Provider value={{ draggingId, draggingIdRef, setDraggingId, dropTarget, setDropTarget }}>

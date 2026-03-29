@@ -47,6 +47,7 @@ pub fn run() {
             commands::desktop_get_window_position,
             commands::desktop_set_window_position,
             commands::desktop_list_system_fonts,
+            commands::desktop_save_text_file,
             // search
             commands::search_query_files,
         ])

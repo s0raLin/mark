@@ -136,9 +136,10 @@ type updateFileSystemRequest struct {
 }
 
 type createFileRequest struct {
-	ParentID string `json:"parentId"`
-	Name     string `json:"name"`
-	Content  string `json:"content"`
+	ParentID      string `json:"parentId"`
+	Name          string `json:"name"`
+	Content       string `json:"content"`
+	ContentBase64 string `json:"contentBase64"`
 }
 
 type createFolderRequest struct {
