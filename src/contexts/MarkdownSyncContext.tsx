@@ -1,4 +1,4 @@
-import { getFileContent, updateFileContent } from "@/api/client";
+import { getFileContent, updateFileContent, type GetFileContentResponse } from "@/api/client";
 import { errorBus } from "./errorBus";
 import { INITIAL_MARKDOWN } from "@/constants";
 import {
@@ -13,48 +13,10 @@ import {
 } from "react";
 import { useFileSystemContext } from "./FileSystemContext";
 
-// 可编辑的文本扩展名白名单
-const TEXT_EXTENSIONS = new Set([
-  "md",
-  "txt",
-  "markdown",
-  "mdown",
-  "mkd",
-  "json",
-  "yaml",
-  "yml",
-  "toml",
-  "xml",
-  "js",
-  "ts",
-  "jsx",
-  "tsx",
-  "css",
-  "html",
-  "htm",
-  "sh",
-  "bash",
-  "py",
-  "go",
-  "rs",
-  "java",
-  "c",
-  "cpp",
-  "h",
-  "csv",
-  "log",
-  "env",
-  "gitignore",
-]);
-
-function isTextFile(fileId: string): boolean {
-  const ext = fileId.split(".").pop()?.toLowerCase() ?? "";
-  return TEXT_EXTENSIONS.has(ext);
-}
-
 export interface MarkdownSyncContextProps {
   markdown: string;
   setMarkdown: React.Dispatch<React.SetStateAction<string>>;
+  activeFileContent: GetFileContentResponse | null;
 }
 
 const MarkdownSyncContext = createContext<MarkdownSyncContextProps | undefined>(
@@ -72,17 +34,14 @@ export function MarkdownSyncProvider({
     null;
   const setNodes = fileSystem.setNodes;
   const [markdown, setMarkdown] = useState(INITIAL_MARKDOWN);
-  const fileContentsRef = useRef<Record<string, string>>({});
+  const [activeFileContent, setActiveFileContent] = useState<GetFileContentResponse | null>(null);
+  const fileContentsRef = useRef<Record<string, GetFileContentResponse>>({});
+  const prevMarkdownRef = useRef<string>(INITIAL_MARKDOWN);
 
   useEffect(() => {
     if (!activeFileId || activeFileType === "folder") {
       setMarkdown("");
-      return;
-    }
-
-    // 二进制/不支持的文件类型直接跳过，不发请求
-    if (!isTextFile(activeFileId)) {
-      setMarkdown("");
+      setActiveFileContent(null);
       return;
     }
 
@@ -90,12 +49,13 @@ export function MarkdownSyncProvider({
       try {
         const cached = fileContentsRef.current[activeFileId];
         if (cached !== undefined) {
-          setMarkdown(cached);
+          setActiveFileContent(cached);
+          setMarkdown(cached.kind === "text" ? cached.content || "" : "");
         } else {
           const response = await getFileContent(activeFileId);
-          const content = response.content || "";
-          fileContentsRef.current[activeFileId] = content;
-          setMarkdown(content);
+          fileContentsRef.current[activeFileId] = response;
+          setActiveFileContent(response);
+          setMarkdown(response.kind === "text" ? response.content || "" : "");
         }
       } catch (err) {
         console.error("加载文件失败:", err);
@@ -103,6 +63,7 @@ export function MarkdownSyncProvider({
           message: "文件内容读取失败，请稍后重试。",
           dedupeKey: `load-file:${activeFileId}`,
         });
+        setActiveFileContent(null);
         setMarkdown("");
       }
     };
@@ -113,9 +74,40 @@ export function MarkdownSyncProvider({
   const saveToBackend = useCallback(
     (newMarkdown: string) => {
       if (!activeFileId) return;
-      // 非文本文件不写回
-      if (!isTextFile(activeFileId)) return;
-      fileContentsRef.current[activeFileId] = newMarkdown;
+      if (activeFileContent?.editable === false) return;
+      const previous = fileContentsRef.current[activeFileId];
+      fileContentsRef.current[activeFileId] = {
+        ...(previous ?? {
+          id: activeFileId,
+          kind: "text",
+          mimeType: "text/plain",
+          mediaDataUrl: undefined,
+          size: 0,
+          editable: true,
+          previewable: true,
+        }),
+        content: newMarkdown,
+        kind: "text",
+        editable: true,
+        previewable: true,
+      };
+      setActiveFileContent((prev) => (prev?.id === activeFileId
+        ? {
+            ...(prev ?? {
+              id: activeFileId,
+              kind: "text",
+              mimeType: "text/plain",
+              mediaDataUrl: undefined,
+              size: 0,
+              editable: true,
+              previewable: true,
+            }),
+            content: newMarkdown,
+            kind: "text",
+            editable: true,
+            previewable: true,
+          }
+        : prev));
       setNodes((prev) =>
         prev.map((n) =>
           n.id === activeFileId ? { ...n, updatedAt: Date.now() } : n,
@@ -129,23 +121,30 @@ export function MarkdownSyncProvider({
         });
       });
     },
-    [activeFileId, setNodes],
+    [activeFileContent?.editable, activeFileId, setNodes],
   );
 
   const handleSetMarkdown = useCallback(
     (value: string | ((prev: string) => string)) => {
       setMarkdown((prev) => {
         const next = typeof value === "function" ? value(prev) : value;
-        if (next !== prev) saveToBackend(next);
         return next;
       });
     },
-    [saveToBackend],
+    [],
   );
 
+  // 使用 useEffect 来监听 markdown 变化并保存，避免在渲染期间调用 setState
+  useEffect(() => {
+    if (markdown !== prevMarkdownRef.current) {
+      prevMarkdownRef.current = markdown;
+      saveToBackend(markdown);
+    }
+  }, [markdown, saveToBackend]);
+
   const context = useMemo(() => {
-    return { markdown, setMarkdown: handleSetMarkdown };
-  }, [markdown, handleSetMarkdown]);
+    return { markdown, setMarkdown: handleSetMarkdown, activeFileContent };
+  }, [activeFileContent, markdown, handleSetMarkdown]);
 
   return (
     <MarkdownSyncContext.Provider value={context}>

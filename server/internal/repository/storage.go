@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"server/internal/model"
+	"github.com/gabriel-vasile/mimetype"
 )
 
 // appDataDir 返回平台对应的应用数据目录
@@ -389,13 +391,102 @@ func lastSegment(id string) string {
 	return parts[len(parts)-1]
 }
 
+var textExtensions = map[string]struct{}{
+	"md": {}, "txt": {}, "markdown": {}, "mdown": {}, "mkd": {},
+	"json": {}, "yaml": {}, "yml": {}, "toml": {}, "xml": {},
+	"js": {}, "ts": {}, "jsx": {}, "tsx": {}, "css": {}, "html": {}, "htm": {},
+	"sh": {}, "bash": {}, "py": {}, "go": {}, "rs": {}, "java": {}, "c": {}, "cpp": {}, "h": {},
+	"csv": {}, "log": {}, "env": {}, "gitignore": {},
+}
+
+var previewableMimeByExtension = map[string]string{
+	"png": "image/png",
+	"jpg": "image/jpeg",
+	"jpeg": "image/jpeg",
+	"gif": "image/gif",
+	"webp": "image/webp",
+	"bmp": "image/bmp",
+	"svg": "image/svg+xml",
+	"mp4": "video/mp4",
+	"webm": "video/webm",
+	"ogg": "video/ogg",
+	"mov": "video/quicktime",
+	"mp3": "audio/mpeg",
+	"wav": "audio/wav",
+	"m4a": "audio/mp4",
+	"aac": "audio/aac",
+	"flac": "audio/flac",
+	"oga": "audio/ogg",
+}
+
+func fileExt(id string) string {
+	return strings.ToLower(strings.TrimPrefix(filepath.Ext(id), "."))
+}
+
+func isTextFile(id string) bool {
+	_, ok := textExtensions[fileExt(id)]
+	return ok
+}
+
+func detectMimeType(id string, data []byte) string {
+	mimeType := mimetype.Detect(data).String()
+	if mimeType == "application/octet-stream" {
+		if fallback, ok := previewableMimeByExtension[fileExt(id)]; ok {
+			return fallback
+		}
+	}
+	return mimeType
+}
+
+func classifyFileKind(mimeType string) string {
+	switch {
+	case strings.HasPrefix(mimeType, "image/"):
+		return "image"
+	case strings.HasPrefix(mimeType, "video/"):
+		return "video"
+	case strings.HasPrefix(mimeType, "audio/"):
+		return "audio"
+	default:
+		return "binary"
+	}
+}
+
 // GetFileContent 读取文件内容
-func (r *StorageRepo) GetFileContent(id string) (string, bool) {
+func (r *StorageRepo) GetFileContent(id string) (model.GetFileContentResponse, bool) {
 	data, err := os.ReadFile(idToAbsPath(id))
 	if err != nil {
-		return "", false
+		return model.GetFileContentResponse{}, false
 	}
-	return string(data), true
+
+	if isTextFile(id) {
+		return model.GetFileContentResponse{
+			ID:          id,
+			Content:     string(data),
+			Kind:        "text",
+			MimeType:    "text/plain",
+			Size:        int64(len(data)),
+			Editable:    true,
+			Previewable: true,
+		}, true
+	}
+
+	mimeType := detectMimeType(id, data)
+	kind := classifyFileKind(mimeType)
+	response := model.GetFileContentResponse{
+		ID:          id,
+		Content:     "",
+		Kind:        kind,
+		MimeType:    mimeType,
+		Size:        int64(len(data)),
+		Editable:    false,
+		Previewable: kind != "binary",
+	}
+
+	if response.Previewable {
+		response.MediaDataURL = "data:" + mimeType + ";base64," + base64.StdEncoding.EncodeToString(data)
+	}
+
+	return response, true
 }
 
 // SaveFileContent 保存文件内容

@@ -3,6 +3,8 @@
 mod commands;
 mod models;
 mod repository;
+mod tray;
+mod window_manager;
 
 /// Tauri 桌面端入口。
 ///
@@ -15,6 +17,7 @@ pub fn run() {
     let _ = repository::storage::get_storage();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_window_state::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             // users
             commands::users_get_settings,
@@ -47,6 +50,13 @@ pub fn run() {
             // search
             commands::search_query_files,
         ])
+        .setup(|app| {
+            //创建系统托盘
+            tray::create_tray(app.handle())?;
+            //窗口设置
+            window_manager::setup_window_features(app.handle());
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

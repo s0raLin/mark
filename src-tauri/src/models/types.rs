@@ -109,6 +109,12 @@ pub struct StorageUserSettings {
 pub struct GetFileContentResponse {
     pub id: String,
     pub content: String,
+    pub kind: String,
+    pub mime_type: Option<String>,
+    pub media_data_url: Option<String>,
+    pub size: Option<u64>,
+    pub editable: bool,
+    pub previewable: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

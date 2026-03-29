@@ -3,6 +3,7 @@ use crate::models::types::{
     StorageAppConfig, StorageEditorConfig, StorageFileNode, StorageFileSystem, StorageUserSettings,
     StoredUploadResponse, UploadedImageAsset,
 };
+use base64::{engine::general_purpose::STANDARD, Engine as _};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -14,6 +15,38 @@ use std::{
 
 static GLOBAL_REPO: OnceLock<Arc<Mutex<StorageRepo>>> = OnceLock::new();
 const META_FILE_NAME: &str = ".meta.json";
+const TEXT_EXTENSIONS: &[&str] = &[
+    "md",
+    "txt",
+    "markdown",
+    "mdown",
+    "mkd",
+    "json",
+    "yaml",
+    "yml",
+    "toml",
+    "xml",
+    "js",
+    "ts",
+    "jsx",
+    "tsx",
+    "css",
+    "html",
+    "htm",
+    "sh",
+    "bash",
+    "py",
+    "go",
+    "rs",
+    "java",
+    "c",
+    "cpp",
+    "h",
+    "csv",
+    "log",
+    "env",
+    "gitignore",
+];
 
 /// 返回全局共享的存储仓储。
 ///
@@ -130,6 +163,63 @@ impl StorageRepo {
 
     fn last_segment(id: &str) -> String {
         id.rsplit('/').next().unwrap_or(id).to_string()
+    }
+
+    fn is_text_file(id: &str) -> bool {
+        let ext = id
+            .rsplit('.')
+            .next()
+            .unwrap_or("")
+            .trim()
+            .to_ascii_lowercase();
+        TEXT_EXTENSIONS.contains(&ext.as_str())
+    }
+
+    fn previewable_mime_by_extension(id: &str) -> Option<&'static str> {
+        let ext = id
+            .rsplit('.')
+            .next()
+            .unwrap_or("")
+            .trim()
+            .to_ascii_lowercase();
+        match ext.as_str() {
+            "png" => Some("image/png"),
+            "jpg" | "jpeg" => Some("image/jpeg"),
+            "gif" => Some("image/gif"),
+            "webp" => Some("image/webp"),
+            "bmp" => Some("image/bmp"),
+            "svg" => Some("image/svg+xml"),
+            "mp4" => Some("video/mp4"),
+            "webm" => Some("video/webm"),
+            "ogg" => Some("video/ogg"),
+            "mov" => Some("video/quicktime"),
+            "mp3" => Some("audio/mpeg"),
+            "wav" => Some("audio/wav"),
+            "m4a" => Some("audio/mp4"),
+            "aac" => Some("audio/aac"),
+            "flac" => Some("audio/flac"),
+            "oga" => Some("audio/ogg"),
+            _ => None,
+        }
+    }
+
+    fn detect_mime_type(id: &str, data: &[u8]) -> String {
+        infer::get(data)
+            .map(|kind| kind.mime_type().to_string())
+            .or_else(|| Self::previewable_mime_by_extension(id).map(str::to_string))
+            .unwrap_or_else(|| "application/octet-stream".to_string())
+    }
+
+    fn classify_file_kind(mime_type: &str) -> &'static str {
+        if mime_type.starts_with("image/") {
+            "image"
+        } else if mime_type.starts_with("video/") {
+            "video"
+        } else if mime_type.starts_with("audio/") {
+            "audio"
+        } else {
+            "binary"
+        }
     }
 
     fn read_dir_meta(&self, dir_path: &Path) -> DirMeta {
@@ -393,10 +483,35 @@ impl StorageRepo {
     }
 
     pub fn get_file_content(&self, id: &str) -> Result<GetFileContentResponse, String> {
-        let content = fs::read_to_string(self.id_to_abs(id)).map_err(|err| err.to_string())?;
+        let bytes = fs::read(self.id_to_abs(id)).map_err(|err| err.to_string())?;
+
+        if Self::is_text_file(id) {
+            return Ok(GetFileContentResponse {
+                id: id.to_string(),
+                content: String::from_utf8_lossy(&bytes).to_string(),
+                kind: "text".to_string(),
+                mime_type: Some("text/plain".to_string()),
+                media_data_url: None,
+                size: Some(bytes.len() as u64),
+                editable: true,
+                previewable: true,
+            });
+        }
+
+        let mime_type = Self::detect_mime_type(id, &bytes);
+        let kind = Self::classify_file_kind(&mime_type).to_string();
+        let previewable = kind != "binary";
+
         Ok(GetFileContentResponse {
             id: id.to_string(),
-            content,
+            content: String::new(),
+            kind,
+            mime_type: Some(mime_type.clone()),
+            media_data_url: previewable
+                .then(|| format!("data:{};base64,{}", mime_type, STANDARD.encode(&bytes))),
+            size: Some(bytes.len() as u64),
+            editable: false,
+            previewable,
         })
     }
 

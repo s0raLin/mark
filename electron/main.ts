@@ -73,12 +73,62 @@ function createGoProcess(command: string, args: string[], cwd: string) {
   });
 }
 
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function requestBackend(pathname: string) {
+  return new Promise<number>((resolve, reject) => {
+    const request = http.request(
+      {
+        hostname: "127.0.0.1",
+        port: Number(API_PORT),
+        path: pathname,
+        method: "GET",
+        timeout: 1500,
+      },
+      (response) => {
+        response.resume();
+        resolve(response.statusCode ?? 0);
+      },
+    );
+
+    request.on("timeout", () => {
+      request.destroy(new Error("timeout"));
+    });
+    request.on("error", reject);
+    request.end();
+  });
+}
+
+async function waitForBackendReady(timeoutMs = 15000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const status = await requestBackend("/api/users/me/settings");
+      if (status >= 200 && status < 500) {
+        return;
+      }
+    } catch {
+      // ignore transient startup failures
+    }
+
+    await wait(300);
+  }
+
+  throw new Error(`Backend did not become ready within ${timeoutMs}ms`);
+}
+
 function attachProcessLogs(processRef: ChildProcess, label: string) {
   processRef.stdout?.on("data", (data: Buffer) => {
     console.log(`${label}: ${data.toString().trim()}`);
   });
   processRef.stderr?.on("data", (data: Buffer) => {
     console.log(`${label}: ${data.toString().trim()}`);
+  });
+  processRef.on("exit", (code, signal) => {
+    console.log(`${label}: exited with code=${code} signal=${signal}`);
   });
 }
 
@@ -97,7 +147,7 @@ function startGoServer() {
       attachProcessLogs(backend, "Go");
     });
 
-    setTimeout(() => resolve(backend), 3000);
+    resolve(backend);
   });
 }
 
@@ -231,6 +281,9 @@ export async function runElectronApp() {
   app.whenReady().then(async () => {
     registerWindowIpcHandlers();
     backendProcess = await startGoServer();
+    await waitForBackendReady().catch((error) => {
+      console.error("Backend readiness check failed:", error);
+    });
 
     const distPath = path.join(app.getAppPath(), "dist");
     const server = createStaticServer(distPath);

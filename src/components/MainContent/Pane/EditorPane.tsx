@@ -17,17 +17,31 @@ import { dracula } from "@uiw/codemirror-theme-dracula";
 import { nord } from "@uiw/codemirror-theme-nord";
 import { sublime } from "@uiw/codemirror-theme-sublime";
 import { EditorView, scrollPastEnd } from "@codemirror/view";
-import { EyeOff, FileType2, Info } from "lucide-react";
+import { EyeOff, FileType2, Image as ImageIcon, Info, Music4, Video } from "lucide-react";
+import type { GetFileContentResponse } from "@/api/client";
 import Toolbar from "@/components/MainContent/Toolbar/Toolbar";
 import EditorContextMenu from "./EditorContextMenu";
 
 interface EditorPaneProps {
   markdown: string;
   setMarkdown: React.Dispatch<React.SetStateAction<string>>;
+  activeFileContent: GetFileContentResponse | null;
   editorTheme: string;
   editorFont: string;
   fileName: string;
   editorRef: React.RefObject<ReactCodeMirrorRef>;
+}
+
+function formatFileSize(size?: number) {
+  if (!size) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
+  let value = size;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+  return `${value >= 10 || unitIndex === 0 ? value.toFixed(0) : value.toFixed(1)} ${units[unitIndex]}`;
 }
 
 const getThemeExtension = (themeName: string) => {
@@ -173,6 +187,7 @@ function extractMarkdownImages(markdown: string) {
 export default function EditorPane({
   markdown,
   setMarkdown,
+  activeFileContent,
   editorTheme,
   editorFont,
   fileName,
@@ -183,8 +198,10 @@ export default function EditorPane({
 
   // 根据文件扩展名选择语言扩展
   const ext = (fileName ?? "").includes(".") ? fileName.split(".").pop()!.toLowerCase() : "md";
-  const isBinary = fileName ? !EDITABLE_EXTENSIONS.has(ext) : false;
+  const isBinary = activeFileContent ? activeFileContent.kind !== "text" : (fileName ? !EDITABLE_EXTENSIONS.has(ext) : false);
   const fileTypeLabel = ext ? ext.toUpperCase() : "FILE";
+  const fileKind = activeFileContent?.kind ?? (isBinary ? "binary" : "text");
+  const mediaDataUrl = activeFileContent?.mediaDataUrl;
   const markdownImages = useMemo(
     () => ((ext === "md" || ext === "markdown") ? extractMarkdownImages(markdown) : []),
     [ext, markdown],
@@ -295,6 +312,39 @@ export default function EditorPane({
     (editorRef as any).current?.view?.dispatch;
   }
 
+  const mediaSummary = (() => {
+    switch (fileKind) {
+      case "image":
+        return {
+          icon: <ImageIcon className="h-6 w-6" />,
+          badge: "Image",
+          title: "这是一个可预览的图片文件",
+          description: "图片会在右侧预览区直接显示，编辑区保留为文件信息视图，避免误改二进制内容。",
+        };
+      case "video":
+        return {
+          icon: <Video className="h-6 w-6" />,
+          badge: "Video",
+          title: "这是一个可播放的视频文件",
+          description: "视频会在右侧预览区使用内嵌播放器打开，编辑区只展示文件信息和快速预览。",
+        };
+      case "audio":
+        return {
+          icon: <Music4 className="h-6 w-6" />,
+          badge: "Audio",
+          title: "这是一个可播放的音频文件",
+          description: "音频会在右侧预览区使用播放器打开，编辑区保留为只读信息卡片。",
+        };
+      default:
+        return {
+          icon: <EyeOff className="h-6 w-6" />,
+          badge: "Binary",
+          title: "这个二进制文件没有可内嵌预览的实质内容",
+          description: "当前类型适合作为附件保留在项目中，暂不在编辑器里显示源码或播放内容。",
+        };
+    }
+  })();
+
   return (
     <section className="app-m3-editor-surface flex-1 border-r border-border-soft flex flex-col relative overflow-hidden">
       {/* Frosted glass layer over the global background — blur controlled by CSS var */}
@@ -345,7 +395,7 @@ export default function EditorPane({
             <div className="app-m3-binary-card w-full max-w-xl rounded-[28px] backdrop-blur-xl">
               <div className="flex items-start gap-4 p-6 md:p-7">
                 <div className="app-m3-binary-icon flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl">
-                  <EyeOff className="h-6 w-6" />
+                  {mediaSummary.icon}
                 </div>
                 <div className="app-m3-binary-content min-w-0 flex-1 space-y-3">
                   <div className="flex flex-wrap items-center gap-2">
@@ -354,26 +404,41 @@ export default function EditorPane({
                       {fileTypeLabel}
                     </span>
                     <span className="app-m3-binary-muted-badge inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium">
-                      Binary / Unsupported
+                      {mediaSummary.badge}
                     </span>
                   </div>
                   <div className="space-y-1">
                     <p className="app-m3-binary-title text-lg font-semibold tracking-tight">
-                      这个文件类型暂不支持编辑器预览
+                      {mediaSummary.title}
                     </p>
                     <p className="app-m3-binary-description text-sm leading-6">
-                      当前文件更适合用外部应用打开，或者作为附件保存在项目中。
+                      {mediaSummary.description}
                     </p>
                   </div>
+                  {fileKind === "image" && mediaDataUrl && (
+                    <div className="overflow-hidden rounded-2xl border border-white/50 bg-white/55">
+                      <img src={mediaDataUrl} alt={fileName} className="max-h-64 w-full object-contain bg-white/50" />
+                    </div>
+                  )}
+                  {fileKind === "video" && mediaDataUrl && (
+                    <div className="overflow-hidden rounded-2xl border border-white/50 bg-black/65 p-3">
+                      <video src={mediaDataUrl} controls className="max-h-64 w-full rounded-xl" />
+                    </div>
+                  )}
+                  {fileKind === "audio" && mediaDataUrl && (
+                    <div className="rounded-2xl border border-white/50 bg-white/55 p-4">
+                      <audio src={mediaDataUrl} controls className="w-full" />
+                    </div>
+                  )}
                   <div className="app-m3-binary-file rounded-2xl px-4 py-3">
                     <p className="app-m3-binary-file-name truncate text-sm font-medium">{fileName}</p>
                     <p className="app-m3-binary-file-description mt-1 text-xs">
-                      已检测到不可编辑或非文本内容，因此不会在这里渲染源码或预览结果。
+                      {activeFileContent?.mimeType || "application/octet-stream"} · {formatFileSize(activeFileContent?.size)}
                     </p>
                   </div>
                   <div className="app-m3-binary-note flex items-start gap-2 rounded-2xl px-4 py-3 text-sm">
                     <Info className="app-m3-binary-note-icon mt-0.5 h-4 w-4 shrink-0" />
-                    <p>如果你后续希望支持更多纯文本格式，我们也可以继续扩展可编辑文件白名单。</p>
+                    <p>{fileKind === "binary" ? "如果你后续想支持更多可预览文件类型，我们可以继续补充识别和内嵌查看器。" : "媒体文件本身不会进入源码编辑模式，避免编辑器把二进制内容当文本处理。"} </p>
                   </div>
                 </div>
               </div>

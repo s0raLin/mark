@@ -44,6 +44,13 @@ pnpm dev:tauri
 pnpm build:tauri:linux
 ```
 
+### Electron 构建与打包
+
+```bash
+pnpm build:electron
+pnpm dist
+```
+
 ### 常用检查
 
 ```bash

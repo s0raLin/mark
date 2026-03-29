@@ -16,13 +16,13 @@ func GetFileContent(c *gin.Context) {
 		return
 	}
 
-	content, exists := storageRepo().GetFileContent(fileID)
+	response, exists := storageRepo().GetFileContent(fileID)
 	if !exists {
 		api.NotFound(c, "file not found")
 		return
 	}
 
-	api.Success(c, model.GetFileContentResponse{ID: fileID, Content: content})
+	api.Success(c, response)
 }
 
 // SaveFileContent handles the legacy wildcard route PUT /api/file/*fileId.
@@ -52,13 +52,13 @@ func GetFileContentByQuery(c *gin.Context) {
 		return
 	}
 
-	content, exists := storageRepo().GetFileContent(fileID)
+	response, exists := storageRepo().GetFileContent(fileID)
 	if !exists {
 		api.NotFound(c, "file not found")
 		return
 	}
 
-	api.Success(c, model.GetFileContentResponse{ID: fileID, Content: content})
+	api.Success(c, response)
 }
 
 // SaveFileContentByBody handles the REST route PUT /api/files/content.

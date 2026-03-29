@@ -16,12 +16,22 @@
         "width": 800,
         "height": 600,
         "resizable": true,
+        "decorations": false,
         "fullscreen": false
       }
     ],
     "security": {
-      "csp": null
-    }
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "$HOME/.config/notemark/uploads/**",
+          "$APPDATA/notemark/uploads/**",
+          "$HOME/Library/Application Support/notemark/uploads/**"
+        ]
+      }
+    },
+    "withGlobalTauri": true
   },
   "bundle": {
     "active": true,

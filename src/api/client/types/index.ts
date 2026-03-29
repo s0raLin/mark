@@ -206,6 +206,12 @@ export interface GetFileContentRequest {
 export interface GetFileContentResponse {
   id: string;
   content: string;
+  kind: "text" | "image" | "audio" | "video" | "binary";
+  mimeType?: string;
+  mediaDataUrl?: string;
+  size?: number;
+  editable?: boolean;
+  previewable?: boolean;
 }
 
 /**

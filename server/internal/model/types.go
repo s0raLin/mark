@@ -83,8 +83,14 @@ type StorageUserSettings struct {
 
 // 單檔內容相關
 type GetFileContentResponse struct {
-	ID      string `json:"id"`
-	Content string `json:"content"`
+	ID          string `json:"id"`
+	Content     string `json:"content"`
+	Kind        string `json:"kind"`
+	MimeType    string `json:"mimeType,omitempty"`
+	MediaDataURL string `json:"mediaDataUrl,omitempty"`
+	Size        int64  `json:"size,omitempty"`
+	Editable    bool   `json:"editable"`
+	Previewable bool   `json:"previewable"`
 }
 
 type SaveFileContentResponse struct {

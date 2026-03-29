@@ -2,19 +2,24 @@ import {
   CloudUpload,
   Eye,
   FileText,
+  Image as ImageIcon,
+  Images,
   Palette,
+  Search,
   Sparkles,
   Terminal,
   Trash2,
   X,
 } from "lucide-react";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { ThemeOption } from "./ThemeOption";
 import { PreviewThemeCard } from "./PreviewThemeCard";
 import { AccentCircle } from "./AccentCircle";
 import { ColorPicker } from "./ColorPicker";
+import { ModalHeader } from "@/components/Modals/ModalHeader";
+import { ModalShell } from "@/components/Modals/ModalShell";
 import { cn } from "@/utils/cn";
 import { ACCENT_COLORS, EDITOR_THEMES, PREVIEW_THEMES } from "@/constants/theme";
 import {
@@ -121,12 +126,18 @@ export default function SettingEditor({
   const [systemFontsLoading, setSystemFontsLoading] = useState(true);
   const [uploadedImages, setUploadedImages] = useState<UploadedImageAsset[]>([]);
   const [systemFonts, setSystemFonts] = useState<string[]>([]);
+  const [failedImageUrls, setFailedImageUrls] = useState<string[]>([]);
+  const [imageLibraryOpen, setImageLibraryOpen] = useState(false);
+  const [draftBgImage, setDraftBgImage] = useState("");
+  const [pendingDeleteImages, setPendingDeleteImages] = useState<string[]>([]);
+  const [imageQuery, setImageQuery] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 });
   const pickerBtnRef = useRef<HTMLButtonElement>(null);
   const pickerPopoverRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
   const handlerRef = useRef<((e: MouseEvent) => void) | null>(null);
+  const deferredImageQuery = useDeferredValue(imageQuery);
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -192,33 +203,36 @@ export default function SettingEditor({
   }, []);
 
   const interfaceFontOptions = useMemo(() => {
-    const preferred = [
-      "Quicksand",
-      "Bubblegum Sans",
-      "Patrick Hand",
-      "Comfortaa",
-      "Playfair Display",
-      fontChoice,
-    ];
-    return Array.from(new Set([...preferred, ...systemFonts].filter(Boolean))).sort((a, b) =>
-      a.localeCompare(b),
-    );
+    const preferred = ["Quicksand", fontChoice];
+    const system = systemFonts.filter((font) => font !== "monospace");
+    const merged = Array.from(new Set([...preferred, ...system].filter(Boolean)));
+    const pinned = preferred.filter((font, index) => preferred.indexOf(font) === index);
+    const others = merged.filter((font) => !pinned.includes(font)).sort((a, b) => a.localeCompare(b));
+    return [...pinned, ...others];
   }, [fontChoice, systemFonts]);
 
   const editorFontOptions = useMemo(() => {
-    const preferred = [
-      "JetBrains Mono",
-      "Fira Code",
-      "Source Code Pro",
-      "Cascadia Code",
-      "Inconsolata",
-      "monospace",
-      editorFont,
-    ];
-    return Array.from(new Set([...preferred, ...systemFonts].filter(Boolean))).sort((a, b) =>
-      a.localeCompare(b),
-    );
+    const preferred = ["JetBrains Mono", "monospace", editorFont];
+    const merged = Array.from(new Set([...preferred, ...systemFonts].filter(Boolean)));
+    const pinned = preferred.filter((font, index) => preferred.indexOf(font) === index);
+    const others = merged.filter((font) => !pinned.includes(font)).sort((a, b) => a.localeCompare(b));
+    return [...pinned, ...others];
   }, [editorFont, systemFonts]);
+
+  const filteredImages = useMemo(() => {
+    const keyword = deferredImageQuery.trim().toLowerCase();
+    const sorted = [...uploadedImages].sort((a, b) => {
+      const aPending = pendingDeleteImages.includes(a.name) ? 1 : 0;
+      const bPending = pendingDeleteImages.includes(b.name) ? 1 : 0;
+      if (aPending !== bPending) return bPending - aPending;
+      const aActive = a.url === draftBgImage ? 1 : 0;
+      const bActive = b.url === draftBgImage ? 1 : 0;
+      if (aActive !== bActive) return bActive - aActive;
+      return a.name.localeCompare(b.name);
+    });
+    if (!keyword) return sorted;
+    return sorted.filter((image) => image.name.toLowerCase().includes(keyword));
+  }, [deferredImageQuery, draftBgImage, pendingDeleteImages, uploadedImages]);
 
   const handleBgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -227,7 +241,7 @@ export default function SettingEditor({
     try {
       const image = await uploadImage(file);
       setUploadedImages((prev) => [image, ...prev.filter((item) => item.name !== image.name)]);
-      setBgImage(image.url);
+      setDraftBgImage(image.url);
     }
     catch (err) { console.error("Background upload failed", err); }
     finally { setBgUploading(false); e.target.value = ""; }
@@ -238,15 +252,54 @@ export default function SettingEditor({
       const deleted = await deleteUploadedImage(image.name);
       if (!deleted) return;
       setUploadedImages((prev) => prev.filter((item) => item.name !== image.name));
-      if (bgImage === image.url) {
-        setBgImage("");
+      if (draftBgImage === image.url) {
+        setDraftBgImage("");
       }
+      setPendingDeleteImages((prev) => prev.filter((name) => name !== image.name));
     } catch (err) {
       console.error("Failed to delete uploaded image", err);
     }
   };
 
+  const openImageLibrary = () => {
+    setDraftBgImage(bgImage);
+    setPendingDeleteImages([]);
+    setImageQuery("");
+    setImageLibraryOpen(true);
+  };
+
+  const closeImageLibrary = () => {
+    setDraftBgImage(bgImage);
+    setPendingDeleteImages([]);
+    setImageQuery("");
+    setImageLibraryOpen(false);
+  };
+
+  const confirmImageLibrary = async () => {
+    if (pendingDeleteImages.length > 0) {
+      const deletingImages = uploadedImages.filter((image) => pendingDeleteImages.includes(image.name));
+      for (const image of deletingImages) {
+        await handleDeleteImage(image);
+      }
+      return;
+    }
+
+    if (!draftBgImage) {
+      return;
+    }
+
+    setBgImage(draftBgImage);
+    setImageLibraryOpen(false);
+  };
+
+  const markImageFailed = (url: string) => {
+    setFailedImageUrls((prev) => (prev.includes(url) ? prev : [...prev, url]));
+  };
+
+  const canConfirmImageLibrary = pendingDeleteImages.length > 0 || Boolean(draftBgImage);
+
   return (
+    <>
     <div className="space-y-10">
       {/* ── Editor Theme ── */}
       <section>
@@ -363,7 +416,10 @@ export default function SettingEditor({
               <FieldLabel>{t("editor.atmosphere")}</FieldLabel>
               <div
                 className="group relative aspect-video rounded-xl overflow-hidden bg-white shadow-sm flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-[1.02]"
-                onClick={() => bgInputRef.current?.click()}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openImageLibrary();
+                }}
               >
                 <img
                   src={bgImage || "https://picsum.photos/seed/atmosphere/800/450"}
@@ -373,7 +429,12 @@ export default function SettingEditor({
                 />
                 {bgImage && (
                   <button
-                    onClick={(e) => { e.stopPropagation(); setBgImage(""); }}
+                    type="button"
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setBgImage("");
+                    }}
                     className="absolute top-2 right-2 z-20 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 transition-colors"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -389,60 +450,6 @@ export default function SettingEditor({
                 </div>
               </div>
               <input ref={bgInputRef} type="file" accept="image/*" className="sr-only" onChange={handleBgUpload} />
-              <div className="settings-m3-inline-surface rounded-2xl p-4 flex flex-col gap-3">
-                <div className="flex items-center justify-between gap-3">
-                  <FieldLabel>{t("editor.uploadedImages")}</FieldLabel>
-                  <span className="text-[11px] font-medium text-slate-400">
-                    {imagesLoading ? t("editor.loadingAssets") : uploadedImages.length}
-                  </span>
-                </div>
-
-                {imagesLoading ? (
-                  <p className="text-xs text-slate-400">{t("editor.loadingAssets")}</p>
-                ) : uploadedImages.length === 0 ? (
-                  <p className="text-xs text-slate-400">{t("editor.noUploadedImages")}</p>
-                ) : (
-                  <div className="grid grid-cols-2 gap-3">
-                    {uploadedImages.map((image) => {
-                      const active = bgImage === image.url;
-                      return (
-                        <div
-                          key={image.name}
-                          onClick={() => setBgImage(image.url)}
-                          className={cn(
-                            "group relative overflow-hidden rounded-2xl border text-left transition-all cursor-pointer",
-                            active
-                              ? "border-primary shadow-[0_0_0_1px_rgba(99,102,241,0.25)]"
-                              : "border-slate-200 hover:border-primary/40",
-                          )}
-                        >
-                          <img
-                            src={image.url}
-                            alt={image.name}
-                            className="h-28 w-full object-cover"
-                          />
-                          <div className="flex items-center justify-between gap-2 bg-white/90 px-3 py-2">
-                            <span className="truncate text-[11px] font-medium text-slate-600">
-                              {image.name}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                void handleDeleteImage(image);
-                              }}
-                              className="rounded-full p-1 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
-                              title={t("editor.deleteImage")}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
             </div>
 
             {/* Right: Blur + Sparkle Dust */}
@@ -498,14 +505,18 @@ export default function SettingEditor({
               >
                 {interfaceFontOptions.map((font) => (
                   <option key={font} value={font}>
-                    {font}
-                    {font === "Quicksand" ? " (Default)" : ""}
+                    {font === "Quicksand" ? `${font} (Default)` : font}
                   </option>
                 ))}
               </select>
               <p className="text-xs text-slate-400 truncate">
                 <span className="font-medium text-slate-500">{t("editor.preview")}:</span>{" "}
                 <span style={{ fontFamily: fontChoice }}>{fontChoice}</span>
+              </p>
+              <p className="text-[11px] text-slate-400">
+                {systemFontsLoading
+                  ? t("editor.loadingFonts")
+                  : t("editor.systemFontsInline", { count: Math.max(interfaceFontOptions.length - 1, 0) })}
               </p>
             </div>
 
@@ -519,9 +530,11 @@ export default function SettingEditor({
               >
                 {editorFontOptions.map((font) => (
                   <option key={font} value={font}>
-                    {font}
-                    {font === "JetBrains Mono" ? " (Default)" : ""}
-                    {font === "monospace" ? " (System)" : ""}
+                    {font === "JetBrains Mono"
+                      ? `${font} (Default)`
+                      : font === "monospace"
+                        ? `${font} (System)`
+                        : font}
                   </option>
                 ))}
               </select>
@@ -529,22 +542,11 @@ export default function SettingEditor({
                 <span className="font-medium text-slate-500">{t("editor.preview")}:</span>{" "}
                 <span style={{ fontFamily: editorFont }}>Aa Bb Cc 123</span>
               </p>
-            </div>
-
-            <div className="settings-m3-inline-surface rounded-2xl p-4 flex flex-col gap-3 min-w-0">
-              <FieldLabel>{t("editor.systemFonts")}</FieldLabel>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-[11px] text-slate-400">
                 {systemFontsLoading
                   ? t("editor.loadingFonts")
-                  : t("editor.systemFontsDesc", { count: systemFonts.length })}
+                  : t("editor.systemFontsInline", { count: Math.max(editorFontOptions.length - 2, 0) })}
               </p>
-              <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
-                <p className="truncate text-sm text-slate-600">
-                  {systemFontsLoading
-                    ? t("editor.loadingFonts")
-                    : systemFonts.slice(0, 6).join(", ") || t("editor.noSystemFonts")}
-                </p>
-              </div>
             </div>
           </div>
 
@@ -570,5 +572,199 @@ export default function SettingEditor({
         </div>
       </section>
     </div>
+    {imageLibraryOpen && createPortal(
+      <div
+        className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/22 p-4 backdrop-blur-[3px]"
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) {
+            closeImageLibrary();
+          }
+        }}
+      >
+        <div
+          className="modal-m3-shell flex max-h-[86vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl backdrop-blur-xl"
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+          <ModalHeader
+            icon={<Images className="w-5 h-5" />}
+            title={t("editor.backgroundLibrary")}
+            subtitle={t("editor.backgroundLibraryDesc")}
+            onClose={closeImageLibrary}
+          />
+          <div className="flex flex-col gap-5 overflow-y-auto px-8 pb-8 pt-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => bgInputRef.current?.click()}
+                disabled={bgUploading}
+                className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+              >
+                {bgUploading
+                  ? <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  : <CloudUpload className="h-4 w-4" />}
+                {bgUploading ? t("editor.uploading") : t("editor.readFromSystem")}
+              </button>
+              <span className="text-xs text-slate-400">
+                {imagesLoading
+                  ? t("editor.loadingAssets")
+                  : t("editor.imageLibrarySummary", { count: uploadedImages.length })}
+              </span>
+            </div>
+            {imagesLoading ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="overflow-hidden rounded-[28px] border border-slate-200 bg-white"
+                  >
+                    <div className="h-44 animate-pulse bg-slate-100" />
+                    <div className="space-y-2 px-4 py-4">
+                      <div className="h-3 rounded bg-slate-100" />
+                      <div className="h-3 w-2/3 rounded bg-slate-100" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : uploadedImages.length === 0 ? (
+              <div className="rounded-[28px] border border-dashed border-slate-200 bg-white/80 px-6 py-14 text-center">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                  <Images className="h-6 w-6" />
+                </div>
+                <p className="mt-4 text-base font-semibold text-slate-600">{t("editor.noUploadedImages")}</p>
+                <p className="mt-1 text-sm text-slate-400">{t("editor.noUploadedImagesHint")}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {uploadedImages.map((image) => {
+                  const active = draftBgImage === image.url;
+                  const failed = failedImageUrls.includes(image.url);
+                  const pendingDelete = pendingDeleteImages.includes(image.name);
+
+                  return (
+                    <div
+                      key={image.name}
+                      onClick={() => {
+                        setDraftBgImage((current) => (current === image.url ? "" : image.url));
+                        setPendingDeleteImages((prev) => prev.filter((name) => name !== image.name));
+                      }}
+                      className={cn(
+                        "group relative overflow-hidden rounded-[28px] border bg-white text-left transition-all cursor-pointer shadow-sm",
+                        pendingDelete && "border-slate-200 bg-slate-50 opacity-55 saturate-0",
+                        active
+                          ? "border-primary shadow-[0_18px_40px_rgba(99,102,241,0.16)]"
+                          : "border-slate-200 hover:-translate-y-1 hover:border-primary/35 hover:shadow-[0_16px_36px_rgba(15,23,42,0.08)]",
+                        pendingDelete && "hover:translate-y-0 hover:border-slate-200 hover:shadow-sm",
+                      )}
+                    >
+                      <div className="absolute left-4 top-4 z-10">
+                        <span
+                          className={cn(
+                            "rounded-full px-3 py-1 text-[10px] font-semibold backdrop-blur-md",
+                            pendingDelete
+                              ? "bg-slate-900/75 text-white"
+                              : active
+                                ? "bg-primary text-white"
+                                : "bg-white/85 text-slate-500",
+                          )}
+                        >
+                          {pendingDelete
+                            ? t("editor.pendingDelete")
+                            : active
+                              ? t("editor.currentBg")
+                              : t("editor.useAsBg")}
+                        </span>
+                      </div>
+
+                      <div className="relative h-44 w-full overflow-hidden bg-slate-100">
+                        {failed ? (
+                          <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.18),_rgba(255,255,255,0.92))]">
+                            <div className="flex flex-col items-center gap-2 text-slate-400">
+                              <ImageIcon className="h-6 w-6" />
+                              <span className="text-xs font-medium">{t("editor.previewUnavailable")}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <img
+                            src={image.url}
+                            alt={image.name}
+                            className={cn(
+                              "h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]",
+                              pendingDelete && "group-hover:scale-100",
+                            )}
+                            onError={() => markImageFailed(image.url)}
+                          />
+                        )}
+                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/10 via-black/0 to-transparent" />
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3 px-4 py-4">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-slate-700">{image.name}</p>
+                          <p className="mt-1 text-xs text-slate-400">
+                            {pendingDelete
+                              ? t("editor.pendingDeleteHint")
+                              : active
+                                ? t("editor.selectedForBg")
+                                : t("editor.clickToSelect")}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setPendingDeleteImages((current) =>
+                              current.includes(image.name)
+                                ? current.filter((name) => name !== image.name)
+                                : [...current, image.name],
+                            );
+                          }}
+                          className={cn(
+                            "shrink-0 rounded-full border p-2 transition-colors",
+                            pendingDelete
+                              ? "border-red-200 bg-red-50 text-red-500"
+                              : "border-slate-200 text-slate-400 hover:border-red-100 hover:bg-red-50 hover:text-red-500",
+                          )}
+                          title={t("editor.deleteImage")}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div className="flex items-center justify-end gap-3 border-t border-slate-200/70 pt-2">
+              <button
+                type="button"
+                onClick={closeImageLibrary}
+                className="rounded-2xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
+              >
+                {t("settings.cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmImageLibrary()}
+                disabled={!canConfirmImageLibrary}
+                data-disabled={!canConfirmImageLibrary}
+                className={cn(
+                  "rounded-full px-5 py-2.5 text-sm font-bold transition-all",
+                  pendingDeleteImages.length > 0
+                    ? "bg-red-500 text-white hover:opacity-90"
+                    : "modal-m3-filled-button text-white active:scale-95",
+                  !canConfirmImageLibrary && "cursor-not-allowed active:scale-100",
+                )}
+              >
+                {pendingDeleteImages.length > 0
+                  ? t("editor.confirmDeleteCount", { count: pendingDeleteImages.length })
+                  : t("editor.applyBackground")}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>,
+      document.body,
+    )}
+    </>
   );
 }

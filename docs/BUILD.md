@@ -41,6 +41,17 @@
 
 ## 构建概览
 
+当前推荐只记住这几个命令：
+
+```bash
+pnpm build
+pnpm build:electron
+pnpm dist
+pnpm dev:tauri
+pnpm build:tauri
+pnpm build:tauri:linux
+```
+
 ### 前端静态资源
 
 ```bash
@@ -52,7 +63,7 @@ pnpm build
 - 生成 `dist/`
 - 供 Tauri 与 Electron 两条链路复用
 
-### Electron 主进程
+### Electron 桌面构建
 
 ```bash
 pnpm build:electron
@@ -60,23 +71,9 @@ pnpm build:electron
 
 作用：
 
-- 将根目录的 `index.ts` 打包为 `dist-electron/index.cjs`
-
-### Go 后端
-
-```bash
-pnpm build:go
-```
-
-Windows：
-
-```bash
-pnpm build:go:win
-```
-
-作用：
-
+- 构建 Electron 前端静态资源
 - 生成 Electron 旧链路需要的 Go 服务二进制
+- 将根目录的 `index.ts` 打包为 `dist-electron/index.cjs`
 
 ### Tauri Rust 检查
 
@@ -107,10 +104,8 @@ pnpm dist
 
 该命令会依次执行：
 
-1. `pnpm run build:go`
-2. `pnpm run build:frontend`
-3. `pnpm run build:electron`
-4. `electron-builder`
+1. `pnpm run build:electron`
+2. `electron-builder`
 
 ### 按平台打包
 
@@ -173,19 +168,6 @@ pnpm build:tauri
 
 ```bash
 pnpm build:tauri:linux
-```
-
-如果只想构建单一格式：
-
-```bash
-pnpm build:tauri:deb
-pnpm build:tauri:appimage
-```
-
-如果你需要看到完整构建过程：
-
-```bash
-pnpm build:tauri:verbose
 ```
 
 ### Tauri 配置位置
@@ -289,9 +271,7 @@ go build -C server ./cmd/server
 如果你要出 Electron 包，建议再执行：
 
 ```bash
-pnpm build:frontend
 pnpm build:electron
-pnpm build:go
 ```
 
 ## 常见问题

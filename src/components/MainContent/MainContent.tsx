@@ -52,6 +52,7 @@ export default function MainContent({
         <EditorPane
           markdown={markdownSync.markdown}
           setMarkdown={markdownSync.setMarkdown}
+          activeFileContent={markdownSync.activeFileContent}
           editorTheme={editorConfig.editorTheme}
           editorRef={editorRef}
           editorFont={editorConfig.editorFont}
@@ -62,6 +63,7 @@ export default function MainContent({
       <PreviewPane
         previewRef={previewRef}
         markdown={markdownSync.markdown}
+        activeFileContent={markdownSync.activeFileContent}
         previewTheme={editorConfig.previewTheme}
         className={cn(
           editorState.viewMode === "editor" && "hidden",

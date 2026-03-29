@@ -37,7 +37,11 @@ export function isElectronRuntime() {
 }
 
 export function isTauriRuntime() {
-  return typeof getTauriCore()?.invoke === "function";
+  return Boolean(
+    typeof getTauriCore()?.invoke === "function"
+      || (window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__
+      || navigator.userAgent.includes("Tauri"),
+  );
 }
 
 export function sendElectronEvent(channel: string, ...args: unknown[]) {
