@@ -7,6 +7,10 @@
 - Go 1.21+
 - Rust 1.77+ 与 Tauri 2 开发环境
 
+如果你关注发布流程、安装包输出和平台构建差异，请同时查看：
+
+- [docs/BUILD.md](/home/cangli/Desktop/ts/notemark/docs/BUILD.md)
+
 ## 安装依赖
 
 ```bash

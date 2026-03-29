@@ -14,6 +14,7 @@
 
 - 架构说明：[docs/ARCHITECTURE.md](/home/cangli/Desktop/ts/notemark/docs/ARCHITECTURE.md)
 - 开发文档：[docs/DEVELOPMENT.md](/home/cangli/Desktop/ts/notemark/docs/DEVELOPMENT.md)
+- 构建与打包：[docs/BUILD.md](/home/cangli/Desktop/ts/notemark/docs/BUILD.md)
 - 使用文档：[docs/USAGE.md](/home/cangli/Desktop/ts/notemark/docs/USAGE.md)
 - 扩展文档：[docs/EXTENDING.md](/home/cangli/Desktop/ts/notemark/docs/EXTENDING.md)
 
