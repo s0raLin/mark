@@ -21,7 +21,7 @@ export const PreviewThemeCard = memo(function PreviewThemeCard({
 }: PreviewThemeCardProps) {
   const bgColor = colors[0];
   const titleColor = isDark ? "#e2e8f0" : "#1e293b";
-  const subtitleColor = isDark ? "#94a3b8" : "#94a3b8";
+  const subtitleColor = isDark ? "#cbd5e1" : "#475569";
 
   return (
     <div
@@ -52,7 +52,7 @@ export const PreviewThemeCard = memo(function PreviewThemeCard({
           {title}
         </p>
         <p
-          className="text-[10px] font-bold uppercase tracking-widest mt-0.5"
+          className="text-xs font-bold uppercase tracking-widest mt-1"
           style={{ color: subtitleColor }}
         >
           {subtitle}

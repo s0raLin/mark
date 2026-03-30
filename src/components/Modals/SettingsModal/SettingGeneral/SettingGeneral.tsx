@@ -32,7 +32,7 @@ export default function SettingGeneral({
           <div className="settings-m3-card p-5 rounded-2xl flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-slate-700">{t("general.workspaceName")}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{t("general.workspaceNameDesc")}</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{t("general.workspaceNameDesc")}</p>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -56,7 +56,7 @@ export default function SettingGeneral({
           <div className="settings-m3-card p-5 rounded-2xl flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-700">{t("general.autoSave")}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{t("general.autoSaveDesc")}</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{t("general.autoSaveDesc")}</p>
             </div>
             <div
               className={`settings-m3-switch-track w-11 h-6 rounded-full relative p-1 cursor-pointer shrink-0 ${autoSave ? 'bg-primary' : 'bg-slate-200'}`}
@@ -71,7 +71,7 @@ export default function SettingGeneral({
             <div className="settings-m3-card p-5 rounded-2xl flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-700">{t("general.autoSaveInterval")}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{t("general.autoSaveIntervalDesc")}</p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">{t("general.autoSaveIntervalDesc")}</p>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -83,7 +83,7 @@ export default function SettingGeneral({
                   onChange={(e) => setAutoSaveInterval(Number(e.target.value))}
                   className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm w-24 focus:ring-primary focus:border-primary"
                 />
-                <span className="text-xs text-slate-400">ms</span>
+                <span className="text-sm font-medium text-slate-600">ms</span>
               </div>
             </div>
           )}

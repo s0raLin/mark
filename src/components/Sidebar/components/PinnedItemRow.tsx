@@ -179,7 +179,7 @@ export default function PinnedItemRow({
             )}
           />
           {children.length === 0 && (
-            <p className="text-[11px] text-slate-300 px-4 py-1">Empty folder</p>
+            <p className="px-4 py-1 text-sm font-medium text-slate-500">Empty folder</p>
           )}
         </div>
       )}

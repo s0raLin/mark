@@ -42,7 +42,7 @@ export const ThemeOption = memo(function ThemeOption({
         <div className="h-1 rounded-full w-1/2 opacity-30" style={{ backgroundColor: text }} />
       </div>
       <span
-        className="text-[10px] font-bold uppercase tracking-wider"
+        className="text-xs font-bold uppercase tracking-wider"
         style={{ color: text }}
       >
         {label}

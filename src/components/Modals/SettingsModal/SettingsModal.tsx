@@ -36,8 +36,8 @@ const DEFAULT_SETTINGS: SettingsSnapshot = {
   fontChoice: "Quicksand",
   editorFont: "JetBrains Mono",
   fontSize: 16,
-  editorFontSize: 14,
-  previewFontSize: 16,
+  editorFontSize: 16,
+  previewFontSize: 18,
   accentColor: "#ff9a9e",
   blurAmount: 0,
   bgImage: "",
@@ -279,10 +279,10 @@ export function SettingsModal({
                 }}
                 data-active={activeTab === tab.id}
                 className={cn(
-                  "modal-m3-nav-button flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all",
+                  "modal-m3-nav-button flex items-center gap-3 px-4 py-3 rounded-2xl text-[15px] font-bold transition-all",
                   activeTab === tab.id
                     ? "text-white scale-[1.02]"
-                    : "text-slate-500",
+                    : "text-slate-600",
                 )}
               >
                 {tab.icon}
@@ -299,7 +299,7 @@ export function SettingsModal({
         <footer className="modal-m3-footer flex items-center justify-between gap-4 p-6 shrink-0">
           <button
             onClick={handleReset}
-            className="modal-m3-text-button flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-400 transition-colors rounded-2xl"
+            className="modal-m3-text-button flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-slate-600 transition-colors rounded-2xl"
           >
             <RotateCcw className="w-4 h-4" />
             {t("settings.resetSpace")}
@@ -308,7 +308,7 @@ export function SettingsModal({
           <div className="flex items-center gap-3">
             <button
               onClick={handleClose}
-              className="modal-m3-outlined-button px-6 py-2.5 text-sm font-bold text-slate-400 transition-colors rounded-2xl"
+              className="modal-m3-outlined-button px-6 py-2.5 text-sm font-bold text-slate-600 transition-colors rounded-2xl"
             >
               {t("settings.cancel")}
             </button>
@@ -320,7 +320,7 @@ export function SettingsModal({
                 "modal-m3-filled-button flex items-center gap-2 px-8 py-2.5 text-sm font-bold rounded-full transition-all",
                 isDirty
                   ? "text-white active:scale-95"
-                  : "text-slate-400 cursor-not-allowed",
+                  : "text-slate-500 cursor-not-allowed",
               )}
             >
               <Sparkles className="w-4 h-4" />

@@ -15,15 +15,19 @@ function getGlobalArrow(): HTMLDivElement {
   const id = "__dl_cursor_arrow__";
   let el = document.getElementById(id) as HTMLDivElement | null;
   if (!el) {
-    // Inject animation keyframes
     const styleId = "__dl_cursor_style__";
     if (!document.getElementById(styleId)) {
       const s = document.createElement("style");
       s.id = styleId;
       s.textContent = `
-        @keyframes __dl_bob__ {
-          0%,100% { transform: translateY(-50%) translateX(0px); }
-          50%      { transform: translateY(-50%) translateX(4px); }
+        @keyframes __dl_pulse__ {
+          0%, 100% { filter: drop-shadow(0 6px 14px rgba(99,102,241,0.20)); }
+          50% { filter: drop-shadow(0 8px 18px rgba(99,102,241,0.32)); }
+        }
+
+        @keyframes __dl_glow__ {
+          0%, 100% { opacity: 0.92; }
+          50% { opacity: 1; }
         }
       `;
       document.head.appendChild(s);
@@ -31,19 +35,30 @@ function getGlobalArrow(): HTMLDivElement {
 
     el = document.createElement("div");
     el.id = id;
-    // SVG cursor-style arrow pointing right
-    el.innerHTML = `<svg width="14" height="18" viewBox="0 0 14 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M2 2 L12 9 L2 16 L2 2Z" fill="#f43f5e" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+    el.innerHTML = `<svg width="24" height="18" viewBox="0 0 24 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M2 9H11" stroke="url(#__dl_line__)" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M9 4.5L14.5 9L9 13.5" stroke="#6366F1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="17.5" cy="9" r="3.25" fill="#6366F1"/>
+      <circle cx="17.5" cy="9" r="2.1" fill="white" fill-opacity="0.94"/>
+      <defs>
+        <linearGradient id="__dl_line__" x1="2" y1="9" x2="11" y2="9" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#818CF8" stop-opacity="0.3"/>
+          <stop offset="1" stop-color="#6366F1"/>
+        </linearGradient>
+      </defs>
     </svg>`;
     el.style.cssText = `
       position: fixed;
-      display: none;
+      display: block;
       pointer-events: none;
       z-index: 9999;
-      transform: translateY(-50%);
-      animation: __dl_bob__ 700ms ease-in-out infinite;
-      filter: drop-shadow(0 2px 4px rgba(244,63,94,0.45));
+      opacity: 0;
+      transform: translate3d(-6px, -50%, 0) scale(0.96);
+      transform-origin: center;
+      transition: opacity 140ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+      animation: __dl_pulse__ 1300ms ease-in-out infinite, __dl_glow__ 900ms ease-in-out infinite;
     `;
+    el.dataset.visible = "false";
     document.body.appendChild(el);
   }
   return el;
@@ -80,23 +95,24 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
   const arrowRafRef = useRef<number | null>(null);
 
   const showArrow = useCallback((idx: number, side: "top" | "bottom") => {
-    // Cancel any pending arrow position update
     if (arrowRafRef.current !== null) {
       cancelAnimationFrame(arrowRafRef.current);
       arrowRafRef.current = null;
     }
     const arrow = getGlobalArrow();
-    // Wait for margin transition (100ms) to finish before reading rect
     const start = performance.now();
     const update = (now: number) => {
       const wrapper = wrapperRefs.current[idx];
       if (!wrapper) return;
       const rect = wrapper.getBoundingClientRect();
       const y = side === "top" ? rect.top : rect.bottom;
-      arrow.style.left = `${rect.left - 14}px`;
-      arrow.style.top  = `${y}px`;
-      arrow.style.display = "block";
-      // Keep updating until transition is done (~110ms)
+      arrow.style.left = `${rect.left - 22}px`;
+      arrow.style.top = `${y}px`;
+      if (arrow.dataset.visible !== "true") {
+        arrow.dataset.visible = "true";
+        arrow.style.opacity = "1";
+        arrow.style.transform = "translate3d(0, -50%, 0) scale(1)";
+      }
       if (now - start < 110) {
         arrowRafRef.current = requestAnimationFrame(update);
       } else {
@@ -112,7 +128,11 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
       arrowRafRef.current = null;
     }
     const arrow = document.getElementById("__dl_cursor_arrow__") as HTMLDivElement | null;
-    if (arrow) arrow.style.display = "none";
+    if (arrow) {
+      arrow.dataset.visible = "false";
+      arrow.style.opacity = "0";
+      arrow.style.transform = "translate3d(-6px, -50%, 0) scale(0.96)";
+    }
   }, []);
 
   const applyMargin = useCallback((idx: number | null, side: "top" | "bottom" | null) => {
@@ -155,8 +175,9 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
 
   const clearVisuals = useCallback(() => {
     applyInto(null);
+    applyMargin(null, null);
     localDropRef.current = null;
-  }, [applyInto]);
+  }, [applyInto, applyMargin]);
 
   const resolveHit = useCallback((clientY: number, clientX: number) => {
     const dragId = draggingIdRef.current;
@@ -172,7 +193,7 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
 
     // Strict bounds check (no extension) — ensures parent DragList can reclaim ownership
     // when cursor moves outside a nested container
-    const inBounds = clientY >= cRect.top && clientY <= cRect.bottom &&
+    const inBounds = clientY >= cRect.top - 18 && clientY <= cRect.bottom + 18 &&
                      clientX >= cRect.left - 32 && clientX <= cRect.right + 64;
 
     if (!inBounds) {
@@ -231,12 +252,14 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
         if (clientY < info.top + edgeZone) {
           // top edge → insert before this folder
           applyInto(null);
+          applyMargin(info.idx, "top");
           localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: info.node.id };
           return;
         }
         if (clientY > info.bottom - edgeZone) {
           // bottom edge → insert after this folder
           applyInto(null);
+          applyMargin(info.idx, "bottom");
           // find the next sibling in rects (skip the dragged node)
           const rectsIdx = rects.findIndex(r => r.idx === info.idx);
           const nextRect = rects[rectsIdx + 1];
@@ -259,20 +282,30 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
 
     applyInto(null);
 
-    if (clientY < rects[0].mid) {
+    const topBand = Math.min(Math.max((rects[0].bottom - rects[0].top) * 0.45, 14), 28);
+    const bottomBand = Math.min(
+      Math.max((rects[rects.length - 1].bottom - rects[rects.length - 1].top) * 0.45, 14),
+      28,
+    );
+
+    if (clientY <= rects[0].top + topBand) {
+      applyMargin(rects[0].idx, "top");
       localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: rects[0].node.id };
       return;
     }
-    if (clientY >= rects[rects.length - 1].mid) {
+    if (clientY >= rects[rects.length - 1].bottom - bottomBand) {
+      applyMargin(rects[rects.length - 1].idx, "bottom");
       localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: null };
       return;
     }
     for (let j = 0; j < rects.length - 1; j++) {
       if (clientY >= rects[j].mid && clientY < rects[j + 1].mid) {
+        applyMargin(rects[j + 1].idx, "top");
         localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: rects[j + 1].node.id };
         return;
       }
     }
+    applyMargin(rects[rects.length - 1].idx, "bottom");
     localDropRef.current = { kind: "reorder", parentId: pid, insertBeforeId: null };
   }, [draggingIdRef, applyMargin, applyInto, clearVisuals]);
 

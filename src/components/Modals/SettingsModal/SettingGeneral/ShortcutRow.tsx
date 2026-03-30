@@ -10,7 +10,7 @@ export function ShortcutRow({ keys, label }: ShortcutRowProps) {
         {keys.map((key) => (
           <kbd
             key={key}
-            className="settings-m3-keycap px-2.5 py-1 rounded-lg text-[10px] font-black text-slate-600 uppercase"
+            className="settings-m3-keycap px-2.5 py-1 rounded-lg text-xs font-black text-slate-700 uppercase"
           >
             {key}
           </kbd>

@@ -113,7 +113,7 @@ function CopyButton({ code, palette }: { code: string; palette: ThemePalette }) 
       ) : (
         <Download className="w-3.5 h-3.5 rotate-180" />
       )}
-      <span className="text-[10px] font-bold uppercase tracking-wider">
+      <span className="text-[11px] font-bold uppercase tracking-wider">
         {copied ? "Copied!" : "Copy"}
       </span>
     </button>
@@ -232,7 +232,7 @@ export const CodeBlock = memo(function CodeBlock({ language, code, previewTheme 
             <div className="w-2.5 h-2.5 rounded-full bg-amber-300" />
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-300" />
             <span
-              className={cn("ml-3 text-[10px] font-black uppercase tracking-[0.2em]", palette.label)}
+              className={cn("ml-3 text-[11px] font-black uppercase tracking-[0.2em]", palette.label)}
               style={palette.labelStyle}
             >
               {language}
@@ -248,7 +248,7 @@ export const CodeBlock = memo(function CodeBlock({ language, code, previewTheme 
           customStyle={{
             margin: 0,
             padding: "1rem",
-            fontSize: "0.875rem",
+            fontSize: "0.98rem",
             lineHeight: "1.7",
             background: palette.blockBackground,
             borderTop: palette.blockBorder ?? "none",

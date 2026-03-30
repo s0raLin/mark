@@ -16,7 +16,7 @@ export function ModalHeader({ icon, title, subtitle, onClose }: ModalHeaderProps
         </div>
         <div>
           <h2 className="text-xl font-bold leading-tight tracking-tight text-slate-800">{title}</h2>
-          <p className="text-[10px] text-primary font-bold uppercase tracking-widest">{subtitle}</p>
+          <p className="text-xs text-primary/80 font-bold uppercase tracking-[0.16em]">{subtitle}</p>
         </div>
       </div>
       <button

@@ -451,7 +451,7 @@ export default function EditorPane({
           ref={editorRef}
           value={markdown}
           height="100%"
-          className="h-full text-sm font-mono"
+          className="h-full font-mono"
           theme={getThemeExtension(editorTheme)}
           extensions={editorExtensions}
           onChange={(value) => setMarkdown(value)}

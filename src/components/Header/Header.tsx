@@ -35,19 +35,20 @@ function QuickBtn({ icon, label, onClick, active }: ActionBtn) {
       <button
         onClick={onClick}
         className={cn(
-          "app-m3-quick-btn h-8 w-8 flex items-center justify-center rounded-lg transition-all",
+          "app-m3-quick-btn h-8 w-8 flex items-center justify-center rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
           active
             ? "text-primary"
             : "text-slate-400",
         )}
         data-active={active}
+        aria-label={label}
       >
         {icon}
       </button>
       {/* Tooltip */}
-      <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 rounded-md bg-slate-800 text-white text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
+      <div className="app-m3-tooltip pointer-events-none absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 rounded-xl px-3 py-2 text-xs font-semibold opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100 translate-y-1">
         {label}
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-800" />
+        <div className="app-m3-tooltip-arrow absolute bottom-full left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45" />
       </div>
     </div>
   );

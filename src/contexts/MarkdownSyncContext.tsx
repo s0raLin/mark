@@ -1,6 +1,7 @@
 import { getFileContent, updateFileContent, type GetFileContentResponse } from "@/api/client";
 import { errorBus } from "./errorBus";
 import { INITIAL_MARKDOWN } from "@/constants";
+import { DEFAULT_FILE_ID } from "./utils/fileSystemUtils";
 import {
   useState,
   useRef,
@@ -29,9 +30,8 @@ export function MarkdownSyncProvider({
 }): ReactNode {
   const fileSystem = useFileSystemContext();
   const activeFileId = fileSystem.activeFileId;
-  const activeFileType =
-    fileSystem.nodes.find((n) => n.id === fileSystem.activeFileId)?.type ??
-    null;
+  const activeNode = fileSystem.nodes.find((n) => n.id === activeFileId) ?? null;
+  const activeFileType = activeNode?.type ?? null;
   const setNodes = fileSystem.setNodes;
   const [markdown, setMarkdown] = useState(INITIAL_MARKDOWN);
   const [activeFileContent, setActiveFileContent] = useState<GetFileContentResponse | null>(null);
@@ -39,9 +39,25 @@ export function MarkdownSyncProvider({
   const prevMarkdownRef = useRef<string>(INITIAL_MARKDOWN);
 
   useEffect(() => {
-    if (!activeFileId || activeFileType === "folder") {
+    if (!activeFileId || !activeNode || activeFileType === "folder") {
       setMarkdown("");
       setActiveFileContent(null);
+      return;
+    }
+
+    if (activeFileId === DEFAULT_FILE_ID) {
+      const response: GetFileContentResponse = {
+        id: DEFAULT_FILE_ID,
+        content: fileContentsRef.current[DEFAULT_FILE_ID]?.content ?? INITIAL_MARKDOWN,
+        kind: "text",
+        mimeType: "text/markdown",
+        size: INITIAL_MARKDOWN.length,
+        editable: true,
+        previewable: true,
+      };
+      fileContentsRef.current[DEFAULT_FILE_ID] = response;
+      setActiveFileContent(response);
+      setMarkdown(response.content);
       return;
     }
 
@@ -69,7 +85,7 @@ export function MarkdownSyncProvider({
     };
 
     load();
-  }, [activeFileId]);
+  }, [activeFileId, activeFileType, activeNode]);
 
   const saveToBackend = useCallback(
     (newMarkdown: string) => {
@@ -113,6 +129,9 @@ export function MarkdownSyncProvider({
           n.id === activeFileId ? { ...n, updatedAt: Date.now() } : n,
         ),
       );
+      if (activeFileId === DEFAULT_FILE_ID) {
+        return;
+      }
       updateFileContent(activeFileId, newMarkdown).catch((err) => {
         console.error("保存文件失败:", err);
         errorBus.fromException("自动保存失败", err, {

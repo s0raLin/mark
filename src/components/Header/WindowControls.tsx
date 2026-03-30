@@ -20,13 +20,14 @@ export default function WindowControls({
       <div className="relative group">
         <button
           onClick={onLauncher}
-          className="app-m3-window-btn flex items-center justify-center transition-all duration-150 text-slate-400 active:scale-90"
+          className="app-m3-window-btn flex items-center justify-center transition-all duration-150 text-slate-400 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+          aria-label={t("launcher.title")}
         >
           <Home className="w-7 h-7" />
         </button>
-        <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 rounded-md bg-slate-800 text-white text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
+        <div className="app-m3-tooltip pointer-events-none absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 rounded-xl px-3 py-2 text-xs font-semibold opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100 translate-y-1">
           {t("launcher.title")}
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-800" />
+          <div className="app-m3-tooltip-arrow absolute bottom-full left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45" />
         </div>
       </div>
 
@@ -35,18 +36,19 @@ export default function WindowControls({
         <button
           onClick={onToggleSidebar}
           className={cn(
-            "app-m3-window-btn flex items-center justify-center transition-all duration-150 active:scale-90",
+            "app-m3-window-btn flex items-center justify-center transition-all duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
             sidebarOpen ? "text-primary" : "text-slate-400",
           )}
           data-active={sidebarOpen}
+          aria-label={sidebarOpen ? t("sidebar.collapse") : t("sidebar.expand")}
         >
           <PanelLeft className="w-7 h-7" />
         </button>
-        <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 rounded-md bg-slate-800 text-white text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
+        <div className="app-m3-tooltip pointer-events-none absolute top-full left-1/2 z-50 mt-2 -translate-x-1/2 rounded-xl px-3 py-2 text-xs font-semibold opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100 translate-y-1">
           {sidebarOpen
             ? t("sidebar.collapse")
             : t("sidebar.expand")}
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-800" />
+          <div className="app-m3-tooltip-arrow absolute bottom-full left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45" />
         </div>
       </div>
     </div>

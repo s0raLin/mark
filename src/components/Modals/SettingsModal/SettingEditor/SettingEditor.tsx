@@ -1,4 +1,6 @@
 import {
+  Check,
+  ChevronDown,
   CloudUpload,
   Eye,
   FileText,
@@ -11,7 +13,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { ThemeOption } from "./ThemeOption";
@@ -41,17 +43,201 @@ function previewM3Theme(seed: string) {
 function SectionTitle({ icon, label, desc }: { icon: React.ReactNode; label: string; desc?: string }) {
   return (
     <div className="mb-4">
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+      <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800">
         <span className="text-primary">{icon}</span>
         {label}
       </h2>
-      {desc && <p className="text-xs text-slate-400 mt-0.5 ml-6">{desc}</p>}
+      {desc && <p className="mt-1.5 ml-6 text-sm leading-6 text-slate-600">{desc}</p>}
     </div>
   );
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <label className="text-xs font-medium text-slate-500">{children}</label>;
+  return <label className="text-sm font-medium text-slate-600">{children}</label>;
+}
+
+function SearchableFontSelect({
+  value,
+  onChange,
+  options,
+  previewText,
+  placeholderLabel,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+  previewText: string;
+  placeholderLabel: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const deferredQuery = useDeferredValue(query);
+
+  const selectedOption = options.find((option) => option.value === value);
+  const filteredOptions = useMemo(() => {
+    const keyword = deferredQuery.trim().toLowerCase();
+    if (!keyword) {
+      return options;
+    }
+    return options.filter((option) => option.label.toLowerCase().includes(keyword));
+  }, [deferredQuery, options]);
+
+  const syncPosition = useCallback(() => {
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (!rect) {
+      return;
+    }
+    setPosition({
+      top: rect.bottom + 10,
+      left: rect.left,
+      width: rect.width,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      setQuery("");
+      return;
+    }
+
+    syncPosition();
+    window.addEventListener("resize", syncPosition);
+    window.addEventListener("scroll", syncPosition, true);
+    const frame = window.requestAnimationFrame(() => inputRef.current?.focus());
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      const isOnTrigger = triggerRef.current?.contains(target);
+      const isOnPopover = popoverRef.current?.contains(target);
+      if (!isOnTrigger && !isOnPopover) {
+        setOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", syncPosition);
+      window.removeEventListener("scroll", syncPosition, true);
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, syncPosition]);
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/90 shadow-[0_10px_24px_-20px_rgba(15,23,42,0.55)] transition-all focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary/10">
+      <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-2.5">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          {placeholderLabel}
+        </span>
+        <span
+          className="min-w-0 truncate text-sm font-semibold text-slate-700"
+          style={{ fontFamily: value }}
+        >
+          {previewText}
+        </span>
+      </div>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="relative flex w-full items-center gap-3 px-4 py-3.5 text-left outline-none transition-colors hover:bg-slate-50/80"
+      >
+        <div className="min-w-0 flex-1">
+          <div
+            className="truncate text-[15px] font-medium text-slate-700"
+            style={{ fontFamily: value }}
+          >
+            {selectedOption?.label ?? value}
+          </div>
+          <div className="mt-0.5 truncate text-xs text-slate-500">
+            {value}
+          </div>
+        </div>
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200",
+            open && "rotate-180 text-primary",
+          )}
+        />
+      </button>
+      {open && typeof document !== "undefined" && createPortal(
+        <div
+          ref={popoverRef}
+          className="fixed z-[10010] overflow-hidden rounded-2xl border border-slate-200/90 bg-white/96 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.45)] backdrop-blur-xl"
+          style={{
+            top: position.top,
+            left: position.left,
+            width: position.width,
+          }}
+        >
+          <div style={{ fontFamily: value }}>
+            <div className="border-b border-slate-100 px-3 py-3">
+              <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2.5 focus-within:border-primary/40 focus-within:bg-white focus-within:ring-4 focus-within:ring-primary/10">
+                <Search className="h-4 w-4 text-slate-400" />
+                <input
+                  ref={inputRef}
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search fonts"
+                  className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                />
+              </div>
+            </div>
+            <div className="max-h-72 overflow-y-auto px-2 pb-2 pt-1">
+              {filteredOptions.length > 0 ? filteredOptions.map((option) => {
+                const selected = option.value === value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      onChange(option.value);
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors",
+                      selected ? "bg-primary/10 text-primary" : "text-slate-700 hover:bg-slate-100/90",
+                    )}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div
+                        className="truncate text-sm font-semibold"
+                        style={{ fontFamily: option.value }}
+                      >
+                        {option.label}
+                      </div>
+                      <div className="mt-0.5 truncate text-xs text-slate-500">
+                        Aa Bb Cc 123
+                      </div>
+                    </div>
+                    <Check className={cn("h-4 w-4 shrink-0", selected ? "opacity-100" : "opacity-0")} />
+                  </button>
+                );
+              }) : (
+                <div className="px-3 py-8 text-center text-sm text-slate-500">
+                  No matching fonts
+                </div>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
+    </div>
+  );
 }
 
 function SliderField({ icon, label, value, min, max, pct, onChange }: {
@@ -61,10 +247,10 @@ function SliderField({ icon, label, value, min, max, pct, onChange }: {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between items-center">
-        <label className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
+        <label className="text-sm font-medium text-slate-600 flex items-center gap-1.5">
           {icon}{label}
         </label>
-        <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full font-semibold tabular-nums">
+        <span className="text-sm text-primary bg-primary/10 px-2 py-0.5 rounded-full font-semibold tabular-nums">
           {value}px
         </span>
       </div>
@@ -75,7 +261,7 @@ function SliderField({ icon, label, value, min, max, pct, onChange }: {
         min={min} max={max} value={value}
         onChange={(e) => onChange(Number(e.target.value))}
       />
-      <div className="flex justify-between text-[10px] text-slate-400 px-1">
+      <div className="flex justify-between text-xs text-slate-500 px-1">
         <span>{min}px</span><span>{max}px</span>
       </div>
     </div>
@@ -149,10 +335,10 @@ export default function SettingEditor({
         setPickerOpen(false);
       }
     };
-    document.addEventListener("mousedown", handlerRef.current);
+    document.addEventListener("pointerdown", handlerRef.current, true);
     return () => {
       if (handlerRef.current) {
-        document.removeEventListener("mousedown", handlerRef.current);
+        document.removeEventListener("pointerdown", handlerRef.current, true);
       }
     };
   }, [pickerOpen]);
@@ -345,7 +531,7 @@ export default function SettingEditor({
       <section>
         <SectionTitle icon={<Palette className="w-4 h-4" />} label={t("editor.sweetAccents")} desc={t("editor.accentDesc")} />
         <div className="settings-m3-card rounded-2xl p-5">
-          <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4">
             {ACCENT_COLORS.map((color) => (
               <AccentCircle
                 key={color}
@@ -396,12 +582,12 @@ export default function SettingEditor({
               <div className="h-1.5 rounded-full w-1/2 transition-all duration-300" style={{ backgroundColor: accentColor, opacity: 0.4 }} />
             </div>
             <div
-              className="px-3 py-1 rounded-full text-white text-[10px] font-semibold tracking-wide transition-all duration-300"
+              className="px-3 py-1 rounded-full text-white text-[11px] font-semibold tracking-wide transition-all duration-300"
               style={{ backgroundColor: accentColor }}
             >
               {t("editor.preview")}
             </div>
-            <span className="text-[10px] font-mono text-slate-400">{accentColor}</span>
+            <span className="text-xs font-mono text-slate-500">{accentColor}</span>
           </div>
         </div>
       </section>
@@ -444,7 +630,7 @@ export default function SettingEditor({
                   {bgUploading
                     ? <div className="w-7 h-7 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
                     : <CloudUpload className="w-7 h-7 text-primary" />}
-                  <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-700">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-slate-800">
                     {bgUploading ? t("editor.uploading") : t("editor.chooseBg")}
                   </span>
                 </div>
@@ -457,7 +643,7 @@ export default function SettingEditor({
               <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
                   <FieldLabel>{t("editor.softness")}</FieldLabel>
-                  <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full font-semibold">
+                  <span className="text-sm text-primary bg-primary/10 px-2 py-0.5 rounded-full font-semibold">
                     {blurAmount}px
                   </span>
                 </div>
@@ -473,7 +659,7 @@ export default function SettingEditor({
               <div className="settings-m3-inline-surface flex items-center justify-between p-4 rounded-xl">
                 <div>
                   <p className="text-sm font-semibold text-slate-700">{t("editor.sparkleDust")}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{t("editor.sparkleDustDesc")}</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">{t("editor.sparkleDustDesc")}</p>
                 </div>
                 <div
                   onClick={() => setParticlesOn(!particlesOn)}
@@ -498,22 +684,23 @@ export default function SettingEditor({
             {/* Font Choice */}
             <div className="settings-m3-inline-surface rounded-2xl p-4 flex flex-col gap-3 min-w-0">
               <FieldLabel>{t("editor.fontChoice")}</FieldLabel>
-              <select
-                value={fontChoice}
-                onChange={(e) => setFontChoice(e.target.value)}
-                className="w-full min-w-0 bg-white border border-slate-200 rounded-xl text-sm py-2.5 px-3 focus:ring-primary focus:border-primary appearance-none text-slate-700 font-display"
-              >
-                {interfaceFontOptions.map((font) => (
-                  <option key={font} value={font}>
-                    {font === "Quicksand" ? `${font} (Default)` : font}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-slate-400 truncate">
-                <span className="font-medium text-slate-500">{t("editor.preview")}:</span>{" "}
+              <div className="group">
+                <SearchableFontSelect
+                  value={fontChoice}
+                  onChange={setFontChoice}
+                  placeholderLabel={t("editor.preview")}
+                  previewText={fontChoice}
+                  options={interfaceFontOptions.map((font) => ({
+                    value: font,
+                    label: font === "Quicksand" ? `${font} (Default)` : font,
+                  }))}
+                />
+              </div>
+              <p className="text-sm text-slate-600 truncate">
+                <span className="font-medium text-slate-700">{t("editor.preview")}:</span>{" "}
                 <span style={{ fontFamily: fontChoice }}>{fontChoice}</span>
               </p>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-sm leading-6 text-slate-600">
                 {systemFontsLoading
                   ? t("editor.loadingFonts")
                   : t("editor.systemFontsInline", { count: Math.max(interfaceFontOptions.length - 1, 0) })}
@@ -523,26 +710,27 @@ export default function SettingEditor({
             {/* Editor Font */}
             <div className="settings-m3-inline-surface rounded-2xl p-4 flex flex-col gap-3 min-w-0">
               <FieldLabel>{t("editor.editorFont")}</FieldLabel>
-              <select
-                value={editorFont}
-                onChange={(e) => setEditorFont(e.target.value)}
-                className="w-full min-w-0 bg-white border border-slate-200 rounded-xl text-sm py-2.5 px-3 focus:ring-primary focus:border-primary appearance-none font-display text-slate-700"
-              >
-                {editorFontOptions.map((font) => (
-                  <option key={font} value={font}>
-                    {font === "JetBrains Mono"
+              <div className="group">
+                <SearchableFontSelect
+                  value={editorFont}
+                  onChange={setEditorFont}
+                  placeholderLabel={t("editor.preview")}
+                  previewText="Aa Bb Cc 123"
+                  options={editorFontOptions.map((font) => ({
+                    value: font,
+                    label: font === "JetBrains Mono"
                       ? `${font} (Default)`
                       : font === "monospace"
                         ? `${font} (System)`
-                        : font}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-slate-400 truncate">
-                <span className="font-medium text-slate-500">{t("editor.preview")}:</span>{" "}
+                        : font,
+                  }))}
+                />
+              </div>
+              <p className="text-sm text-slate-600 truncate">
+                <span className="font-medium text-slate-700">{t("editor.preview")}:</span>{" "}
                 <span style={{ fontFamily: editorFont }}>Aa Bb Cc 123</span>
               </p>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-sm leading-6 text-slate-600">
                 {systemFontsLoading
                   ? t("editor.loadingFonts")
                   : t("editor.systemFontsInline", { count: Math.max(editorFontOptions.length - 2, 0) })}
@@ -574,7 +762,7 @@ export default function SettingEditor({
     </div>
     {imageLibraryOpen && createPortal(
       <div
-        className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/22 p-4 backdrop-blur-[3px]"
+        className="settings-m3-overlay fixed inset-0 z-[120] flex items-center justify-center p-4"
         onMouseDown={(event) => {
           if (event.target === event.currentTarget) {
             closeImageLibrary();
@@ -582,7 +770,7 @@ export default function SettingEditor({
         }}
       >
         <div
-          className="modal-m3-shell flex max-h-[86vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl backdrop-blur-xl"
+          className="settings-m3-shell flex max-h-[86vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl"
           onMouseDown={(event) => event.stopPropagation()}
         >
           <ModalHeader
@@ -604,7 +792,7 @@ export default function SettingEditor({
                   : <CloudUpload className="h-4 w-4" />}
                 {bgUploading ? t("editor.uploading") : t("editor.readFromSystem")}
               </button>
-              <span className="text-xs text-slate-400">
+              <span className="text-sm text-slate-600">
                 {imagesLoading
                   ? t("editor.loadingAssets")
                   : t("editor.imageLibrarySummary", { count: uploadedImages.length })}
@@ -615,23 +803,23 @@ export default function SettingEditor({
                 {Array.from({ length: 6 }).map((_, index) => (
                   <div
                     key={index}
-                    className="overflow-hidden rounded-[28px] border border-slate-200 bg-white"
+                    className="settings-m3-inline-surface overflow-hidden rounded-[28px] border border-slate-200/70"
                   >
-                    <div className="h-44 animate-pulse bg-slate-100" />
+                    <div className="h-44 animate-pulse bg-slate-100/80" />
                     <div className="space-y-2 px-4 py-4">
-                      <div className="h-3 rounded bg-slate-100" />
-                      <div className="h-3 w-2/3 rounded bg-slate-100" />
+                      <div className="h-3 rounded bg-slate-100/80" />
+                      <div className="h-3 w-2/3 rounded bg-slate-100/80" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : uploadedImages.length === 0 ? (
-              <div className="rounded-[28px] border border-dashed border-slate-200 bg-white/80 px-6 py-14 text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+              <div className="settings-m3-inline-surface rounded-[28px] border border-dashed border-slate-200/80 px-6 py-14 text-center">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100/80 text-slate-400">
                   <Images className="h-6 w-6" />
                 </div>
                 <p className="mt-4 text-base font-semibold text-slate-600">{t("editor.noUploadedImages")}</p>
-                <p className="mt-1 text-sm text-slate-400">{t("editor.noUploadedImagesHint")}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{t("editor.noUploadedImagesHint")}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -648,7 +836,7 @@ export default function SettingEditor({
                         setPendingDeleteImages((prev) => prev.filter((name) => name !== image.name));
                       }}
                       className={cn(
-                        "group relative overflow-hidden rounded-[28px] border bg-white text-left transition-all cursor-pointer shadow-sm",
+                        "settings-m3-inline-surface group relative overflow-hidden rounded-[28px] border text-left transition-all cursor-pointer shadow-sm",
                         pendingDelete && "border-slate-200 bg-slate-50 opacity-55 saturate-0",
                         active
                           ? "border-primary shadow-[0_18px_40px_rgba(99,102,241,0.16)]"
@@ -664,7 +852,7 @@ export default function SettingEditor({
                               ? "bg-slate-900/75 text-white"
                               : active
                                 ? "bg-primary text-white"
-                                : "bg-white/85 text-slate-500",
+                              : "bg-white/85 text-slate-600",
                           )}
                         >
                           {pendingDelete
@@ -680,7 +868,7 @@ export default function SettingEditor({
                           <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.18),_rgba(255,255,255,0.92))]">
                             <div className="flex flex-col items-center gap-2 text-slate-400">
                               <ImageIcon className="h-6 w-6" />
-                              <span className="text-xs font-medium">{t("editor.previewUnavailable")}</span>
+                              <span className="text-sm font-medium">{t("editor.previewUnavailable")}</span>
                             </div>
                           </div>
                         ) : (
@@ -700,7 +888,7 @@ export default function SettingEditor({
                       <div className="flex items-center justify-between gap-3 px-4 py-4">
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-slate-700">{image.name}</p>
-                          <p className="mt-1 text-xs text-slate-400">
+                          <p className="mt-1 text-sm text-slate-600">
                             {pendingDelete
                               ? t("editor.pendingDeleteHint")
                               : active

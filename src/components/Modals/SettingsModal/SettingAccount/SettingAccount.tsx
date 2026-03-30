@@ -30,8 +30,8 @@ export default function SettingAccount({ draftLang, setDraftLang }: SettingAccou
             </div>
             <div>
               <h3 className="text-base font-semibold text-slate-800">gl0wniapar</h3>
-              <p className="text-xs text-slate-400 mt-0.5">gl0wniapar@gmail.com</p>
-              <span className="mt-1.5 inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold uppercase tracking-wide">
+              <p className="mt-1 text-sm text-slate-600">gl0wniapar@gmail.com</p>
+              <span className="mt-2 inline-block px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold uppercase tracking-wide">
                 {t("account.proMember")}
               </span>
             </div>
@@ -53,7 +53,7 @@ export default function SettingAccount({ draftLang, setDraftLang }: SettingAccou
           {t("account.language")}
         </h2>
         <div className="settings-m3-card p-5 rounded-2xl">
-          <p className="text-xs text-slate-400 mb-4">{t("account.languageDesc")}</p>
+          <p className="mb-4 text-sm leading-6 text-slate-600">{t("account.languageDesc")}</p>
           <div className="flex gap-2">
             {LANGUAGES.map(({ code, labelKey }) => (
               <button
@@ -64,7 +64,7 @@ export default function SettingAccount({ draftLang, setDraftLang }: SettingAccou
                   "settings-m3-segmented-button flex-1 py-2.5 rounded-xl text-sm font-medium transition-all border",
                   draftLang === code
                     ? "text-white"
-                    : "text-slate-500",
+                    : "text-slate-600",
                 )}
               >
                 {t(labelKey)}
@@ -79,8 +79,8 @@ export default function SettingAccount({ draftLang, setDraftLang }: SettingAccou
           <Edit3 className="w-6 h-6" />
         </div>
         <h2 className="text-base font-semibold text-slate-800">NoteBuddy Pro</h2>
-        <p className="text-[10px] text-primary/70 uppercase tracking-widest mt-0.5 mb-3">{t("account.version")}</p>
-        <p className="text-xs text-slate-400 max-w-xs">{t("account.tagline")}</p>
+        <p className="mt-1 text-[11px] text-primary/80 uppercase tracking-widest mb-3">{t("account.version")}</p>
+        <p className="max-w-xs text-sm leading-6 text-slate-600">{t("account.tagline")}</p>
       </section>
     </div>
   );

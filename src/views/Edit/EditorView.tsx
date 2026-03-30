@@ -26,6 +26,15 @@ import {
 export default function EditorView() {
   const toolbarRef = useRef<ReactCodeMirrorRef>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    if (typeof window === "undefined") {
+      return 320;
+    }
+
+    const raw = window.localStorage.getItem("notemark:sidebar-width");
+    const parsed = raw ? Number(raw) : NaN;
+    return Number.isFinite(parsed) ? Math.min(Math.max(parsed, 240), 520) : 320;
+  });
   const [isWorkspaceDragOver, setIsWorkspaceDragOver] = useState(false);
   const dragDepthRef = useRef(0);
   const workspacePickerRef = useRef<HTMLInputElement>(null);
@@ -43,6 +52,14 @@ export default function EditorView() {
   useEffect(() => {
     fileSystemRef.current = fileSystem;
   }, [fileSystem]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem("notemark:sidebar-width", String(sidebarWidth));
+  }, [sidebarWidth]);
 
   // 数据变化时自动保存（文件内容已保存到真实.md文件，不再保存到JSON配置）
   useEffect(() => {
@@ -311,9 +328,10 @@ export default function EditorView() {
           <div className="pointer-events-none absolute inset-0 z-40 bg-primary/[0.05] ring-2 ring-inset ring-primary/30" />
         )}
         <aside
+          style={sidebarOpen ? { width: `${sidebarWidth}px` } : { width: 0 }}
           className={cn(
             "app-m3-sidebar h-full flex flex-col shrink-0 transition-all duration-300 overflow-hidden",
-            sidebarOpen ? "w-80" : "w-0 border-r-0",
+            sidebarOpen ? "border-r border-border-soft" : "w-0 border-r-0",
           )}
         >
           <Sidebar
@@ -324,6 +342,37 @@ export default function EditorView() {
               open ? openModal(ROUTES.SEARCH) : closeModal()
             }
           />
+          {sidebarOpen && (
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize sidebar"
+              className="absolute right-0 top-0 h-full w-2 translate-x-1/2 cursor-col-resize z-30 group/sidebar-resize"
+              onMouseDown={(event) => {
+                event.preventDefault();
+                const startX = event.clientX;
+                const startWidth = sidebarWidth;
+
+                const handleMove = (moveEvent: MouseEvent) => {
+                  const nextWidth = Math.min(
+                    Math.max(startWidth + moveEvent.clientX - startX, 240),
+                    520,
+                  );
+                  setSidebarWidth(nextWidth);
+                };
+
+                const handleUp = () => {
+                  window.removeEventListener("mousemove", handleMove);
+                  window.removeEventListener("mouseup", handleUp);
+                };
+
+                window.addEventListener("mousemove", handleMove);
+                window.addEventListener("mouseup", handleUp);
+              }}
+            >
+              <div className="mx-auto h-full w-px bg-transparent transition-colors group-hover/sidebar-resize:bg-primary/35" />
+            </div>
+          )}
         </aside>
 
         <main className="flex-1 flex overflow-hidden">

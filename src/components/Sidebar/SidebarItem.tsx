@@ -35,7 +35,7 @@ export function SidebarItem({
       <span
         className={cn(
           "flex-1 truncate",
-          small ? "text-xs font-medium text-slate-500" : "text-sm font-medium",
+          small ? "text-sm font-medium text-slate-600" : "text-sm font-medium text-slate-700",
           active && "font-bold",
         )}
       >

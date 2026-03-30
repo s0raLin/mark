@@ -15,7 +15,7 @@ export default function SettingExport() {
           <div className="settings-m3-card p-5 rounded-2xl flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-700">{t("export.defaultFormat")}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{t("export.defaultFormatDesc")}</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{t("export.defaultFormatDesc")}</p>
             </div>
             <select className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-primary focus:border-primary appearance-none">
               <option>PDF</option>
@@ -27,7 +27,7 @@ export default function SettingExport() {
           <div className="settings-m3-card p-5 rounded-2xl flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-700">{t("export.includeMetadata")}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{t("export.includeMetadataDesc")}</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{t("export.includeMetadataDesc")}</p>
             </div>
             <div className="settings-m3-switch-track w-11 h-6 bg-primary rounded-full relative p-1 cursor-pointer shrink-0">
               <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
