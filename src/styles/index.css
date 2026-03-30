@@ -31,6 +31,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+button,
+[role="button"],
+input,
+select,
+textarea {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* 暗色模式加载背景 */
 .dark-bg {
   background-color: var(--md-sys-color-surface);
@@ -447,7 +456,17 @@ input, textarea, [contenteditable] {
 .modal-m3-swatch,
 .settings-m3-swatch {
   border: 4px solid color-mix(in srgb, var(--md-sys-color-surface-container-high) 96%, transparent);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
   box-shadow: 0 8px 20px -14px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 42%, transparent);
+}
+
+.modal-m3-swatch:hover,
+.settings-m3-swatch:hover {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent),
+    0 10px 22px -14px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 40%, transparent);
 }
 
 .modal-m3-swatch[data-active="true"],
@@ -654,20 +673,42 @@ input, textarea, [contenteditable] {
 }
 
 .app-m3-toolbar {
-  background: color-mix(in srgb, var(--md-sys-color-surface-container) 90%, transparent);
-  border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--md-sys-color-surface-container-high) 98%, white 2%) 0%,
+      color-mix(in srgb, var(--md-sys-color-surface-container) 94%, transparent) 100%
+    );
+  border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 68%, transparent);
+  box-shadow:
+    inset 0 -1px 0 color-mix(in srgb, var(--md-sys-color-outline-variant) 48%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 22%, transparent);
 }
 
 .app-m3-quickbar {
-  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 92%, transparent);
-  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--md-sys-color-surface-container-high) 98%, white 2%) 0%,
+      color-mix(in srgb, var(--md-sys-color-surface-container) 95%, transparent) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 66%, transparent);
   box-shadow:
-    0 8px 20px -16px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 28%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--md-sys-color-on-surface) 4%, transparent);
+    0 14px 30px -22px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 30%, transparent),
+    0 10px 18px -20px color-mix(in srgb, var(--md-sys-color-primary) 22%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 26%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .app-m3-divider {
-  background: color-mix(in srgb, var(--md-sys-color-outline-variant) 86%, transparent);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in srgb, var(--md-sys-color-outline-variant) 92%, transparent) 20%,
+    color-mix(in srgb, var(--md-sys-color-outline-variant) 92%, transparent) 80%,
+    transparent 100%
+  );
 }
 
 .app-m3-quick-btn,
@@ -676,6 +717,10 @@ input, textarea, [contenteditable] {
 .app-m3-sidebar-item,
 .app-m3-outline-item {
   position: relative;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  outline: 1px solid transparent;
 }
 
 .app-m3-quick-btn:hover,
@@ -697,6 +742,36 @@ input, textarea, [contenteditable] {
   color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 88%, transparent);
 }
 
+.app-m3-quick-btn,
+.app-m3-tool-button,
+.app-m3-window-btn {
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 52%, transparent);
+  background: color-mix(in srgb, var(--md-sys-color-surface) 84%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 26%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 18%, transparent);
+}
+
+.app-m3-quick-btn,
+.app-m3-tool-button {
+  min-height: 2.35rem;
+  min-width: 2.35rem;
+  border-radius: 0.9rem;
+}
+
+.app-m3-quick-btn:hover,
+.app-m3-tool-button:hover {
+  box-shadow:
+    0 8px 18px -16px color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 24%, transparent);
+}
+
+.app-m3-quick-btn[data-active="true"] {
+  box-shadow:
+    0 10px 20px -18px color-mix(in srgb, var(--md-sys-color-primary) 38%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 20%, transparent);
+}
+
 .editor-toolbar-tooltip,
 .app-m3-tooltip {
   background:
@@ -711,8 +786,8 @@ input, textarea, [contenteditable] {
     0 14px 28px -18px color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent),
     0 8px 18px -16px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 30%, transparent),
     inset 0 1px 0 color-mix(in srgb, white 40%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   text-align: center;
   line-height: 1.15rem;
   letter-spacing: 0.01em;
@@ -720,6 +795,8 @@ input, textarea, [contenteditable] {
   max-width: min(240px, calc(100vw - 24px));
   white-space: nowrap;
   user-select: none;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .editor-toolbar-tooltip-arrow,

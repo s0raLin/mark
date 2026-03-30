@@ -53,7 +53,7 @@ export default function Toolbar({ editorRef }: ToolbarProps) {
   };
   
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       <ToolbarButton title={t("editorToolbar.bold")} icon={<Bold className="w-5 h-5" />} onClick={() => applyMarkdown('**', '**')} />
       <ToolbarButton title={t("editorToolbar.italic")} icon={<Italic className="w-5 h-5" />} onClick={() => applyMarkdown('*', '*')} />
       <ToolbarButton title={t("editorToolbar.strikethrough")} icon={<Strikethrough className="w-5 h-5" />} onClick={() => applyMarkdown('~~', '~~')} />

@@ -359,7 +359,7 @@ export default function EditorPane({
         }}
       />
       {/* Toolbar */}
-      <div className="app-m3-toolbar editor-toolbar h-14 border-b border-border-soft flex items-center justify-center px-4 gap-1 shrink-0 relative z-10">
+      <div className="app-m3-toolbar editor-toolbar h-15 border-b border-border-soft flex items-center justify-center px-5 shrink-0 relative z-10">
         <Toolbar editorRef={editorRef} />
       </div>
       {!isBinary && markdownImages.length > 0 && (

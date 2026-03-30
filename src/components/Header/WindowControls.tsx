@@ -20,7 +20,7 @@ export default function WindowControls({
       <div className="relative group">
         <button
           onClick={onLauncher}
-          className="app-m3-window-btn flex items-center justify-center transition-all duration-150 text-slate-400 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+          className="app-m3-window-btn flex items-center justify-center transition-all duration-150 text-slate-400 active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
           aria-label={t("launcher.title")}
         >
           <Home className="w-7 h-7" />
@@ -36,7 +36,7 @@ export default function WindowControls({
         <button
           onClick={onToggleSidebar}
           className={cn(
-            "app-m3-window-btn flex items-center justify-center transition-all duration-150 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
+            "app-m3-window-btn flex items-center justify-center transition-all duration-150 active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
             sidebarOpen ? "text-primary" : "text-slate-400",
           )}
           data-active={sidebarOpen}

@@ -155,7 +155,7 @@ export function LauncherModal({
                 <button
                   key={item.id}
                   onClick={item.onClick}
-                  className="modal-m3-outlined-button group flex flex-col items-center gap-2 p-3 rounded-2xl transition-all duration-150 active:scale-95 min-w-[72px]"
+                  className="modal-m3-outlined-button group flex flex-col items-center gap-2 p-3 rounded-2xl transition-all duration-150 active:brightness-95 min-w-[72px]"
                 >
                   <div
                     className={cn(

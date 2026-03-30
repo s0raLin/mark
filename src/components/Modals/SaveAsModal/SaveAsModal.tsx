@@ -86,7 +86,7 @@ export function SaveAsModal({ markdown, onClose }: SaveAsModalProps) {
           </button>
           <button
             onClick={handleSave}
-            className="modal-m3-filled-button flex-1 py-3 rounded-xl font-bold active:scale-[0.98] transition-all"
+            className="modal-m3-filled-button flex-1 py-3 rounded-xl font-bold active:brightness-95 transition-all"
           >
             {t("saveAs.save")}
           </button>

@@ -395,7 +395,7 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
               <button
                 onClick={handleExport}
                 disabled={isExporting || isSharing}
-                className="modal-m3-filled-button w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold active:scale-[0.98] transition-all"
+                className="modal-m3-filled-button w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold active:brightness-95 transition-all"
               >
                 <Download className="w-5 h-5" />
                 {isExporting ? "导出中..." : `${t("exportModal.exportBtn")} ${selectedFormat.toUpperCase()}`}
@@ -403,7 +403,7 @@ export function ExportModal({ markdown, onClose }: ExportModalProps) {
               <button
                 onClick={handleShare}
                 disabled={isExporting || isSharing}
-                className="modal-m3-outlined-button w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold active:scale-[0.98] transition-all disabled:opacity-60"
+                className="modal-m3-outlined-button w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold active:brightness-95 transition-all disabled:opacity-60"
               >
                 <Share2 className="w-5 h-5" />
                 {isSharing ? "准备分享..." : t("exportModal.shareLink")}

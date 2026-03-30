@@ -70,6 +70,7 @@ function SearchableFontSelect({
   placeholderLabel: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [listReady, setListReady] = useState(false);
   const [query, setQuery] = useState("");
   const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -86,6 +87,18 @@ function SearchableFontSelect({
     return options.filter((option) => option.label.toLowerCase().includes(keyword));
   }, [deferredQuery, options]);
 
+  const visibleOptions = useMemo(() => {
+    if (!listReady) {
+      return [];
+    }
+
+    if (deferredQuery.trim()) {
+      return filteredOptions;
+    }
+
+    return filteredOptions.slice(0, 120);
+  }, [deferredQuery, filteredOptions, listReady]);
+
   const syncPosition = useCallback(() => {
     const rect = triggerRef.current?.getBoundingClientRect();
     if (!rect) {
@@ -100,6 +113,7 @@ function SearchableFontSelect({
 
   useEffect(() => {
     if (!open) {
+      setListReady(false);
       setQuery("");
       return;
     }
@@ -107,7 +121,12 @@ function SearchableFontSelect({
     syncPosition();
     window.addEventListener("resize", syncPosition);
     window.addEventListener("scroll", syncPosition, true);
-    const frame = window.requestAnimationFrame(() => inputRef.current?.focus());
+    const focusFrame = window.requestAnimationFrame(() => inputRef.current?.focus());
+    const listFrame = window.requestAnimationFrame(() => {
+      React.startTransition(() => {
+        setListReady(true);
+      });
+    });
 
     const handlePointerDown = (event: PointerEvent) => {
       const target = event.target as Node;
@@ -128,7 +147,8 @@ function SearchableFontSelect({
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(focusFrame);
+      window.cancelAnimationFrame(listFrame);
       window.removeEventListener("resize", syncPosition);
       window.removeEventListener("scroll", syncPosition, true);
       document.removeEventListener("pointerdown", handlePointerDown, true);
@@ -197,7 +217,16 @@ function SearchableFontSelect({
               </div>
             </div>
             <div className="max-h-72 overflow-y-auto px-2 pb-2 pt-1">
-              {filteredOptions.length > 0 ? filteredOptions.map((option) => {
+              {!listReady ? (
+                <div className="space-y-2 px-2 py-3">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-12 animate-pulse rounded-xl bg-slate-100/80"
+                    />
+                  ))}
+                </div>
+              ) : visibleOptions.length > 0 ? visibleOptions.map((option) => {
                 const selected = option.value === value;
                 return (
                   <button
@@ -232,6 +261,11 @@ function SearchableFontSelect({
                 </div>
               )}
             </div>
+            {listReady && !deferredQuery.trim() && filteredOptions.length > visibleOptions.length && (
+              <div className="border-t border-slate-100 px-4 py-2.5 text-xs text-slate-500">
+                Showing {visibleOptions.length} of {filteredOptions.length} fonts. Search to narrow the list.
+              </div>
+            )}
           </div>
         </div>,
         document.body,
@@ -544,7 +578,7 @@ export default function SettingEditor({
               ref={pickerBtnRef}
               onClick={openPicker}
               data-active={!ACCENT_COLORS.includes(accentColor)}
-              className="settings-m3-swatch relative w-11 h-11 rounded-full cursor-pointer transition-all hover:scale-110 flex items-center justify-center shrink-0"
+              className="settings-m3-swatch relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full cursor-pointer transition-all duration-150 hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
               style={{
                 backgroundColor: !ACCENT_COLORS.includes(accentColor) ? accentColor : "#f1f5f9",
               }}
@@ -939,7 +973,7 @@ export default function SettingEditor({
                   "rounded-full px-5 py-2.5 text-sm font-bold transition-all",
                   pendingDeleteImages.length > 0
                     ? "bg-red-500 text-white hover:opacity-90"
-                    : "modal-m3-filled-button text-white active:scale-95",
+                    : "modal-m3-filled-button text-white active:brightness-95",
                   !canConfirmImageLibrary && "cursor-not-allowed active:scale-100",
                 )}
               >
