@@ -70,6 +70,21 @@ const activeDragList = { current: null as symbol | null };
 // Stores the area (width*height) of the active DragList's container — smaller = deeper/more specific
 const activeDragListArea = { current: Infinity };
 
+function hideGlobalArrow() {
+  const arrow = document.getElementById("__dl_cursor_arrow__") as HTMLDivElement | null;
+  if (arrow) {
+    arrow.dataset.visible = "false";
+    arrow.style.opacity = "0";
+    arrow.style.transform = "translate3d(-6px, -50%, 0) scale(0.96)";
+  }
+}
+
+function resetActiveDragVisualState() {
+  activeDragList.current = null;
+  activeDragListArea.current = Infinity;
+  hideGlobalArrow();
+}
+
 export default function DragList({ nodes, parentId, renderNode, className }: DragListProps) {
   const { draggingId, draggingIdRef, setDropTarget } = useContext(DragContext);
 
@@ -127,12 +142,7 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
       cancelAnimationFrame(arrowRafRef.current);
       arrowRafRef.current = null;
     }
-    const arrow = document.getElementById("__dl_cursor_arrow__") as HTMLDivElement | null;
-    if (arrow) {
-      arrow.dataset.visible = "false";
-      arrow.style.opacity = "0";
-      arrow.style.transform = "translate3d(-6px, -50%, 0) scale(0.96)";
-    }
+    hideGlobalArrow();
   }, []);
 
   const applyMargin = useCallback((idx: number | null, side: "top" | "bottom" | null) => {
@@ -313,7 +323,11 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
   useEffect(() => { resolveHitRef.current = resolveHit; }, [resolveHit]);
 
   useEffect(() => {
-    if (!draggingId) { clearVisuals(); return; }
+    if (!draggingId) {
+      clearVisuals();
+      resetActiveDragVisualState();
+      return;
+    }
 
     const handleMove = (e: PointerEvent) => resolveHitRef.current(e.clientY, e.clientX);
 
@@ -323,8 +337,7 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
       }
       clearVisuals();
       if (activeDragList.current === instanceId.current) {
-        activeDragList.current = null;
-        activeDragListArea.current = Infinity;
+        resetActiveDragVisualState();
       }
     };
 
@@ -333,6 +346,9 @@ export default function DragList({ nodes, parentId, renderNode, className }: Dra
     return () => {
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp, { capture: true });
+      if (activeDragList.current === instanceId.current) {
+        resetActiveDragVisualState();
+      }
     };
   }, [draggingId, clearVisuals, setDropTarget]);
 
