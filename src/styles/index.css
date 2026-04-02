@@ -62,6 +62,645 @@ input, textarea, [contenteditable] {
   -webkit-user-select: text;
 }
 
+.milkdown-editor-shell,
+.milkdown-editor-shell .milkdown,
+.milkdown-editor-shell .ProseMirror,
+.milkdown-editor-shell .crepe {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.milkdown-editor-shell .crepe {
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 78%, transparent);
+  border-radius: 28px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--md-sys-color-surface-container-low) 96%, transparent),
+      color-mix(in srgb, var(--md-sys-color-surface-container) 98%, transparent)
+    ),
+    color-mix(in srgb, var(--md-sys-color-surface) 94%, transparent);
+  box-shadow: 0 24px 80px color-mix(in srgb, var(--md-sys-color-shadow, #0f172a) 10%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+.milkdown-surface {
+  border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 75%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--md-sys-color-surface-container-low) 96%, transparent),
+      color-mix(in srgb, var(--md-sys-color-surface-container) 98%, transparent)
+    ),
+    color-mix(in srgb, var(--md-sys-color-surface) 94%, transparent);
+  min-height: 0;
+}
+
+.milkdown-surface-dark {
+  box-shadow: none;
+}
+
+.dark .milkdown-surface {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--md-sys-color-surface-container) 94%, transparent),
+      color-mix(in srgb, var(--md-sys-color-surface-container-high) 98%, transparent)
+    ),
+    var(--md-sys-color-surface-container-high);
+}
+
+.dark .milkdown-surface .cm-editor {
+  color: #d8dee9;
+}
+
+.milkdown-theme-githubLight {
+  --milkdown-theme-surface: #ffffff;
+  --milkdown-theme-panel: #f6f8fa;
+  --milkdown-theme-border: #d0d7de;
+}
+
+.milkdown-theme-oneDark {
+  --milkdown-theme-surface: #282c34;
+  --milkdown-theme-panel: #21252b;
+  --milkdown-theme-border: #4b5263;
+}
+
+.milkdown-theme-githubDark {
+  --milkdown-theme-surface: #0d1117;
+  --milkdown-theme-panel: #161b22;
+  --milkdown-theme-border: #30363d;
+}
+
+.milkdown-theme-vscodeDark {
+  --milkdown-theme-surface: #1e1e1e;
+  --milkdown-theme-panel: #252526;
+  --milkdown-theme-border: #3c3c3c;
+}
+
+.milkdown-theme-dracula {
+  --milkdown-theme-surface: #282a36;
+  --milkdown-theme-panel: #21222c;
+  --milkdown-theme-border: #44475a;
+}
+
+.milkdown-theme-nord {
+  --milkdown-theme-surface: #2e3440;
+  --milkdown-theme-panel: #3b4252;
+  --milkdown-theme-border: #4c566a;
+}
+
+.milkdown-theme-sublime {
+  --milkdown-theme-surface: #272822;
+  --milkdown-theme-panel: #1f201c;
+  --milkdown-theme-border: #4f5b66;
+}
+
+.milkdown-surface .cm-editor,
+.milkdown-surface .cm-scroller {
+  height: 100%;
+  background: transparent !important;
+}
+
+.milkdown-surface .cm-editor {
+  color: var(--md-sys-color-on-surface);
+}
+
+.milkdown-surface .cm-gutters {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 88%, transparent) !important;
+  color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 84%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 42%, transparent);
+}
+
+.dark .milkdown-surface .cm-gutters {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 92%, transparent) !important;
+  color: color-mix(in srgb, #d8dee9 84%, transparent);
+  border-right-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 55%, transparent);
+}
+
+.milkdown-editor-shell .milkdown .ProseMirror {
+  min-height: 100%;
+  padding: 0.75rem 0.9rem 0.8rem;
+  color: var(--md-sys-color-on-surface);
+  font-family: var(--editor-font, "JetBrains Mono", monospace);
+  font-size: var(--editor-font-size, 16px);
+  line-height: 1.8;
+}
+
+.milkdown-root-host,
+.milkdown-root-host [data-milkdown-root] {
+  height: 100%;
+  min-height: 100%;
+}
+
+.milkdown-editor-shell .milkdown .crepe {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.milkdown-editor-shell .milkdown .ProseMirror h1,
+.milkdown-editor-shell .milkdown .ProseMirror h2,
+.milkdown-editor-shell .milkdown .ProseMirror h3,
+.milkdown-editor-shell .milkdown .ProseMirror h4,
+.milkdown-editor-shell .milkdown .ProseMirror h5,
+.milkdown-editor-shell .milkdown .ProseMirror h6 {
+  scroll-margin-top: 96px;
+}
+
+.milkdown-editor-shell .milkdown .toolbar,
+.milkdown-editor-shell .milkdown .topbar {
+  border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 70%, transparent);
+}
+
+.milkdown-mode-toggle {
+  min-width: 236px;
+}
+
+.milkdown-mode-toggle-indicator {
+  left: 0.25rem;
+  background: linear-gradient(
+    135deg,
+    var(--md-sys-color-primary),
+    color-mix(in srgb, var(--md-sys-color-primary) 72%, var(--md-sys-color-tertiary) 28%)
+  );
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
+}
+
+.milkdown-code-shell {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-low) 86%, transparent);
+}
+
+.milkdown-code-surface {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--md-sys-color-surface-container-low) 96%, transparent),
+      color-mix(in srgb, var(--md-sys-color-surface-container) 98%, transparent)
+    ),
+    color-mix(in srgb, var(--md-sys-color-surface) 94%, transparent);
+}
+
+.milkdown-code-editor,
+.milkdown-code-mirror,
+.milkdown-code-mirror .cm-editor,
+.milkdown-code-mirror .cm-scroller {
+  height: 100%;
+}
+
+.milkdown-code-mirror .cm-editor {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-low) 96%, transparent) !important;
+  color: var(--md-sys-color-on-surface) !important;
+}
+
+.milkdown-code-mirror .cm-scroller {
+  background: transparent !important;
+}
+
+.milkdown-code-mirror .cm-content {
+  color: var(--md-sys-color-on-surface) !important;
+}
+
+.milkdown-code-mirror .cm-gutters {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 96%, transparent) !important;
+  color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 88%, transparent) !important;
+  border-right: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 72%, transparent) !important;
+}
+
+.milkdown-code-mirror .cm-cursor,
+.milkdown-code-mirror .cm-dropCursor {
+  border-left-color: var(--md-sys-color-primary) !important;
+}
+
+.milkdown-editor-shell .milkdown .topbar {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 92%, transparent);
+}
+
+.milkdown-editor-shell .milkdown .editor {
+  background: transparent;
+  flex: 1;
+  min-height: 0;
+}
+
+.milkdown-preview-fill {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--md-sys-color-surface-container-low) 96%, transparent),
+      color-mix(in srgb, var(--md-sys-color-surface-container) 98%, transparent)
+    );
+}
+
+.dark .milkdown-preview-fill {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--md-sys-color-surface-container) 96%, transparent),
+      color-mix(in srgb, var(--md-sys-color-surface-container-high) 98%, transparent)
+    );
+}
+
+.milkdown-surface .milkdown .toolbar,
+.milkdown-surface .milkdown .topbar {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 92%, transparent);
+}
+
+.dark .milkdown-surface .milkdown .toolbar,
+.dark .milkdown-surface .milkdown .topbar {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 94%, transparent);
+}
+
+.milkdown-surface-dark .milkdown .ProseMirror,
+.milkdown-surface-dark .milkdown .topbar,
+.milkdown-surface-dark .text-slate-400,
+.milkdown-surface-dark .text-slate-500 {
+  color: #d8dee9;
+}
+
+.milkdown-editor-shell[data-mode="direct"] .milkdown .ProseMirror {
+  min-height: auto;
+  cursor: default;
+  opacity: 0.96;
+}
+
+.milkdown-editor-shell[data-mode="direct"] .milkdown-root-host,
+.milkdown-editor-shell[data-mode="direct"] .milkdown-root-host [data-milkdown-root],
+.milkdown-editor-shell[data-mode="direct"] .milkdown .crepe,
+.milkdown-editor-shell[data-mode="direct"] .milkdown .editor {
+  min-height: 0;
+}
+
+.milkdown-editor-shell[data-mode="direct"] .milkdown .editor {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--md-sys-color-surface-container-low) 96%, transparent),
+      color-mix(in srgb, var(--md-sys-color-surface-container) 98%, transparent)
+    );
+}
+
+.milkdown-editor-shell[data-mode="direct"] .milkdown .ProseMirror {
+  padding-bottom: 2.5rem;
+}
+
+.milkdown-editor-shell[data-mode="direct"] .milkdown .ProseMirror::selection,
+.milkdown-editor-shell[data-mode="direct"] .milkdown .ProseMirror *::selection {
+  background: color-mix(in srgb, var(--md-sys-color-primary) 18%, transparent);
+}
+
+.dark .milkdown-mode-toggle-indicator {
+  background: linear-gradient(
+    135deg,
+    var(--md-sys-color-primary),
+    color-mix(in srgb, var(--md-sys-color-primary) 68%, var(--md-sys-color-secondary) 32%)
+  );
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--md-sys-color-primary) 26%, transparent);
+}
+
+.dark .milkdown-editor-shell[data-mode="direct"] .milkdown .editor {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--md-sys-color-surface-container) 95%, transparent),
+      color-mix(in srgb, var(--md-sys-color-surface-container-high) 98%, transparent)
+    );
+}
+
+.dark .milkdown-code-shell {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 92%, transparent);
+}
+
+.dark .milkdown-code-surface {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--md-sys-color-surface-container) 94%, transparent),
+      color-mix(in srgb, var(--md-sys-color-surface-container-high) 98%, transparent)
+    ),
+    var(--md-sys-color-surface-container-high);
+}
+
+.dark .milkdown-code-mirror .cm-editor {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container-high) 98%, transparent) !important;
+  color: var(--md-sys-color-on-surface) !important;
+}
+
+.dark .milkdown-code-mirror .cm-content {
+  color: var(--md-sys-color-on-surface) !important;
+}
+
+.dark .milkdown-code-mirror .cm-gutters {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 94%, transparent) !important;
+  color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 88%, transparent) !important;
+}
+
+.gravity-editor-pane .g-md-editor-component,
+.gravity-editor-pane .g-md-editor-component__editor-wrapper,
+.gravity-editor-pane .g-md-editor-component__editor {
+  height: 100%;
+}
+
+.gravity-editor-pane .g-md-markup-editor,
+.gravity-editor-pane .g-md-markup-preview {
+  min-height: 0;
+}
+
+.gravity-editor-pane .g-md-markup-preview__outer {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.gravity-editor-preview {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.gravity-editor-preview-card {
+  flex: 1;
+}
+
+.gravity-editor-pane--preview-only .g-md-editor-component__editor-wrapper,
+.gravity-editor-pane--preview-only .g-md-editor-component__resizer {
+  display: none !important;
+}
+
+.gravity-editor-pane--preview-only .g-md-markup-preview__outer {
+  margin: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.gravity-editor-pane--preview-only .g-md-markup-preview__preview-sign {
+  display: none;
+}
+
+.notemark-editor-shell {
+  position: relative;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--primary, #3b82f6) 12%, transparent) 0%, transparent 34%),
+    radial-gradient(circle at bottom right, color-mix(in srgb, #f59e0b 12%, transparent) 0%, transparent 28%),
+    linear-gradient(180deg, color-mix(in srgb, white 82%, transparent), color-mix(in srgb, var(--md-sys-color-surface) 94%, transparent));
+}
+
+.notemark-editor-backdrop {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, white 16%, transparent), transparent 24%),
+    radial-gradient(circle at 20% 0%, color-mix(in srgb, white 28%, transparent), transparent 42%);
+  opacity: 0.95;
+}
+
+.notemark-editor-frame {
+  border: 1px solid color-mix(in srgb, white 78%, var(--md-sys-color-outline-variant) 22%);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, white 88%, transparent), color-mix(in srgb, white 72%, transparent)),
+    color-mix(in srgb, var(--md-sys-color-surface-container-low) 88%, transparent);
+  box-shadow:
+    0 30px 90px rgba(15, 23, 42, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(26px);
+}
+
+.notemark-editor-header {
+  border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 72%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, white 68%, transparent), color-mix(in srgb, white 28%, transparent)),
+    transparent;
+}
+
+.notemark-editor-eyebrow {
+  color: color-mix(in srgb, var(--primary, #3b82f6) 72%, #475569 28%);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.notemark-editor-title {
+  color: #0f172a;
+  font-family: var(--font-serif, "Playfair Display", serif);
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.notemark-editor-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.notemark-editor-pill,
+.notemark-editor-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, white 64%, var(--md-sys-color-outline-variant) 36%);
+  backdrop-filter: blur(10px);
+}
+
+.notemark-editor-pill {
+  background: color-mix(in srgb, var(--primary, #3b82f6) 11%, white 89%);
+  color: color-mix(in srgb, var(--primary, #3b82f6) 75%, #334155 25%);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 0.4rem 0.8rem;
+  text-transform: uppercase;
+}
+
+.notemark-editor-meta {
+  background: color-mix(in srgb, white 84%, transparent);
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.55rem 0.85rem;
+}
+
+.notemark-editor-surface {
+  border: 1px solid color-mix(in srgb, white 62%, var(--md-sys-color-outline-variant) 38%);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, white 92%, transparent), color-mix(in srgb, white 78%, transparent)),
+    color-mix(in srgb, var(--md-sys-color-surface) 92%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 12px 40px rgba(15, 23, 42, 0.06);
+}
+
+.notemark-editor-view,
+.notemark-editor-view .g-md-editor,
+.notemark-editor-view .g-md-editor-component,
+.notemark-editor-view .g-md-editor-component__editor-wrapper {
+  height: 100%;
+}
+
+.notemark-editor-view .g-md-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 72%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, white 82%, transparent), color-mix(in srgb, white 68%, transparent)),
+    color-mix(in srgb, var(--md-sys-color-surface-container-low) 86%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+.notemark-editor-view .g-md-toolbar__button,
+.notemark-editor-view .g-md-toolbar__button-more {
+  border-radius: 12px;
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.notemark-editor-view .g-md-toolbar__button:hover,
+.notemark-editor-view .g-md-toolbar__button-more:hover {
+  background: color-mix(in srgb, var(--primary, #3b82f6) 12%, white 88%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary, #3b82f6) 14%, transparent);
+  transform: translateY(-1px);
+}
+
+.notemark-editor-view .g-md-toolbar__button_active,
+.notemark-editor-view .g-md-toolbar__button-more_active {
+  background: color-mix(in srgb, var(--primary, #3b82f6) 16%, white 84%);
+  color: color-mix(in srgb, var(--primary, #3b82f6) 78%, #334155 22%);
+}
+
+.notemark-editor-view .cm-editor,
+.notemark-editor-view .cm-scroller {
+  height: 100%;
+  background: transparent !important;
+}
+
+.notemark-editor-view .cm-gutters {
+  background: color-mix(in srgb, white 45%, transparent) !important;
+  border-right: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 60%, transparent);
+}
+
+.notemark-editor-view .cm-content {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem clamp(1.2rem, 3vw, 2.75rem) 16rem;
+}
+
+.notemark-editor-view .cm-line {
+  padding-block: 0.14rem;
+}
+
+.notemark-editor-view .cm-activeLine {
+  background: color-mix(in srgb, var(--primary, #3b82f6) 6%, transparent);
+  border-radius: 10px;
+}
+
+.notemark-editor-view .cm-selectionBackground {
+  background: color-mix(in srgb, var(--primary, #3b82f6) 22%, transparent) !important;
+}
+
+.notemark-editor-view .cm-focused {
+  outline: none;
+}
+
+.notemark-editor-view .cm-scroller::-webkit-scrollbar {
+  width: 12px;
+}
+
+.notemark-editor-view .cm-scroller::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, #94a3b8 48%, transparent);
+  background-clip: padding-box;
+}
+
+.notemark-editor-view .cm-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dark .notemark-editor-shell {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--primary, #60a5fa) 16%, transparent) 0%, transparent 34%),
+    radial-gradient(circle at bottom right, color-mix(in srgb, #f59e0b 14%, transparent) 0%, transparent 28%),
+    linear-gradient(180deg, color-mix(in srgb, #0f172a 74%, transparent), color-mix(in srgb, var(--md-sys-color-surface) 96%, transparent));
+}
+
+.dark .notemark-editor-frame {
+  border-color: color-mix(in srgb, white 10%, var(--md-sys-color-outline-variant) 90%);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #1e293b 88%, transparent), color-mix(in srgb, #0f172a 94%, transparent)),
+    color-mix(in srgb, var(--md-sys-color-surface-container) 92%, transparent);
+  box-shadow:
+    0 28px 90px rgba(2, 6, 23, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.dark .notemark-editor-header,
+.dark .notemark-editor-view .g-md-toolbar {
+  border-color: color-mix(in srgb, white 8%, var(--md-sys-color-outline-variant) 92%);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #1e293b 92%, transparent), color-mix(in srgb, #0f172a 90%, transparent)),
+    transparent;
+}
+
+.dark .notemark-editor-title {
+  color: #f8fafc;
+}
+
+.dark .notemark-editor-subtitle,
+.dark .notemark-editor-meta {
+  color: #cbd5e1;
+}
+
+.dark .notemark-editor-pill,
+.dark .notemark-editor-meta,
+.dark .notemark-editor-surface {
+  border-color: color-mix(in srgb, white 10%, var(--md-sys-color-outline-variant) 90%);
+}
+
+.dark .notemark-editor-pill {
+  background: color-mix(in srgb, var(--primary, #60a5fa) 18%, #0f172a 82%);
+  color: #bfdbfe;
+}
+
+.dark .notemark-editor-meta {
+  background: color-mix(in srgb, #1e293b 82%, transparent);
+}
+
+.dark .notemark-editor-surface {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #111827 96%, transparent), color-mix(in srgb, #0f172a 96%, transparent)),
+    color-mix(in srgb, var(--md-sys-color-surface-container) 94%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 12px 40px rgba(2, 6, 23, 0.24);
+}
+
+.dark .notemark-editor-view .g-md-toolbar__button:hover,
+.dark .notemark-editor-view .g-md-toolbar__button-more:hover,
+.dark .notemark-editor-view .g-md-toolbar__button_active,
+.dark .notemark-editor-view .g-md-toolbar__button-more_active {
+  background: color-mix(in srgb, var(--primary, #60a5fa) 20%, #0f172a 80%);
+  color: #dbeafe;
+}
+
+.dark .notemark-editor-view .cm-gutters {
+  background: color-mix(in srgb, #111827 76%, transparent) !important;
+  border-right-color: color-mix(in srgb, white 10%, var(--md-sys-color-outline-variant) 90%);
+}
+
+.dark .notemark-editor-view .cm-activeLine {
+  background: color-mix(in srgb, var(--primary, #60a5fa) 10%, transparent);
+}
+
+@media (max-width: 768px) {
+  .notemark-editor-view .cm-content {
+    padding-inline: 1rem;
+    padding-bottom: 10rem;
+  }
+}
+
 /* 编辑器字体和字号通过 CSS 变量全局注入，不在 JS theme 里设置避免行号错位 */
 .cm-editor {
   font-family: var(--editor-font, 'JetBrains Mono', monospace);
@@ -286,6 +925,18 @@ input, textarea, [contenteditable] {
 /* Editor */
 .dark .cm-editor,
 .dark .cm-scroller { background-color: var(--md-sys-color-surface-container-high) !important; }
+
+.dark .milkdown-editor-shell .crepe {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--md-sys-color-surface-container) 92%, transparent), color-mix(in srgb, var(--md-sys-color-surface-container-high) 98%, transparent)),
+    var(--md-sys-color-surface-container-high);
+  border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 88%, transparent);
+  box-shadow: none;
+}
+
+.dark .milkdown-editor-shell .milkdown .topbar {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 96%, transparent);
+}
 .dark .editor-toolbar {
   background-color: color-mix(in srgb, var(--md-sys-color-surface-container) 90%, transparent) !important;
   border-color: var(--md-sys-color-outline-variant) !important;
@@ -686,19 +1337,16 @@ input, textarea, [contenteditable] {
 }
 
 .app-m3-quickbar {
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--md-sys-color-surface-container-high) 98%, white 2%) 0%,
-      color-mix(in srgb, var(--md-sys-color-surface-container) 95%, transparent) 100%
-    );
-  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 66%, transparent);
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 96%, transparent);
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 72%, transparent);
   box-shadow:
-    0 14px 30px -22px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 30%, transparent),
-    0 10px 18px -20px color-mix(in srgb, var(--md-sys-color-primary) 22%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 26%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+    0 1px 2px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 14%, transparent),
+    0 6px 12px -10px color-mix(in srgb, var(--md-sys-color-shadow, #000000) 22%, transparent);
+}
+
+.header-quickbar {
+  min-height: 3rem;
+  padding-inline: 0.55rem;
 }
 
 .app-m3-divider {
@@ -745,31 +1393,32 @@ input, textarea, [contenteditable] {
 .app-m3-quick-btn,
 .app-m3-tool-button,
 .app-m3-window-btn {
-  border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 52%, transparent);
-  background: color-mix(in srgb, var(--md-sys-color-surface) 84%, transparent);
+  border: 1px solid transparent;
+  background: transparent;
   box-shadow:
-    0 1px 0 color-mix(in srgb, white 26%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 18%, transparent);
+    none;
 }
 
 .app-m3-quick-btn,
 .app-m3-tool-button {
-  min-height: 2.35rem;
-  min-width: 2.35rem;
-  border-radius: 0.9rem;
+  min-height: 2.5rem;
+  min-width: 2.5rem;
+  border-radius: 9999px;
 }
 
 .app-m3-quick-btn:hover,
 .app-m3-tool-button:hover {
-  box-shadow:
-    0 8px 18px -16px color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 24%, transparent);
+  transform: none;
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+  box-shadow: none;
 }
 
 .app-m3-quick-btn[data-active="true"] {
-  box-shadow:
-    0 10px 20px -18px color-mix(in srgb, var(--md-sys-color-primary) 38%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 20%, transparent);
+  transform: none;
+  border-color: transparent;
+  background: color-mix(in srgb, var(--md-sys-color-secondary-container) 96%, transparent);
+  color: var(--md-sys-color-on-secondary-container);
+  box-shadow: none;
 }
 
 .editor-toolbar-tooltip,

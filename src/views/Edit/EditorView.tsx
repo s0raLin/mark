@@ -2,7 +2,6 @@ import Header from "@/components/Header/Header";
 import MainContent from "@/components/MainContent/MainContent";
 import { useState, useCallback, useRef, useEffect } from "react";
 import Modal from "@/components/Modals/Modal";
-import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { importDroppedIntoFs } from "@/components/Sidebar/utils";
 import { importFileListIntoFs } from "@/components/Sidebar/utils";
@@ -24,7 +23,6 @@ import {
 // ── EditorView ───────────────────────────────────────────────────────────────-
 
 export default function EditorView() {
-  const toolbarRef = useRef<ReactCodeMirrorRef>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     if (typeof window === "undefined") {
@@ -377,7 +375,6 @@ export default function EditorView() {
 
         <main className="flex-1 flex overflow-hidden">
           <MainContent
-            toolbarRef={toolbarRef}
             activeFileName={
               fileSystem.nodes.find((n) => n.id === fileSystem.activeFileId)
                 ?.name ?? ""
