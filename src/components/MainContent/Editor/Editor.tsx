@@ -3,6 +3,8 @@ import { FileType2, Braces, LayoutTemplate, Lock, Music4 } from "lucide-react";
 import { Crepe, CrepeFeature } from "@milkdown/crepe";
 import { replaceAll } from "@milkdown/kit/utils";
 import { Milkdown, MilkdownProvider, useEditor } from "@milkdown/react";
+import { highlight, highlightPluginConfig } from "@milkdown/plugin-highlight";
+import { createParser } from "@milkdown/plugin-highlight/sugar-high";
 import CodeMirror from "@uiw/react-codemirror";
 import { markdown as markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
@@ -51,9 +53,10 @@ function getCodeMirrorTheme(editorTheme: EditorTheme) {
 }
 
 function getSourceEditorTheme(editorTheme: EditorTheme, darkMode: boolean) {
-  void editorTheme;
-  void darkMode;
-  return "none";
+  if (editorTheme === "githubLight" && darkMode) {
+    return githubDark;
+  }
+  return getCodeMirrorTheme(editorTheme);
 }
 
 function formatFileSize(size?: number) {
@@ -172,6 +175,15 @@ function MilkdownEditorInner({
       },
     });
 
+    const highlightParser = createParser();
+    editor.addFeature((milkdownEditor) => {
+      milkdownEditor.config((ctx) => {
+        ctx.set(highlightPluginConfig.key, {
+          parser: highlightParser,
+        });
+      }).use(highlight);
+    });
+
     editor.on((listener) => {
       listener.markdownUpdated((_ctx, nextMarkdown) => {
         lastAppliedMarkdownRef.current = nextMarkdown;
@@ -273,14 +285,14 @@ export function MilkdownEditor({
   }
 
   return (
-    <section className="flex min-w-0 flex-1 border-r border-border-soft bg-white/35">
+    <section className="flex min-w-0 flex-1 border-r border-border-soft bg-white/35 dark:bg-slate-800/40">
       <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="flex items-center justify-between border-b border-border-soft bg-white/55 px-3 py-2 md:px-4">
-          <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
+        <div className="flex items-center justify-between border-b border-border-soft bg-white/55 px-3 py-2 dark:bg-slate-800/60 md:px-4">
+          <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-400">
             Document Workspace
           </div>
 
-          <div className="milkdown-mode-toggle relative inline-grid grid-cols-2 rounded-full border border-border-soft bg-white/70 p-1 dark:bg-transparent">
+          <div className="milkdown-mode-toggle relative inline-grid grid-cols-2 rounded-full border border-border-soft bg-white/70 p-1 dark:border-slate-600/50 dark:bg-slate-700/50">
             <div
               className={cn(
                 "milkdown-mode-toggle-indicator absolute top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-full transition-transform duration-300",
@@ -292,7 +304,7 @@ export function MilkdownEditor({
               onClick={() => setMode("code")}
               className={cn(
                 "relative z-10 inline-flex min-w-[120px] items-center justify-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
-                mode === "code" ? "text-white" : "text-slate-500 hover:text-slate-800",
+                mode === "code" ? "text-white" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200",
               )}
             >
               <Braces className="h-3.5 w-3.5" />
@@ -303,7 +315,7 @@ export function MilkdownEditor({
               onClick={() => setMode("direct")}
               className={cn(
                 "relative z-10 inline-flex min-w-[120px] items-center justify-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
-                mode === "direct" ? "text-white" : "text-slate-500 hover:text-slate-800",
+                mode === "direct" ? "text-white" : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200",
               )}
             >
               <LayoutTemplate className="h-3.5 w-3.5" />
