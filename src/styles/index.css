@@ -11,6 +11,8 @@
 
 @reference "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* 自定义标题栏拖拽区域样式 */
 .drag-region {
   -webkit-app-region: drag;
@@ -273,7 +275,7 @@ input, textarea, [contenteditable] {
 }
 
 .milkdown-editor-shell .milkdown .topbar {
-  background: color-mix(in srgb, var(--md-sys-color-surface-container) 92%, transparent);
+  background: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container) 92%);
 }
 
 .milkdown-editor-shell .milkdown .editor {
@@ -302,12 +304,12 @@ input, textarea, [contenteditable] {
 
 .milkdown-surface .milkdown .toolbar,
 .milkdown-surface .milkdown .topbar {
-  background: color-mix(in srgb, var(--md-sys-color-surface-container) 92%, transparent);
+  background: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container) 92%);
 }
 
 .dark .milkdown-surface .milkdown .toolbar,
 .dark .milkdown-surface .milkdown .topbar {
-  background: color-mix(in srgb, var(--md-sys-color-surface-container) 94%, transparent);
+  background: color-mix(in srgb, var(--md-sys-color-primary) 8%, var(--md-sys-color-surface-container) 92%);
 }
 
 .milkdown-surface-dark .milkdown .ProseMirror,
@@ -355,6 +357,15 @@ input, textarea, [contenteditable] {
     color-mix(in srgb, var(--md-sys-color-primary) 68%, var(--md-sys-color-secondary) 32%)
   );
   box-shadow: 0 10px 24px color-mix(in srgb, var(--md-sys-color-primary) 26%, transparent);
+}
+
+.dark .milkdown-mode-toggle {
+  background: color-mix(in srgb, var(--md-sys-color-surface-container) 80%, transparent);
+  border-color: color-mix(in srgb, var(--md-sys-color-outline-variant) 50%, transparent);
+}
+
+.dark .milkdown-mode-toggle .text-slate-500 {
+  color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 80%, transparent);
 }
 
 .dark .milkdown-editor-shell[data-mode="direct"] .milkdown .editor {
@@ -935,7 +946,7 @@ input, textarea, [contenteditable] {
 }
 
 .dark .milkdown-editor-shell .milkdown .topbar {
-  background: color-mix(in srgb, var(--md-sys-color-surface-container) 96%, transparent);
+  background: color-mix(in srgb, var(--md-sys-color-primary) 8%, var(--md-sys-color-surface-container) 92%);
 }
 .dark .editor-toolbar {
   background-color: color-mix(in srgb, var(--md-sys-color-surface-container) 90%, transparent) !important;
@@ -2241,4 +2252,37 @@ input, textarea, [contenteditable] {
 body.window-closing {
   animation: window-close 0.2s ease-out forwards;
   pointer-events: none;
+}
+
+/* Sugar High syntax highlighting */
+:root {
+  --sh-identifier: #24292e;
+  --sh-keyword: #d73a49;
+  --sh-string: #032f62;
+  --sh-class: #6f42c1;
+  --sh-property: #005cc5;
+  --sh-entity: #e36209;
+  --sh-jsxliterals: #005cc5;
+  --sh-sign: #24292e;
+  --sh-comment: #6a737d;
+  --sh-break: #24292e;
+  --sh-space: transparent;
+}
+
+.dark {
+  --sh-identifier: #e1e4e8;
+  --sh-keyword: #f97583;
+  --sh-string: #9ecbff;
+  --sh-class: #b392f0;
+  --sh-property: #79b8ff;
+  --sh-entity: #ffab70;
+  --sh-jsxliterals: #79b8ff;
+  --sh-sign: #e1e4e8;
+  --sh-comment: #8b949e;
+  --sh-break: #e1e4e8;
+  --sh-space: transparent;
+}
+
+.sh__token--comment {
+  font-style: italic;
 }
