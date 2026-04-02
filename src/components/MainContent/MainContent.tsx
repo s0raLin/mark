@@ -4,8 +4,7 @@ import { useHeadings, useScrollSync } from "./hooks";
 import { MainContentProps } from "./types";
 import { useEditorConfigContext } from "@/contexts/EditorConfig/EditorThemeProvider";
 import { useMarkdownSyncContext } from "@/contexts/MarkdownSyncContext";
-import { Editor, MilkdownEditorWrapper } from "./Editor/Editor";
-import { MarkupString } from "@gravity-ui/markdown-editor";
+import { MilkdownEditorWrapper } from "./Editor/Editor";
 
 export default function MainContent({
   activeFileName,
@@ -35,18 +34,6 @@ export default function MainContent({
 
   return (
     <div className="flex h-full w-full overflow-hidden">
-      {/* <MilkdownEditor
-        fileKey={markdownSync.activeFileContent?.id ?? activeFileName}
-        markdown={markdownSync.markdown}
-        setMarkdown={markdownSync.setMarkdown}
-        activeFileContent={markdownSync.activeFileContent}
-        headings={headings}
-        editorTheme={editorConfig.editorTheme}
-        darkMode={editorConfig.darkMode}
-        editorFont={editorConfig.editorFont}
-        editorFontSize={editorConfig.editorFontSize}
-        scrollContainerRef={editorScrollRef}
-      /> */}
       <MilkdownEditorWrapper />
       <Outline
         headings={headings}
