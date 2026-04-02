@@ -1,7 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Notemark
-Exec=/opt/notemark/notemark
-Icon=/opt/notemark/icon.png
-Terminal=false
-Categories=Utility;
