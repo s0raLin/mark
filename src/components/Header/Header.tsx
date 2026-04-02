@@ -1,13 +1,10 @@
 import {
-  Eye, Terminal, Upload,
-  FilePlus, Save, FileDown, Search,
-  Settings, Sparkles, Columns2,
+  Upload, FilePlus, Save, FileDown, Search, Settings, Sparkles,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useTranslation } from "react-i18next";
 import WindowControls from "./WindowControls";
 import { useEditorConfigContext } from "@/contexts/EditorConfig/EditorThemeProvider";
-import { useEditorStateContext } from "@/contexts/EditorStateContext";
 
 interface HeaderProps {
   onNewSparkle?: () => void;
@@ -35,7 +32,7 @@ function QuickBtn({ icon, label, onClick, active }: ActionBtn) {
       <button
         onClick={onClick}
         className={cn(
-          "app-m3-quick-btn h-8 w-8 flex items-center justify-center rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
+          "app-m3-quick-btn h-10 w-10 flex items-center justify-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
           active
             ? "text-primary"
             : "text-slate-400",
@@ -67,7 +64,6 @@ export default function Header({
 }: HeaderProps) {
   const { t } = useTranslation();
   const { particlesOn, setParticlesOn } = useEditorConfigContext();
-  const editorState = useEditorStateContext();
   
   const actions: ActionBtn[] = [
     { icon: <FilePlus className="w-4 h-4" />, label: t("header.newFile"), onClick: onNewSparkle },
@@ -91,35 +87,15 @@ export default function Header({
 
       {/* Center - Quick Action Bar */}
       <div className="absolute left-1/2 -translate-x-1/2 [-webkit-app-region:no-drag]">
-        <div className="app-m3-quickbar header-quickbar flex items-center gap-0.5 rounded-xl px-2 py-1">
+        <div className="app-m3-quickbar header-quickbar flex items-center gap-1 rounded-full px-2 py-1">
           {actions.map((action, i) => (
             <div key={i} className="flex items-center">
               <QuickBtn {...action} />
               {action.dividerAfter && (
-                <div className="app-m3-divider w-px h-5 mx-1.5" />
+                <div className="app-m3-divider h-5 w-px mx-1" />
               )}
             </div>
           ))}
-
-          {/* View mode divider + switcher */}
-          <div className="app-m3-divider w-px h-5 mx-1.5" />
-          <div className="flex items-center gap-0.5">
-            {(
-              [
-                { mode: "split" as const, icon: <Columns2 className="w-4 h-4" />, label: t("header.splitView") },
-                { mode: "editor" as const, icon: <Terminal className="w-4 h-4" />, label: t("header.editorOnly") },
-                { mode: "preview" as const, icon: <Eye className="w-4 h-4" />, label: t("header.previewOnly") },
-              ] as { mode: "split" | "editor" | "preview"; icon: React.ReactNode; label: string }[]
-            ).map(({ mode, icon, label }) => (
-              <QuickBtn
-                key={mode}
-                icon={icon}
-                label={label}
-                active={editorState.viewMode === mode}
-                onClick={() => editorState.handleViewModeChange(mode)}
-              />
-            ))}
-          </div>
         </div>
       </div>
 

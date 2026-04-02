@@ -1,48 +1,43 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { Heading } from "../types";
 
 interface UseScrollSyncProps {
   headings: Heading[];
-  viewMode: string;
-  previewRef: React.RefObject<HTMLDivElement | null>;
+  containerRef: React.RefObject<HTMLElement | null>;
   setActiveOutlineId: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 export function useScrollSync({
   headings,
-  viewMode,
-  previewRef,
+  containerRef,
   setActiveOutlineId,
 }: UseScrollSyncProps) {
-  const headingRefsMap = useRef<Map<string, HTMLElement>>(new Map());
+  const getHeadingElement = useCallback(
+    (id: string) => {
+      const container = containerRef.current;
+      if (!container) {
+        return null;
+      }
 
-  // markdown 变化时清空映射，等待重新注册
+      return container.querySelector<HTMLElement>(`[data-outline-id="${id}"]`);
+    },
+    [containerRef],
+  );
+
   useEffect(() => {
-    headingRefsMap.current.clear();
-  }, [headings]);
-
-  // 注册 heading DOM 元素到 ref 映射的回调
-  const registerHeadingRef = useCallback((id: string) => (el: HTMLElement | null) => {
-    if (el) {
-      headingRefsMap.current.set(id, el);
-    }
-  }, []);
-
-  // scroll 事件同步高亮
-  useEffect(() => {
-    const preview = previewRef.current;
-    if (!preview || headings.length === 0) return;
+    const container = containerRef.current;
+    if (!container || headings.length === 0) return;
 
     const syncActive = () => {
-      const scrollTop = preview.scrollTop;
+      const scrollTop = container.scrollTop;
       let activeId = headings[0].id;
 
       for (const heading of headings) {
-        const el = headingRefsMap.current.get(heading.id);
+        const el = getHeadingElement(heading.id);
         if (!el) continue;
         let offsetTop = 0;
         let node: HTMLElement | null = el;
-        while (node && node !== preview) {
+        while (node && node !== container) {
           offsetTop += node.offsetTop;
           node = node.offsetParent as HTMLElement | null;
         }
@@ -54,37 +49,36 @@ export function useScrollSync({
     };
 
     const raf = requestAnimationFrame(syncActive);
-    preview.addEventListener("scroll", syncActive, { passive: true });
+    container.addEventListener("scroll", syncActive, { passive: true });
 
     return () => {
       cancelAnimationFrame(raf);
-      preview.removeEventListener("scroll", syncActive);
+      container.removeEventListener("scroll", syncActive);
     };
-  }, [headings, viewMode, previewRef, setActiveOutlineId]);
+  }, [containerRef, getHeadingElement, headings, setActiveOutlineId]);
 
   const scrollToSection = useCallback(
     (id: string) => {
-      if (!id || !previewRef.current) return;
+      const container = containerRef.current;
+      if (!id || !container) return;
       setActiveOutlineId(id);
 
-      const el = headingRefsMap.current.get(id);
+      const el = getHeadingElement(id);
       if (!el) return;
 
       let offsetTop = 0;
       let node: HTMLElement | null = el;
-      while (node && node !== previewRef.current) {
+      while (node && node !== container) {
         offsetTop += node.offsetTop;
         node = node.offsetParent as HTMLElement | null;
       }
 
-      previewRef.current.scrollTo({ top: offsetTop - 80, behavior: "smooth" });
+      container.scrollTo({ top: offsetTop - 80, behavior: "smooth" });
     },
-    [previewRef, setActiveOutlineId],
+    [containerRef, getHeadingElement, setActiveOutlineId],
   );
 
   return {
-    headingRefsMap,
-    registerHeadingRef,
     scrollToSection,
   };
 }

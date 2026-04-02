@@ -73,7 +73,7 @@ export function EditorStateProvider({
     expandedFolders,
     setExpandedFolders,
   } = useFileSystemContext();
-  const [viewMode, setViewMode] = useState<ViewMode>("split");
+  const [viewMode, setViewMode] = useState<ViewMode>("editor");
   const [particlesOn, setParticlesOn] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);

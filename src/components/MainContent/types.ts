@@ -1,7 +1,4 @@
-import { ReactCodeMirrorRef } from "@uiw/react-codemirror";
-
 export interface MainContentProps {
-  toolbarRef?: React.RefObject<ReactCodeMirrorRef>;
   activeFileName: string;
 }
 
