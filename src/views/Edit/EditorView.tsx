@@ -126,15 +126,18 @@ export default function EditorView() {
     workspacePickerRef.current?.click();
   }, []);
 
-  const handleWorkspaceSelection = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) {
-      return;
-    }
+  const handleWorkspaceSelection = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (!files || files.length === 0) {
+        return;
+      }
 
-    await importFileListIntoFs(files, fileSystem, { replaceExisting: true });
-    event.target.value = "";
-  }, [fileSystem]);
+      await importFileListIntoFs(files, fileSystem, { replaceExisting: true });
+      event.target.value = "";
+    },
+    [fileSystem],
+  );
 
   const handleNewProject = useCallback(async () => {
     await fileSystem.resetWorkspace();
@@ -145,50 +148,64 @@ export default function EditorView() {
     });
   }, [fileSystem]);
 
-  const isExternalFileDrag = useCallback((dataTransfer: DataTransfer | null) => {
-    if (!dataTransfer) {
-      return false;
-    }
+  const isExternalFileDrag = useCallback(
+    (dataTransfer: DataTransfer | null) => {
+      if (!dataTransfer) {
+        return false;
+      }
 
-    return Array.from(dataTransfer.types ?? []).includes("Files");
-  }, []);
+      return Array.from(dataTransfer.types ?? []).includes("Files");
+    },
+    [],
+  );
 
-  const handleWorkspaceDragOver = useCallback((e: React.DragEvent) => {
-    if (!isExternalFileDrag(e.dataTransfer)) {
-      return;
-    }
+  const handleWorkspaceDragOver = useCallback(
+    (e: React.DragEvent) => {
+      if (!isExternalFileDrag(e.dataTransfer)) {
+        return;
+      }
 
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
-    setIsWorkspaceDragOver(true);
-  }, [isExternalFileDrag]);
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+      setIsWorkspaceDragOver(true);
+    },
+    [isExternalFileDrag],
+  );
 
-  const handleWorkspaceDragLeave = useCallback((e: React.DragEvent) => {
-    if (!isExternalFileDrag(e.dataTransfer)) {
-      return;
-    }
+  const handleWorkspaceDragLeave = useCallback(
+    (e: React.DragEvent) => {
+      if (!isExternalFileDrag(e.dataTransfer)) {
+        return;
+      }
 
-    const nextTarget = e.relatedTarget as Node | null;
-    if (nextTarget && e.currentTarget.contains(nextTarget)) {
-      return;
-    }
+      const nextTarget = e.relatedTarget as Node | null;
+      if (nextTarget && e.currentTarget.contains(nextTarget)) {
+        return;
+      }
 
-    setIsWorkspaceDragOver(false);
-  }, [isExternalFileDrag]);
+      setIsWorkspaceDragOver(false);
+    },
+    [isExternalFileDrag],
+  );
 
-  const handleWorkspaceDrop = useCallback(async (e: React.DragEvent) => {
-    if (!isExternalFileDrag(e.dataTransfer)) {
-      return;
-    }
+  const handleWorkspaceDrop = useCallback(
+    async (e: React.DragEvent) => {
+      if (!isExternalFileDrag(e.dataTransfer)) {
+        return;
+      }
 
-    e.preventDefault();
-    setIsWorkspaceDragOver(false);
-    await importDroppedIntoFs(e.dataTransfer, fileSystem, null);
-  }, [fileSystem, isExternalFileDrag]);
+      e.preventDefault();
+      setIsWorkspaceDragOver(false);
+      await importDroppedIntoFs(e.dataTransfer, fileSystem, null);
+    },
+    [fileSystem, isExternalFileDrag],
+  );
 
   useEffect(() => {
     const isExternalFiles = (dataTransfer: DataTransfer | null) =>
-      Boolean(dataTransfer && Array.from(dataTransfer.types ?? []).includes("Files"));
+      Boolean(
+        dataTransfer && Array.from(dataTransfer.types ?? []).includes("Files"),
+      );
 
     const handleWindowDragEnter = (event: DragEvent) => {
       if (!isExternalFiles(event.dataTransfer)) {
@@ -241,7 +258,11 @@ export default function EditorView() {
       }
 
       try {
-        await importDroppedIntoFs(event.dataTransfer, fileSystemRef.current, null);
+        await importDroppedIntoFs(
+          event.dataTransfer,
+          fileSystemRef.current,
+          null,
+        );
       } catch {
         // importDroppedIntoFs already emits a toast with the real error
       }
@@ -286,21 +307,20 @@ export default function EditorView() {
           const startScreenX = e.screenX;
           const startScreenY = e.screenY;
 
-          getDesktopWindowPosition()
-            .then(([winX, winY]: [number, number]) => {
-              const onMove = (me: MouseEvent) => {
-                setDesktopWindowPosition({
-                  x: Math.round(winX + me.screenX - startScreenX),
-                  y: Math.round(winY + me.screenY - startScreenY),
-                });
-              };
-              const onUp = () => {
-                window.removeEventListener("mousemove", onMove);
-                window.removeEventListener("mouseup", onUp);
-              };
-              window.addEventListener("mousemove", onMove);
-              window.addEventListener("mouseup", onUp);
-            });
+          getDesktopWindowPosition().then(([winX, winY]: [number, number]) => {
+            const onMove = (me: MouseEvent) => {
+              setDesktopWindowPosition({
+                x: Math.round(winX + me.screenX - startScreenX),
+                y: Math.round(winY + me.screenY - startScreenY),
+              });
+            };
+            const onUp = () => {
+              window.removeEventListener("mousemove", onMove);
+              window.removeEventListener("mouseup", onUp);
+            };
+            window.addEventListener("mousemove", onMove);
+            window.addEventListener("mouseup", onUp);
+          });
         }}
       >
         <Header
@@ -382,14 +402,6 @@ export default function EditorView() {
           />
         </main>
       </div>
-
-      {/* <footer className="h-10 bg-white/70 backdrop-blur-xl border-t border-border-soft px-6 flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase tracking-wider shrink-0 relative z-10">
-        <Footer
-          isSaving={editorState.isSaving}
-          lastSaved={editorState.lastSaved}
-          markdown={markdownSync.markdown}
-        />
-      </footer> */}
 
       <Modal
         isExportModalOpen={isModalOpen(ROUTES.EXPORT)}
